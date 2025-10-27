@@ -13,3 +13,62 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  clerkId      String   @unique  // ID que Clerk te da (user.id)
+  nombre       String?
+  apellidos    String?
+  email        String?  
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+model Asignatura{
+  id String @id @default(uuid()) @db.Uuid
+  user_id String @db.Uuid
+  nombre String
+  descripcion String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // relación uno-a-muchos con partesExamen
+  examenes Examen[]
+}
+
+enum Convocatoria{
+  Febrero
+  Junio
+  Septiembre
+  Diciembre
+}
+
+model Examen {
+  id String @id @default(uuid()) @db.Uuid
+  id_asign String @db.Uuid
+  partes Int
+  convocatoria Convocatoria 
+  anno  Int
+  duracion_h Int
+  duracion_m  Int
+  created_at  DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // relación uno-a-muchos con partesExamen
+  partesExamen partesExamen[]
+  // FK hacia asignatura
+  asignatura Asignatura @relation(fields: [id_asign], references: [id])
+}
+
+model partesExamen{
+  id String @id @default(uuid()) @db.Uuid
+  id_examen String @db.Uuid
+  nombre String
+  duracion_h Int
+  duracion_m Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // FK hacia examen
+  examen Examen @relation(fields: [id_examen], references: [id])
+}

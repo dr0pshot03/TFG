@@ -9,14 +9,17 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@clerk/clerk-react": "^5.53.3",
+    "@clerk/express": "^1.7.42",
+    "@prisma/client": "^6.18.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.6.2",
     "nodemon": "^3.1.10",

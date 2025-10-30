@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as asignaturaService from "../services/asignaturas.services";
+import * as asignaturaService from "../services/asignaturas.services.js";
 
 export async function createAsignatura(req: Request, res: Response){
     try{
@@ -17,7 +17,7 @@ export async function createAsignatura(req: Request, res: Response){
 
 export async function getAllAsignaturas(req: Request, res: Response){
     try{
-        const id = req.body.id;
+        const id = req.body.userId;
         const asignaturas = await asignaturaService.getAllAsignaturas(id);
         res.json(asignaturas);
     }catch(error)

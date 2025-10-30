@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as examenController from "../controllers/examen.controller";
+import * as examenController from "../controllers/examen.controller.js";
 import { requireAuth } from "@clerk/express";
 
 const router = Router();
@@ -8,7 +8,7 @@ const router = Router();
 router.post("/", requireAuth, examenController.createExamen);
 
 // Obtener todas las examenes
-router.get("/", requireAuth, examenController.getAllExamenes);
+router.get("/:idAsign", requireAuth, examenController.getAllExamenes);
 
 // Obtener una examen
 router.get("/:id", requireAuth, examenController.getExamen);

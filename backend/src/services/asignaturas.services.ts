@@ -7,11 +7,6 @@ export interface asignatura{
     user_id: string;
 }
 
-export interface ICreateTaskInput extends Omit<ITask, 'id'> {}
-export interface IUpdateTaskInput extends Partial<Omit<ITask, 'id'>> {
-    id: string;
-}
-
 export async function createAsignatura(data: asignatura) {
     try{
         return await prisma.asignatura.create({
@@ -42,8 +37,8 @@ export async function getAsignatura(id: string){
             where:{ id : id}
         });
     } catch (error) {
-        console.error("Error al obtener todas las asignaturas", error);
-        throw new Error("No se pudo obtener las asignaturas");
+        console.error("Error al obtener la asignatura", error);
+        throw new Error("No se pudo obtener la asignatura");
     }
 }
 
@@ -56,8 +51,8 @@ export async function updateAsignatura(id: string){
             }
         });
     } catch (error) {
-        console.error("Error al obtener todas las asignaturas", error);
-        throw new Error("No se pudo obtener las asignaturas");
+        console.error("Error al actualizar toda la asignatura", error);
+        throw new Error("No se pudo actualizar las asignatura");
     }
 }
 
@@ -67,7 +62,7 @@ export async function deleteAsignatura(id: string){
             where:{ id : id}
         });
     } catch (error) {
-        console.error("Error al obtener todas las asignaturas", error);
-        throw new Error("No se pudo obtener las asignaturas");
+        console.error("Error al eliminar la asignatura", error);
+        throw new Error("No se pudo eliminar la asignatura");
     }
 }

@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  //output   = "../generated/prisma"
 }
 
 datasource db {
@@ -26,9 +26,9 @@ model Usuario {
 
 model Asignatura{
   id String @id @default(uuid()) @db.Uuid
-  user_id String @db.Uuid
+  user_id String
   nombre String
-  descripcion String
+  descripcion String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -57,7 +57,7 @@ model Examen {
   // relación uno-a-muchos con partesExamen
   partesExamen partesExamen[]
   // FK hacia asignatura
-  asignatura Asignatura @relation(fields: [id_asign], references: [id])
+  asignatura Asignatura @relation(fields: [id_asign], references: [id], onDelete: Cascade)
 }
 
 model partesExamen{
@@ -70,5 +70,5 @@ model partesExamen{
   updated_at DateTime @updatedAt
 
   // FK hacia examen
-  examen Examen @relation(fields: [id_examen], references: [id])
+  examen Examen @relation(fields: [id_examen], references: [id], onDelete: Cascade)
 }

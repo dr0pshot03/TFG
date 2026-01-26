@@ -3,10 +3,7 @@ import * as partesExamenService from "../services/partesExamen.services.ts";
 
 export async function createParte(req: Request, res: Response){
     try{
-        const data = {
-            ...req.body,
-        };
-        const parte = await partesExamenService.createParte(data);
+        const parte = await partesExamenService.createParte(req.body);
         res.status(201).json(parte);
     }catch(error)
     {
@@ -17,7 +14,7 @@ export async function createParte(req: Request, res: Response){
 
 export async function getAllPartes(req: Request, res: Response){
     try{
-        const id = req.body.idExamen;
+        const {id} = req.params;
         const partes = await partesExamenService.getAllPartes(id);
         res.json(partes);
     }catch(error)
@@ -29,7 +26,7 @@ export async function getAllPartes(req: Request, res: Response){
 
 export async function getParte(req: Request, res: Response){
     try{
-        const idParte = req.body.idParte;
+        const {idParte} = req.params;
         const parte = await partesExamenService.getParte(idParte);
         res.json(parte);
     }catch(error)
@@ -41,8 +38,9 @@ export async function getParte(req: Request, res: Response){
 
 export async function updateParte(req: Request, res: Response){
     try{
-        const id = req.params.idParte;
-        const parte = await partesExamenService.updateParte(id!, req.body);
+        const {idParte} = req.params;
+        console.log("Estes el id"+idParte)
+        const parte = await partesExamenService.updateParte(idParte!, req.body);
         res.json(parte);
     }catch(error)
     {
@@ -53,9 +51,9 @@ export async function updateParte(req: Request, res: Response){
 
 export async function deleteParte(req: Request, res: Response){
     try{
-        const id = req.body.idParte;
-        await partesExamenService.deleteParte(id);
-        res.status(200);
+        const {idParte} = req.params;
+        await partesExamenService.deleteParte(idParte);
+        res.status(200).json({ message: "Parte de examen eliminada correctamente" });
     }catch(error)
     {
         console.error("Error al eliminar la parte del examen", error);

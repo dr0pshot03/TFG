@@ -17,7 +17,7 @@ export async function createAsignatura(req: Request, res: Response){
 
 export async function getAllAsignaturas(req: Request, res: Response){
     try{
-        const id = req.body.userId;
+        const id = req.params.userId;
         const asignaturas = await asignaturaService.getAllAsignaturas(id);
         res.json(asignaturas);
     }catch(error)
@@ -29,7 +29,7 @@ export async function getAllAsignaturas(req: Request, res: Response){
 
 export async function getAsignatura(req: Request, res: Response){
     try{
-        const id = req.body.id;
+        const id = req.params.id;
         const asignatura = await asignaturaService.getAsignatura(id);
         res.json(asignatura);
     }catch(error)
@@ -41,8 +41,10 @@ export async function getAsignatura(req: Request, res: Response){
 
 export async function updateAsignatura(req: Request, res: Response){
     try{
-        const id = req.body.id;
+        const id = req.params.id;
+        // console.log("Este es el id" + id)
         const asignatura = await asignaturaService.updateAsignatura(id, req.body);
+        
         res.json(asignatura);
     }catch(error)
     {
@@ -53,9 +55,9 @@ export async function updateAsignatura(req: Request, res: Response){
 
 export async function deleteAsignatura(req: Request, res: Response){
     try{
-        const id = req.body.id;
+        const {id} = req.params;
         await asignaturaService.deleteAsignatura(id);
-        res.status(200);
+        res.status(200).json({ message: "Asignatura eliminada correctamente" });
     }catch(error)
     {
         console.error("Error al eliminar la asignatura", error);

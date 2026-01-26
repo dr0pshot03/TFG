@@ -17,7 +17,7 @@ export async function createExamen(req: Request, res: Response){
 
 export async function getAllExamenes(req: Request, res: Response){
     try{
-        const id = req.body.idAsign;
+        const id = req.params.idAsign;
         const examenes = await partesExamenService.getAllExamenes(id);
         res.json(examenes);
     }catch(error)
@@ -29,7 +29,8 @@ export async function getAllExamenes(req: Request, res: Response){
 
 export async function getExamen(req: Request, res: Response){
     try{
-        const id = req.body.id;
+        const id = req.params.id;
+        // console.log("Este es el id del examen"+id);
         const examen = await partesExamenService.getExamen(id);
         res.json(examen);
     }catch(error)
@@ -41,7 +42,7 @@ export async function getExamen(req: Request, res: Response){
 
 export async function updateExamen(req: Request, res: Response){
     try{
-        const id = req.body.id;
+        const id = req.params.id;
         const examen = await partesExamenService.updateExamen(id, req.body);
         res.json(examen);
     }catch(error)
@@ -53,9 +54,9 @@ export async function updateExamen(req: Request, res: Response){
 
 export async function deleteExamen(req: Request, res: Response){
     try{
-        const id = req.body.id;
+        const id = req.params.id;
         await partesExamenService.deleteExamen(id);
-        res.status(200);
+        res.status(200).json({ message: "Examen eliminado correctamente" });
     }catch(error)
     {
         console.error("Error al eliminar el examen", error);

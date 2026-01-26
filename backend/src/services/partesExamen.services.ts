@@ -10,8 +10,13 @@ export interface parteExamen{
 
 export async function createParte(data: parteExamen) {
     try{
-        return await prisma.parteExamen.create({
-            data
+        return await prisma.partesExamen.create({
+            data : {
+                id_examen : data.id_examen,
+                nombre : data.nombre,
+                duracion_h : data.duracion_h,
+                duracion_m : data.duracion_m
+            }
         })
     }catch(error)
     {
@@ -23,7 +28,7 @@ export async function createParte(data: parteExamen) {
 
 export async function getAllPartes(id: string){
     try {
-        return await prisma.parteExamen.findMany({
+        return await prisma.partesExamen.findMany({
             where:{ id_examen : id}
         });
     } catch (error) {

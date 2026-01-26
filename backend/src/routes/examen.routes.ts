@@ -5,18 +5,18 @@ import { requireAuth } from "@clerk/express";
 const router = Router();
 
 // Crea una examen
-router.post("/", requireAuth, examenController.createExamen);
+router.post("/", /*requireAuth,*/  examenController.createExamen);
 
 // Obtener todas las examenes
-router.get("/:idAsign", requireAuth, examenController.getAllExamenes);
+router.get("/asignatura/:idAsign", /*requireAuth,*/  examenController.getAllExamenes);
 
 // Obtener una examen
-router.get("/:id", requireAuth, examenController.getExamen);
+router.get("/:id", /*requireAuth,*/  examenController.getExamen);
 
 // Actualizar examen
-router.put("/:id", requireAuth, examenController.updateExamen);
+router.put("/:id", /*requireAuth,*/  examenController.updateExamen);
 
 // Eliminar examen
-router.delete("/:id", requireAuth, examenController.deleteExamen);
+router.delete("/:id", /*requireAuth,*/  examenController.deleteExamen);
 
 export default router;

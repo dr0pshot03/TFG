@@ -12,10 +12,9 @@ export type Convocatoria = typeof Convocatoria[keyof typeof Convocatoria];
 export interface examen {
     id: string;
     id_asign: string;
-    nombre: string;
-    partes: string;
+    partes: number;
     convocatoria: Convocatoria;
-    anno: string;
+    anno: number;
     duracion_h: number;
     duracion_m: number;
 }
@@ -23,7 +22,14 @@ export interface examen {
 export async function createExamen(data: examen) {
     try{
         return await prisma.examen.create({
-            data
+            data : {
+                id_asign : data.id_asign,
+                partes : data.partes,
+                convocatoria : data.convocatoria,
+                anno : data.anno,
+                duracion_h : data.duracion_h,
+                duracion_m : data.duracion_m
+            }
         })
     }catch(error)
     {
@@ -36,7 +42,7 @@ export async function createExamen(data: examen) {
 export async function getAllExamenes(asignId: string){
     try {
         return await prisma.examen.findMany({
-            where:{ asignId : asignId}
+            where:{ id_asign : asignId}
         });
     } catch (error) {
         console.error("Error al obtener los examenes", error);
@@ -59,7 +65,6 @@ export async function updateExamen(id: string, data : Partial<examen>){
     try {
         const {
             id_asign,
-            nombre,
             partes,
             convocatoria,
             anno,
@@ -71,7 +76,6 @@ export async function updateExamen(id: string, data : Partial<examen>){
             where:{ id : id},
             data: {
                 id_asign,
-                nombre,
                 partes,
                 convocatoria,
                 anno,

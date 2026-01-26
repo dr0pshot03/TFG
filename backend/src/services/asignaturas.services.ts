@@ -1,7 +1,6 @@
 import prisma from "./prisma.ts"
 
 export interface asignatura{
-    id: string;
     nombre: string;
     descripcion?: string;
     user_id: string;
@@ -10,7 +9,11 @@ export interface asignatura{
 export async function createAsignatura(data: asignatura) {
     try{
         return await prisma.asignatura.create({
-            data
+            data : {
+                nombre : data.nombre,
+                descripcion: data.descripcion || "",
+                user_id: data.user_id
+            }
         })
     }catch(error)
     {

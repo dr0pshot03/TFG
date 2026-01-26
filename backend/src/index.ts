@@ -4,9 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
-import asignaturasRoutes from "./routes/asignaturas.routes.ts"
-import examenRoutes from "./routes/examen.routes"
-import partesExamenRoutes from "./routes/partesExamen.routes"
+import asignaturasRoutes from "./routes/asignaturas.routes.js"
+import examenRoutes from "./routes/examen.routes.js"
+import partesExamenRoutes from "./routes/partesExamen.routes.js"
 
 dotenv.config();
 

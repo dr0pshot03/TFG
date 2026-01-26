@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as partesExamenService from "../services/examen.services.js";
+import * as partesExamenService from "../services/examen.services.ts";
 
 export async function createExamen(req: Request, res: Response){
     try{
@@ -41,7 +41,8 @@ export async function getExamen(req: Request, res: Response){
 
 export async function updateExamen(req: Request, res: Response){
     try{
-        const examen = await partesExamenService.updateExamen(req.params.id, res);
+        const id = req.body.id;
+        const examen = await partesExamenService.updateExamen(id, req.body);
         res.json(examen);
     }catch(error)
     {

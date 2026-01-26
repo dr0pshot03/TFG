@@ -1,4 +1,4 @@
-import prisma from "./prisma.js"
+import prisma from "./prisma.ts"
 
 export interface parteExamen{
     id: string;
@@ -43,12 +43,21 @@ export async function getParte(id: string){
     }
 }
 
-export async function updateParte(id: string){
+export async function updateParte(id: string, data : Partial<parteExamen>){
     try {
+        const {
+            id_examen,
+            nombre,
+            duracion_h,
+            duracion_m,
+        } = data
         return await prisma.partesExamen.update({
             where:{ id : id},
             data: {
-
+                id_examen,
+                nombre,
+                duracion_h,
+                duracion_m
             }
         });
     } catch (error) {

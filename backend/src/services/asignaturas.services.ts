@@ -1,4 +1,4 @@
-import prisma from "./prisma.js"
+import prisma from "./prisma.ts"
 
 export interface asignatura{
     id: string;
@@ -42,12 +42,18 @@ export async function getAsignatura(id: string){
     }
 }
 
-export async function updateAsignatura(id: string){
+export async function updateAsignatura(id: string, data: Partial<asignatura>){
     try {
+        const {
+            nombre,
+            descripcion,
+            ...updateData
+        } = data;
         return await prisma.asignatura.update({
             where:{ id : id},
             data: {
-
+                nombre,
+                descripcion,
             }
         });
     } catch (error) {

@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as asignaturaService from "../services/asignaturas.services.js";
+import * as asignaturaService from "../services/asignaturas.services.ts";
 
 export async function createAsignatura(req: Request, res: Response){
     try{
@@ -41,7 +41,8 @@ export async function getAsignatura(req: Request, res: Response){
 
 export async function updateAsignatura(req: Request, res: Response){
     try{
-        const asignatura = await asignaturaService.updateAsignatura(req.params.id, res);
+        const id = req.body.id;
+        const asignatura = await asignaturaService.updateAsignatura(id, req.body);
         res.json(asignatura);
     }catch(error)
     {

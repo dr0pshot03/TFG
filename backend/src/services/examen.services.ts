@@ -1,11 +1,13 @@
-import prisma from "./prisma.js"
+import prisma from "./prisma.ts"
 
-export enum Convocatoria {
-    Febrero = "Febrero",
-    Junio = "Junio",
-    Septiembre = "Septiembre",
-    Diciembre = "Diciembre",
-}
+export const Convocatoria = {
+    Febrero: "Febrero",
+    Junio: "Junio",
+    Septiembre: "Septiembre",
+    Diciembre: "Diciembre",
+} as const;
+
+export type Convocatoria = typeof Convocatoria[keyof typeof Convocatoria];
 
 export interface examen {
     id: string;
@@ -53,12 +55,28 @@ export async function getExamen(id: string){
     }
 }
 
-export async function updateExamen(id: string){
+export async function updateExamen(id: string, data : Partial<examen>){
     try {
+        const {
+            id_asign,
+            nombre,
+            partes,
+            convocatoria,
+            anno,
+            duracion_h,
+            duracion_m,
+            ...updateData
+        } = data;
         return await prisma.examen.update({
             where:{ id : id},
             data: {
-
+                id_asign,
+                nombre,
+                partes,
+                convocatoria,
+                anno,
+                duracion_h,
+                duracion_m
             }
         });
     } catch (error) {

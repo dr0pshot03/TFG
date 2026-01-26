@@ -4,6 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
+import asignaturasRoutes from "./routes/asignaturas.routes.ts"
+import examenRoutes from "./routes/examen.routes"
+import partesExamenRoutes from "./routes/partesExamen.routes"
 
 dotenv.config();
 
@@ -14,7 +17,7 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://eventmaker-f30ca.web.app"],
+    origin: ["http://localhost:5173"],
   }),
 );
 app.use(express.json({ limit: "100mb" }));
@@ -22,7 +25,9 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(clerkMiddleware());
 
 // Routes
-//app.use("/health", healthRoutes);
+app.use("/asignaturas", asignaturasRoutes);
+app.use("/examen", examenRoutes);
+app.use("/partesExamen", partesExamenRoutes);
 
 
 // Global error handler

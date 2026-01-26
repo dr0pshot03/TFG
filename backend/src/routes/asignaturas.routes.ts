@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as asignaturasController from "../controllers/asignaturas.controller";
+import * as asignaturasController from "../controllers/asignaturas.controller.ts";
 import { requireAuth } from "@clerk/express";
 
 const router = Router();

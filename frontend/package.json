@@ -10,11 +10,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/react": "^3.31.0",
+    "@emotion/react": "^11.14.0",
+    "@rematch/core": "^2.2.0",
+    "@rematch/immer": "^2.1.3",
+    "@rematch/loading": "^2.1.2",
+    "@rematch/persist": "^2.1.2",
+    "@rematch/select": "^3.1.2",
+    "@rematch/updated": "^2.1.2",
+    "axios": "^1.13.3",
+    "lodash.isequal": "^4.5.0",
+    "next-themes": "^0.4.6",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.13.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/lodash.isequal": "^4.5.8",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

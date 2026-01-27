@@ -7,6 +7,7 @@ import type { NextFunction, Request, Response } from "express";
 import asignaturasRoutes from "./routes/asignaturas.routes.js"
 import examenRoutes from "./routes/examen.routes.js"
 import partesExamenRoutes from "./routes/partesExamen.routes.js"
+import usuarioRoutes from "./routes/user.routes.js"
 
 dotenv.config();
 
@@ -25,9 +26,10 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(clerkMiddleware());
 
 // Routes
-app.use("/asignaturas", asignaturasRoutes);
-app.use("/examen", examenRoutes);
-app.use("/partesExamen", partesExamenRoutes);
+app.use("/api/usuario", usuarioRoutes);
+app.use("/api/asignaturas", asignaturasRoutes);
+app.use("/api/examen", examenRoutes);
+app.use("/api/partesExamen", partesExamenRoutes);
 
 
 // Global error handler

@@ -13,6 +13,9 @@ router.get("/asignatura/:idAsign", /*requireAuth,*/  examenController.getAllExam
 // Obtener una examen
 router.get("/:id", /*requireAuth,*/  examenController.getExamen);
 
+// Actualizar convocatoria examen
+router.put("/convocatoria/:id", /*requireAuth,*/  examenController.updateConvocatoriaExamen);
+
 // Actualizar examen
 router.put("/:id", /*requireAuth,*/  examenController.updateExamen);
 

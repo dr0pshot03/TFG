@@ -15,7 +15,7 @@ datasource db {
 }
 
 model Usuario {
-  id           Int      @id @default(autoincrement())
+  //id           Int      @id @default(autoincrement())
   clerkId      String   @unique  // ID que Clerk te da (user.id)
   nombre       String?
   apellidos    String?
@@ -34,6 +34,7 @@ model Asignatura{
 
   // relación uno-a-muchos con partesExamen
   examenes Examen[]
+  user Usuario @relation(fields: [user_id], references: [clerkId], onDelete: Cascade)
 }
 
 enum Convocatoria{

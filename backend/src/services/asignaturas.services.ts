@@ -26,7 +26,7 @@ export async function createAsignatura(data: asignatura) {
 export async function getAllAsignaturas(userId: string){
     try {
         return await prisma.asignatura.findMany({
-            where:{ userId : userId}
+            where:{ user_id : userId}
         });
     } catch (error) {
         console.error("Error al obtener todas las asignaturas", error);

@@ -1,12 +1,13 @@
-/* Variables para facilitar cambios de color */
+/* index.css */
+
+/* Variables de color (Tu paleta original) */
 :root {
-    --primary-blue: #2563EB; /* Azul vibrante similar al diseño */
+    --primary-blue: #2563EB;
     --primary-blue-hover: #1D4ED8;
-    --text-main: #111827;    /* Negro suave */
-    --text-secondary: #6B7280; /* Gris */
-    --bg-app: #F3F4F6;       /* Fondo gris de la página */
-    --bg-card: #FFFFFF;      /* Fondo blanco del contenedor */
-    --border-color: #E5E7EB;
+    --text-main: #111827;
+    --text-secondary: #6B7280;
+    --bg-app: #F3F4F6;
+    --bg-card: #FFFFFF;
     --danger-color: #EF4444;
 }
 
@@ -18,153 +19,15 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* Quitamos el flex y el centrado forzado */
     background-color: var(--bg-app);
     color: var(--text-main);
-    display: flex;
-    justify-content: center;
-    padding-top: 40px; /* Espacio superior */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    
+    /* Importante: Ocupar todo el ancho y alto */
+    width: 100%;
     min-height: 100vh;
 }
 
-/* Contenedor Principal (La tarjeta blanca) */
-.app-container {
-    background-color: var(--bg-card);
-    width: 100%;
-    max-width: 960px; /* Ancho máximo similar al diseño */
-    height: 85vh;     /* Altura fija o mínima según prefieras */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    display: flex;
-    flex-direction: column;
-}
-
-/* --- Header --- */
-.app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: var(--text-main);
-}
-
-.logo-icon {
-    color: var(--primary-blue);
-    width: 28px;
-    height: 28px;
-}
-
-.header-actions {
-    display: flex;
-    gap: 1rem;
-}
-
-.icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    padding: 4px;
-    border-radius: 4px;
-    transition: color 0.2s;
-}
-
-.icon-btn:hover {
-    color: var(--text-main);
-}
-
-.icon-btn.logout:hover {
-    color: var(--danger-color);
-}
-
-/* --- Contenido Principal --- */
-.main-content {
-    padding: 3rem 4rem; /* Padding amplio como en el diseño */
-    flex: 1; /* Ocupa el resto del espacio vertical */
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-}
-
-/* Barra de Bienvenida */
-.welcome-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.welcome-bar h1 {
-    font-size: 1.875rem; /* ~30px */
-    font-weight: 700;
-}
-
-/* Botones Azules */
-.btn-primary {
-    background-color: var(--primary-blue);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px; /* Bordes completamente redondos (Pill shape) */
-    font-weight: 500;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-blue-hover);
-}
-
-/* Sección Asignaturas */
-.subjects-section {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.section-header {
-    margin-bottom: 2rem;
-}
-
-.section-header h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.subtitle {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-/* --- Estado Vacío (Empty State) --- */
-.empty-state {
-    flex: 1; /* Para que ocupe el espacio disponible y se centre verticalmente */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Centrado vertical en el hueco disponible */
-    text-align: center;
-    margin-top: 2rem;
-}
-
-.empty-title {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--text-main);
-    margin-bottom: 0.5rem;
-}
-
-.empty-subtitle {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    margin-bottom: 2rem;
-}
+/* Si necesitas usar clases específicas, úsalas dentro de los componentes,
+   pero NO limites el ancho aquí globalmente. */

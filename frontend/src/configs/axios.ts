@@ -18,23 +18,4 @@ const api = axios.create({
   },
 });
 
-/*
-api.interceptors.request.use(
-  async (config) => {
-    const token = await window?.getToken();
-
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    if (config.data instanceof FormData) {
-      config.headers = config.headers || {};
-      delete config.headers["Content-Type"];
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);*/
-
 export default api;

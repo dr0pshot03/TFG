@@ -1,18 +1,14 @@
 export interface Asignatura{
-    id: String;
+    id: string;
     user_id: string;
     nombre: string;
     descripcion: string;
-    created_at: Date;
-    updated_at: Date;
 }
 
 export interface AsignaturaForm{
     user_id: string;
     nombre: string;
     descripcion: string;
-    created_at: Date;
-    updated_at: Date;
 }
 
 export interface CreateAsignaturaInput extends Omit<Asignatura, 'id'> {}

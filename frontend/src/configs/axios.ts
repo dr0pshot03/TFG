@@ -8,7 +8,7 @@ const BASE_URLS: Record<IFlavour, string> = {
   prod: "",
 };
 
-const flavour: IFlavour = "prod";
+const flavour: IFlavour = "dev";
 const baseUrl = BASE_URLS[flavour];
 
 const api = axios.create({

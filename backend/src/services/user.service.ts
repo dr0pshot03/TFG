@@ -55,7 +55,7 @@ export async function updateUser(id: string, data: usuario) {
   }
 }
 
-export async function deleteUsuario(id: string) {
+export async function deleteUser(id: string) {
   try {
     await clerkClient.users.deleteUser(id);
 

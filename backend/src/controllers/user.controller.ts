@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as userService from "../services/user.services.ts";
+import * as userService from "../services/user.service.ts";
 
 export async function createUser(req: Request, res: Response){
     try{

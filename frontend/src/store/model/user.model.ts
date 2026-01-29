@@ -63,6 +63,27 @@ const userModel = createModel<IRootModel>()({
       dispatch.userModel.addValue({ key: "loading", value: false });
     },
 
+    async getUser(id: string, state) {
+      dispatch.userModel.addValue({ key:"loading", value: true });
+
+      await api
+        .get(`/api/usuario/${id}`)
+        .then((res) => {
+          dispatch.userModel.addValue({ key: "user", value: res.data });
+        })
+        .catch((error) => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "error",
+              title: error.message,
+              duration: 5000,
+              isClosable: true,
+              position: "top-right"
+            })
+        })
+      dispatch.userModel.addValue({ key: "loading", value: false })
+    },
+
     async updateUserProfile(payload: Partial<Usuario>, state:any) {
       dispatch.userModel.addValue({ key: "loading", value: true });
 

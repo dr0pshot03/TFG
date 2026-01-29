@@ -22,6 +22,8 @@ model Usuario {
   email        String?  
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
+
+  asignaturas Asignatura[]
 }
 
 model Asignatura{

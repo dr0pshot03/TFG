@@ -1,16 +1,15 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 //import { navLinks } from "@constants/navLinks";
 import { Text } from "@chakra-ui/react";
-
-import Helloworld from "./helloworld/Dashboard";
+import Dashboard from "./Dashboard/Dashboard";
+import Subject from "./Dashboard/Subject";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path={"/"}>
-        <Route path="/" element={<Helloworld />} />
-        <Route path="/hello" element={<Helloworld />} />
-      </Route>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/asignatura/:id" element={<Subject />} />
     </Routes>
-  )
+  );
 }

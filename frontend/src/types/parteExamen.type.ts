@@ -1,6 +1,7 @@
 export interface parteExamen{
     id: string;
     id_examen: string;
+    num_parte: number;
     nombre: string;
     duracion_h: number;
     duracion_m: number;

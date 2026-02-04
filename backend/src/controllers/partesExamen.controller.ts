@@ -14,8 +14,8 @@ export async function createParte(req: Request, res: Response){
 
 export async function getAllPartes(req: Request, res: Response){
     try{
-        const {id} = req.params;
-        const partes = await partesExamenService.getAllPartes(id);
+        const {idExamen} = req.params;
+        const partes = await partesExamenService.getAllPartes(idExamen);
         res.json(partes);
     }catch(error)
     {
@@ -39,8 +39,7 @@ export async function getParte(req: Request, res: Response){
 export async function updateParte(req: Request, res: Response){
     try{
         const {idParte} = req.params;
-        console.log("Estes el id"+idParte)
-        const parte = await partesExamenService.updateParte(idParte!, req.body);
+        const parte = await partesExamenService.updateParte(idParte, req.body);
         res.json(parte);
     }catch(error)
     {

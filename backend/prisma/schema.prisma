@@ -67,6 +67,7 @@ model partesExamen{
   id String @id @default(uuid()) @db.Uuid
   id_examen String @db.Uuid
   nombre String
+  num_parte Int
   duracion_h Int
   duracion_m Int
   created_at DateTime @default(now())

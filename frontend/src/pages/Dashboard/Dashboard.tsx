@@ -94,7 +94,7 @@ export default function Dashboard() {
     }
   };
 
-    const handleDelete = async () => {
+  const handleDelete = async () => {
     try {
       await dispatch.asignaturaModel.deleteAsignatura(selectedAsignaturaId!);
       await dispatch.asignaturaModel.getAsignaturas(userId);
@@ -151,7 +151,8 @@ export default function Dashboard() {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setValue(event.target.value);
-  }
+  };
+
   const filteredAsignaturas = asignaturas.filter((asignatura) => 
     asignatura.nombre.toLowerCase().includes(value.toLowerCase())
   );
@@ -398,6 +399,8 @@ export default function Dashboard() {
                     mr={3}
                     onClick={handleDelete}
                     isDisabled={!formValues.nombre.trim()}
+                    _hover={{bgcolor:"red"}}
+                    //borderRadius={}
                   >
                     Eliminar asignatura
                   </Button>

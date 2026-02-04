@@ -4,18 +4,22 @@ export interface parteExamen{
     id: string;
     id_examen: string;
     nombre: string;
+    num_parte: number;
     duracion_h: number;
     duracion_m: number;
 }
 
-export async function createParte(data: parteExamen) {
+export interface CreateParteExamenInput extends Omit<parteExamen, 'id'> {}
+
+export async function createParte(data: CreateParteExamenInput) {
     try{
         return await prisma.partesExamen.create({
             data : {
                 id_examen : data.id_examen,
-                nombre : data.nombre,
-                duracion_h : data.duracion_h,
-                duracion_m : data.duracion_m
+                nombre: data.nombre,
+                num_parte: data.num_parte,
+                duracion_h: data.duracion_h,
+                duracion_m: data.duracion_m,
             }
         })
     }catch(error)
@@ -51,7 +55,6 @@ export async function getParte(id: string){
 export async function updateParte(id: string, data : Partial<parteExamen>){
     try {
         const {
-            id_examen,
             nombre,
             duracion_h,
             duracion_m,
@@ -59,15 +62,14 @@ export async function updateParte(id: string, data : Partial<parteExamen>){
         return await prisma.partesExamen.update({
             where:{ id : id},
             data: {
-                id_examen,
                 nombre,
                 duracion_h,
                 duracion_m
             }
         });
     } catch (error) {
-        console.error("Error al obtener todas las asignaturas", error);
-        throw new Error("No se pudo obtener las asignaturas");
+        console.error("Error al actualizar la parte del examen", error);
+        throw new Error("No se pudo actualizar la parte del examen");
     }
 }
 

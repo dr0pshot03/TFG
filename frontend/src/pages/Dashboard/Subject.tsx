@@ -30,16 +30,17 @@ import { InlineIcon } from "@iconify/react";
 import { IRootState, IDispatch, select } from "../../store/store"; 
 import { NavBar } from "./NavBar";
 import { Feature } from "framer-motion";
-import { Convocatoria } from "@/types/examen.type";
+import { Convocatoria, CreateExamenInput } from "@/types/examen.type";
+import { useNavigate } from "react-router-dom";
+import { CreateParteExamenInput } from "@/types/parteExamen.type";
 
-export default function Dashboard() {
+export default function Parts() {
   const dispatch = useDispatch<IDispatch>();
   const userId = "user_id_ejemplo"; 
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   
   const { isOpen: isOpenAdd, onOpen: onOpenAdd, onClose: onCloseAdd } = useDisclosure();
-
-  const { isOpen: isOpenAccess, onOpen: onOpenAccess, onClose: onCloseAccess } = useDisclosure();
 
   const asignatura =  useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examenes =  useSelector((state: IRootState) => state.examenModel.examenes);
@@ -52,7 +53,12 @@ export default function Dashboard() {
     duracion_m: 0
   });
 
-    const handleSubmit = async () => {
+  useEffect(() => {
+    dispatch.examenModel.getExamenes(id!);
+    dispatch.asignaturaModel.getAsignatura(id!);
+  }, [dispatch, id]);
+
+  const handleSubmit = async () => {
     if (!formValues.convocatoria.trim()) {
       console.error("La convocatoria es obligatoria");
       return;
@@ -61,14 +67,37 @@ export default function Dashboard() {
     const payload= {
       id_asign: id!,
       convocatoria: formValues.convocatoria as Convocatoria,
-      partes: parseInt(formValues.partes) || 0,
+      partes: formValues.partes,
       duracion_h: formValues.duracion_h,
       duracion_m: formValues.duracion_m,
       anno: new Date().getFullYear()
-    };
+    } as CreateExamenInput; 
 
   try {
-    await dispatch.examenModel.createExamen(payload);
+    const nuevoExamen = await dispatch.examenModel.createExamen(payload);
+    if (nuevoExamen && formValues.partes!=1) {
+      // Crear las partes del examen
+      for(let i = 1 ; i <= payload.partes ; i++)
+      {
+        await dispatch.parteExamenModel.createParteExamen({
+          id_examen: nuevoExamen.id,
+          nombre: `Parte ${i}`,
+          num_parte: i,
+          duracion_h: 0,
+          duracion_m: 0
+        });
+      }
+    }
+    else{
+      await dispatch.parteExamenModel.createParteExamen({
+          id_examen: nuevoExamen.id,
+          nombre: `Parte 1`,
+          num_parte: 1,
+          duracion_h: formValues.duracion_h,
+          duracion_m: formValues.duracion_m
+        });
+    }
+    
     await dispatch.examenModel.getExamenes(id!);
     setFormValues({ convocatoria: "", partes: 0, duracion_h: 0, duracion_m: 0 });
     onCloseAdd();
@@ -81,7 +110,7 @@ export default function Dashboard() {
     const { name, value } = e.target;
     setFormValues(prev => ({
       ...prev,
-      [name]: (name === "duracion_h" || name === "duracion_m") ? parseInt(value) || 0 : value
+      [name]: (name === "duracion_h" || name === "duracion_m" || name === "partes") ? parseInt(value) || 0 : value
     }));
   };
 
@@ -89,11 +118,6 @@ export default function Dashboard() {
     setFormValues({ convocatoria: "", partes: 0, duracion_h: 0, duracion_m: 0 });
     onCloseAdd();
   };
-
-  useEffect(() => {
-    dispatch.examenModel.getExamenes(id!);
-    dispatch.asignaturaModel.getAsignatura(id!);
-  }, [dispatch, id]);
 
   const filteredExamenes= examenes.filter((examen) => 
     examen.convocatoria.toLowerCase().includes(value.toLowerCase())
@@ -283,7 +307,7 @@ export default function Dashboard() {
                               w={"45%"} 
                               borderRadius="full" 
                               bg="#000000"
-                              onClick={onOpenAccess}
+                              onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}`)}
                               _hover={{ bg:  "#aaaaaa"}}
                             >
                               Acceder

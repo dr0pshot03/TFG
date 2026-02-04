@@ -91,7 +91,7 @@ const examenModel = createModel<IRootModel>() ({
 
       const res = await api
         .post(`/api/examen/`, payload)
-        .then (() => {
+        .then ((response) => {
           state.toastModel.toast &&
             state.toastModel.toast({
               status: "success",
@@ -100,7 +100,7 @@ const examenModel = createModel<IRootModel>() ({
               isClosable: true,
               duration: 5000,
             });
-          return true;
+          return response.data;
         })
         .catch((error) => {
           state.toastModel.toast &&
@@ -111,7 +111,7 @@ const examenModel = createModel<IRootModel>() ({
               isClosable: true,
               position: "top-right",
             });
-          return false;
+          return null;
         })
       dispatch.examenModel.addValue({ key:"loading", value: false })
       return res;

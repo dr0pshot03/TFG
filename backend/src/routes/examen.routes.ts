@@ -16,6 +16,9 @@ router.get("/:id", /*requireAuth,*/  examenController.getExamen);
 // Actualizar convocatoria examen
 router.put("/convocatoria/:id", /*requireAuth,*/  examenController.updateConvocatoriaExamen);
 
+// Actualizar timepo de examen
+router.put("/tiempo/:id", /*requireAuth,*/  examenController.updateTiempoExamen);
+
 // Actualizar examen
 router.put("/:id", /*requireAuth,*/  examenController.updateExamen);
 

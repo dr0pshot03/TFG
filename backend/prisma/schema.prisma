@@ -51,7 +51,9 @@ model Examen {
   id_asign String @db.Uuid
   partes Int
   convocatoria Convocatoria 
-  anno  Int
+  fecha_examen DateTime
+  aula String
+  n_present Int
   duracion_h Int
   duracion_m  Int
   created_at  DateTime @default(now())

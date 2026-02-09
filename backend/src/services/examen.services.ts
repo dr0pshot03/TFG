@@ -14,7 +14,9 @@ export interface examen {
     id_asign: string;
     partes: number;
     convocatoria: Convocatoria;
-    anno: number;
+    fecha_examen: Date;
+    aula: string;
+    n_present: number;
     duracion_h: number;
     duracion_m: number;
 }
@@ -26,9 +28,11 @@ export async function createExamen(data: examen) {
                 id_asign : data.id_asign,
                 partes : data.partes,
                 convocatoria : data.convocatoria,
-                anno : data.anno,
+                fecha_examen : data.fecha_examen,
                 duracion_h : data.duracion_h,
-                duracion_m : data.duracion_m
+                duracion_m : data.duracion_m,
+                aula: data.aula,
+                n_present: data.n_present
             }
         })
     }catch(error)
@@ -61,13 +65,15 @@ export async function getExamen(id: string){
     }
 }
 
-export async function updateConvocatoriaExamen(id: string, data : Partial<examen>){
+export async function updateExamen(id: string, data : Partial<examen>){
     try {
         const {
             id_asign,
             partes,
             convocatoria,
-            anno,
+            fecha_examen,
+            aula,
+            n_present,
             duracion_h,
             duracion_m,
             ...updateData
@@ -78,7 +84,9 @@ export async function updateConvocatoriaExamen(id: string, data : Partial<examen
                 id_asign,
                 partes,
                 convocatoria,
-                anno,
+                fecha_examen,
+                aula,
+                n_present,
                 duracion_h,
                 duracion_m
             }
@@ -89,7 +97,7 @@ export async function updateConvocatoriaExamen(id: string, data : Partial<examen
     }
 }
 
-export async function updateExamen(id: string, convocatoria : Convocatoria){
+export async function updateConvocatoriaExamen(id: string, convocatoria : Convocatoria){
     try {
         return await prisma.examen.update({
             where:{ id : id},
@@ -100,6 +108,22 @@ export async function updateExamen(id: string, convocatoria : Convocatoria){
     } catch (error) {
         console.error("Error al actualizar la convocatoria del examen", error);
         throw new Error("No se pudo actualizar la convocatoria del examen");
+    }
+}
+
+export async function updateTiempoExamen(id: string, data : Partial<examen>){
+    try {
+        return await prisma.examen.update({
+            where:{ id : id},
+            data: {
+                duracion_h : data.duracion_h,
+                duracion_m: data.duracion_m,
+                partes: data.partes,
+            }
+        });
+    } catch (error) {
+        console.error("Error al actualizar la duración del examen", error);
+        throw new Error("No se pudo actualizar la duración del examen");
     }
 }
 

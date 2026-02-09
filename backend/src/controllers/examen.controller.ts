@@ -52,6 +52,18 @@ export async function updateConvocatoriaExamen(req: Request, res: Response){
     }
 }
 
+export async function updateTiempoExamen(req: Request, res: Response){
+    try{
+        const id = req.params.id;
+        const examen = await examenService.updateTiempoExamen(id, req.body);
+        res.json(examen);
+    }catch(error)
+    {
+        console.error("Error al actualizar el tiempo de examen", error);
+        res.status(500).json({ error: "Error al actualizar el tiempo de examen" });
+    }
+}
+
 export async function updateExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
@@ -68,7 +80,7 @@ export async function deleteExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
         const examen = await examenService.deleteExamen(id);
-        res.json(examen).json({ message: "Examen eliminado correctamente" });
+        res.json({ examen, message: "Examen eliminado correctamente" });
     }catch(error)
     {
         console.error("Error al eliminar el examen", error);

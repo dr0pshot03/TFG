@@ -3,7 +3,9 @@ export interface Examen{
     id_asign: string;
     partes: number;
     convocatoria: Convocatoria;
-    anno: number;
+    fecha_examen: Date;
+    aula: string;
+    n_present: number;
     duracion_h: number;
     duracion_m: number;
 }
@@ -12,7 +14,9 @@ export interface ExamenForm{
     id_asign: string;
     partes: number;
     convocatoria: Convocatoria;
-    anno: number;
+    fecha_examen: Date;
+    aula: string;
+    n_present: number;
     duracion_h: number;
     duracion_m: number;
 }

@@ -26,14 +26,13 @@ import {
   Select,
 
 } from "@chakra-ui/react";
-import { InlineIcon } from "@iconify/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
-import { Feature } from "framer-motion";
-import { Convocatoria, CreateExamenInput } from "@/types/examen.type";
+import { CreateExamenInput } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const dispatch = useDispatch<IDispatch>();
   const userId = "user_id_ejemplo"; 
   const { id } = useParams<{ id: string }>();
@@ -65,6 +64,8 @@ export default function Dashboard() {
     duracion_m: 0
   });
 
+  console.log(examen)
+
   useEffect(() => {
     dispatch.examenModel.getExamen(id!);
     dispatch.parteExamenModel.getPartesExamenes(id!);
@@ -76,8 +77,13 @@ export default function Dashboard() {
       id_asign: id!,
       duracion_h: formValues.duracion_h,
       duracion_m: formValues.duracion_m,
-      anno: new Date().getFullYear()
-    } as CreateExamenInput; 
+      anno: new Date().getFullYear(),
+      partes: [],
+      convocatoria: "",
+      fecha_examen: new Date(),
+      aula: "",
+      n_present: 0
+    }; 
 
   try {
     await dispatch.examenModel.createExamen(payload);
@@ -89,6 +95,38 @@ export default function Dashboard() {
   }
   };
 
+  const handleDelete = async () => {
+    try {
+      if (selectedParteExamenId && examen) {
+        if (examen.partes === 1)
+        {
+          await dispatch.examenModel.deleteExamen(id!)
+          navigate(`/asignatura/${idAsign}`)
+          onCloseDelete();
+          return;
+        }else{
+          const selectedParte = partesExamenes.find(p => p.id === selectedParteExamenId);
+          if (selectedParte) {
+            const totalExamenMin = (examen.duracion_h || 0) * 60 + (examen.duracion_m || 0);
+            const parteMin = selectedParte.duracion_h * 60 + selectedParte.duracion_m;
+            const nuevoTotal = Math.max(totalExamenMin - parteMin, 0);
+            await dispatch.examenModel.updateTimeExamen({
+              id: id!,
+              duracion_h: Math.floor(nuevoTotal / 60),
+              partes: examen.partes - 1,
+              duracion_m: nuevoTotal % 60
+            });
+          }
+        }
+      }
+      await dispatch.parteExamenModel.deleteParteExamen(selectedParteExamenId!);
+      await dispatch.parteExamenModel.getPartesExamenes(id!);
+      onCloseDelete();
+    } catch (e) {
+      console.error("Error al eliminar la asignatura", e);
+    }
+  };
+
   const handleEdit = async () => {
     const payload = {
       id: selectedParteExamenId!,
@@ -96,6 +134,20 @@ export default function Dashboard() {
       duracion_h: parseInt(String(formValues.duracion_h)) || 0,
       duracion_m: parseInt(String(formValues.duracion_m)) || 0
     };
+
+    if (selectedParteExamenId && examen) {
+        {
+          const totalExamenMin = (examen.duracion_h || 0) * 60 + (examen.duracion_m || 0);
+          const parteMin = payload.duracion_h * 60 + payload.duracion_m;
+          const nuevoTotal = Math.max(totalExamenMin + parteMin, 0);
+          await dispatch.examenModel.updateTimeExamen({
+            id: id!,
+            duracion_h: Math.floor(nuevoTotal / 60),
+            partes: examen.partes,
+            duracion_m: nuevoTotal % 60
+          });
+        }
+      }
 
     try {
       await dispatch.parteExamenModel.updateParteExamen(payload);
@@ -164,10 +216,19 @@ export default function Dashboard() {
 
         <Flex>
           <VStack align={"start"} spacing={4} w="100%">
-            <Heading size="lg">
-              Convocatoria: {examen?.convocatoria}{" "+examen?.anno}
+            <Heading size={"lg"}>
+              Fecha:{" "}
+              {examen?.fecha_examen
+                ? new Date(examen.fecha_examen).toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : "—"}
+              {" // Convocatoria: "}
+              {examen?.convocatoria ?? "—"}
             </Heading>
-            <Text mb={5} mt={-4}>Aquí encontrarás toda la información del examen de la convocatoria seleccionada</Text>
+            <Text mb={5} mt={-2}>Aquí encontrarás toda la información del examen de la convocatoria seleccionada</Text>
           </VStack>
         </Flex>
         <VStack>
@@ -212,67 +273,69 @@ export default function Dashboard() {
                     </Td>
 
                     <Td minW="200px" textAlign="center" p={2} borderBottom="1px solid #aaaaaa">
-                      <Button 
-                        colorScheme="blue" 
-                        size="sm"
-                        w={"45%"} 
-                        borderRadius="full" 
-                        bg="#000000"
-                        onClick={() => handleOpenEdit(parteExamen)}
-                        _hover={{ bg:  "#aaaaaa"}}
-                      >
-                        Modificar
-                      </Button>
+                      <Flex justify={"space-between"}>
+                        <Button 
+                          colorScheme="blue" 
+                          w={"45%"} 
+                          borderRadius="full" 
+                          bg="#000000"
+                          onClick={() => handleOpenEdit(parteExamen)}
+                          _hover={{ bg:  "#aaaaaa"}}
+                        >
+                          Modificar
+                        </Button>
+                        <Button 
+                          colorScheme='blue' 
+                          bgColor={"red"}
+                          borderRadius="full" 
+                          w={"45%"} 
+                          _hover={{bg:"red"}}
+                          mr={3}
+                          onClick={() => {
+                            onOpenDelete();
+                            setSelectedParteExamenId(parteExamen.id);
+                          }}
+                        >
+                          Eliminar parte
+                        </Button>
+                      </Flex>
                     </Td>
                   </Tr>
                 ))}
               </Tbody>
             </Table>
-          </TableContainer>
-          
-          <Box
-            bg={coincide ? "green.50" : "red.50"}
-            border="2px solid"
-            borderColor={coincide ? "green.400" : "red.400"}
-            borderRadius="lg"
-            p={6}
-            mt={8}
-            w="100%"
-          >
-            <Flex justify="space-between" align="center" mb={4}>
-              <Heading size="md" color={coincide ? "green.700" : "red.700"}>
-                {coincide ? "✓ Duración Correcta" : "⚠ Duración Incompleta"}
-              </Heading>
-              <Text fontSize="lg" fontWeight="bold" color={coincide ? "green.700" : "red.700"}>
-                {coincide ? "Sincronizado" : `Faltan ${duracionTotalExamen - duracionTotalPartes} min`}
-              </Text>
-            </Flex>
-
-            <Flex justify="space-around" gap={8}>
-              <Box>
-                <Text fontSize="sm" color="gray.600" mb={2}>
-                  Duración del Examen
-                </Text>
-                <Text fontSize="2xl" fontWeight="bold" color={coincide ? "green.700" : "red.700"}>
-                  {examen?.duracion_h || 0}h {examen?.duracion_m || 0}min
-                </Text>
-              </Box>
-
-              <Box textAlign="center">
-                <Text fontSize="3xl" color="gray.400">→</Text>
-              </Box>
-
-              <Box>
-                <Text fontSize="sm" color="gray.600" mb={2}>
-                  Duración Total de Partes
-                </Text>
-                <Text fontSize="2xl" fontWeight="bold" color={coincide ? "green.700" : "red.700"}>
-                  {horasPartes}h {minutosPartes}min
-                </Text>
-              </Box>
-            </Flex>
-          </Box>
+          </TableContainer>    
         </VStack>
+
+        <Modal isOpen={isOpenDelete} onClose={onCloseDelete} isCentered>
+          <ModalOverlay />
+            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"} minW={"75vh"}>
+              <ModalHeader textAlign={"center"}>¿Estás seguro/a de que quieres eliminar esta parte del examen?</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody >
+                <Flex justifyContent={"center"} mb={"3"}>
+                  <Button 
+                    colorScheme='blue' 
+                    bgColor={"red"}
+                    mr={3}
+                    onClick={handleDelete}
+                    _hover={{bgcolor:"red"}}
+                  >
+                    Eliminar parte
+                  </Button>
+
+                  <Button 
+                    colorScheme='blue' 
+                    mr={3}
+                    onClick={onCloseDelete}
+                  >
+                    Cancelar
+                  </Button>
+                </Flex>
+              </ModalBody>
+            </ModalContent>
+
+        </Modal>
 
         <Modal isOpen={isOpenEdit} onClose={handleCloseEdit} isCentered>
           <ModalOverlay />
@@ -350,24 +413,10 @@ export default function Dashboard() {
                       </Box>
                     </Flex>
                   </FormControl>
-
-                  <Text align={"center"} mb={-6} mt={3}>Nota: La duración total de las partes debe ser igual a la duración del examen</Text>
-
                 </VStack>
               </ModalBody>
 
               <ModalFooter justifyContent={"center"}>
-                <Button 
-                  colorScheme='blue' 
-                  bgColor={"red"}
-                  _hover={{bg:"red"}}
-                  mr={3}
-                  onClick={onOpenDelete}
-                  isDisabled={!formValues.nombre.trim()}
-                >
-                  Eliminar asignatura
-                </Button>
-
                 <Button 
                   colorScheme='blue' 
                   mr={3}

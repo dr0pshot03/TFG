@@ -181,6 +181,38 @@ const examenModel = createModel<IRootModel>() ({
       return res;
     },
 
+    async updateTimeExamen (payload: UpdateExamenInput, state) {
+      dispatch.examenModel.addValue({ key: "loading", value: true });
+
+      const res = await api
+        .put(`/api/examen/tiempo/${payload.id}`, payload)
+        .then ((res) => {
+          dispatch.examenModel.addValue({ key: "selectedExamen", value: res.data })
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "success",
+              position: "top-right",
+              title: "Se ha actualizado correctamente el examen.",
+              isClosable: true,
+              duration: 5000,
+            });
+          return true;
+        })
+        .catch((error) => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "error",
+              title: error.message,
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          return false;
+        })
+      dispatch.examenModel.addValue({ key:"loading", value: false })
+      return res;
+    },
+
     async deleteExamen (id: string, state) {
       dispatch.examenModel.addValue({ key: "loading", value: true });
 

@@ -279,7 +279,6 @@ export default function Dashboard() {
                           textAlign="center"
                         >
                           <Text fontSize="lg">{asignatura.nombre}</Text>
-                          {asignatura.descripcion != null ? (<Text fontSize="small" whiteSpace="pre-wrap">{asignatura.descripcion}</Text>) : (<></>)}
                         </Td>
 
                         <Td minW="200px" textAlign="center" p={2} borderRight="1px solid #edf2f7">
@@ -400,7 +399,6 @@ export default function Dashboard() {
                     onClick={handleDelete}
                     isDisabled={!formValues.nombre.trim()}
                     _hover={{bgcolor:"red"}}
-                    //borderRadius={}
                   >
                     Eliminar asignatura
                   </Button>

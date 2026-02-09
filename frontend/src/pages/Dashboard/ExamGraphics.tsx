@@ -206,10 +206,10 @@ export default function ExamParts() {
               </Box>
               <Box w="100%">
                 <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
-                  Curso
+                  Año
                 </Text>
                 <Select
-                  placeholder="Elige el curso"
+                  placeholder="Elige el año"
                   value={selectedCurso}
                   onChange={(event) => setSelectedCurso(event.target.value)}
                 >

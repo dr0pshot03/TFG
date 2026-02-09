@@ -34,15 +34,23 @@ export default function ExamParts() {
   const chartRef = useRef<HTMLDivElement | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedConvocatoria, setSelectedConvocatoria] = useState("");
+  const [selectedCurso, setSelectedCurso] = useState("");
 
   const filteredExamenes = useMemo(() => {
-    if (!selectedConvocatoria) {
-      return examenes;
-    }
-    return examenes.filter(
-      (examen) => examen.convocatoria === selectedConvocatoria
-    );
-  }, [examenes, selectedConvocatoria]);
+    return examenes.filter((examen) => {
+      if (selectedConvocatoria && examen.convocatoria !== selectedConvocatoria) {
+        return false;
+      }
+      if (!selectedCurso) {
+        return true;
+      }
+      const parsed = new Date(examen.fecha_examen as unknown as string);
+      if (Number.isNaN(parsed.getTime())) {
+        return false;
+      }
+      return String(parsed.getFullYear()) === selectedCurso;
+    });
+  }, [examenes, selectedConvocatoria, selectedCurso]);
 
   const chartData = useMemo(() => {
     const grouped = new Map<
@@ -93,6 +101,15 @@ export default function ExamParts() {
   const convocatoriaOptions = Array.from(
     new Set(examenes.map((examen) => examen.convocatoria).filter(Boolean))
   );
+  const cursoOptions = useMemo(() => {
+    const years = examenes
+      .map((examen) => new Date(examen.fecha_examen as unknown as string))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .map((date) => date.getFullYear());
+    return Array.from(new Set(years))
+      .sort((a, b) => a - b)
+      .map((year) => String(year));
+  }, [examenes]);
 
   const handleExportPdf = async () => {
     if (!chartRef.current) return;
@@ -159,32 +176,54 @@ export default function ExamParts() {
 
         <Flex
           direction={{ base: "column", md: "row" }}
-          align={{ base: "stretch", md: "center" }}
+          align={"center"}
           gap={4}
           mb={8}
         >
           <Box flex="1" display={{ base: "none", md: "block" }} />
 
           <Flex flex="1" justify="center">
-            <Box w={{ base: "100%", md: "220px" }}>
-              <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
-                Convocatoria
-              </Text>
-              <Select
-                placeholder="Elige la convocatoria"
-                value={selectedConvocatoria}
-                onChange={(event) => setSelectedConvocatoria(event.target.value)}
-              >
-                {convocatoriaOptions.map((convocatoria) => (
-                  <option key={convocatoria} value={convocatoria}>
-                    {convocatoria}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+            <Flex
+              gap={4}
+              w={{ base: "100%", md: "480px" }}
+              direction={{ base: "column", md: "row" }}
+            >
+              <Box w="100%">
+                <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
+                  Convocatoria
+                </Text>
+                <Select
+                  placeholder="Elige la convocatoria"
+                  value={selectedConvocatoria}
+                  onChange={(event) => setSelectedConvocatoria(event.target.value)}
+                >
+                  {convocatoriaOptions.map((convocatoria) => (
+                    <option key={convocatoria} value={convocatoria}>
+                      {convocatoria}
+                    </option>
+                  ))}
+                </Select>
+              </Box>
+              <Box w="100%">
+                <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
+                  Curso
+                </Text>
+                <Select
+                  placeholder="Elige el curso"
+                  value={selectedCurso}
+                  onChange={(event) => setSelectedCurso(event.target.value)}
+                >
+                  {cursoOptions.map((curso) => (
+                    <option key={curso} value={curso}>
+                      {curso}
+                    </option>
+                  ))}
+                </Select>
+              </Box>
+            </Flex>
           </Flex>
 
-          <Flex flex="1" justify={{ base: "center", md: "flex-end" }}>
+          <Flex flex="1" justify={"flex-end"}>
             <Button
             colorScheme="blue"
             w={{ base: "100%", md: "auto" }}
@@ -219,8 +258,6 @@ export default function ExamParts() {
               </BarChart>
             </ResponsiveContainer>
         </Box>
-
-        
       </Container>  
     </Box>
   );

@@ -228,7 +228,7 @@ export default function Dashboard() {
                 px={8}
                 bg="#0055D4"
                 _hover={{ bg: "#0041a3" }}
-                onClick={onOpenAdd}
+                onClick={() => navigate(`/grafica/`)}
               >
                 Ver Gráfica de las Asignaturas
               </Button>

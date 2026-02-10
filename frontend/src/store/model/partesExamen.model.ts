@@ -61,7 +61,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: false })
     },
 
-    async getPartesExamenes (idExamen: string, state: any) {
+    async getPartesExamen (idExamen: string, state: any) {
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       await api

@@ -31,7 +31,7 @@ import { NavBar } from "./NavBar";
 import { CreateExamenInput } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
 
-export default function Dashboard() {
+export default function Parts() {
   const navigate = useNavigate();
   const dispatch = useDispatch<IDispatch>();
   const userId = "user_id_ejemplo"; 
@@ -68,7 +68,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     dispatch.examenModel.getExamen(id!);
-    dispatch.parteExamenModel.getPartesExamenes(id!);
+    dispatch.parteExamenModel.getPartesExamen(id!);
     dispatch.asignaturaModel.getAsignatura(idAsign!);
   }, [dispatch, id, idAsign]);
 

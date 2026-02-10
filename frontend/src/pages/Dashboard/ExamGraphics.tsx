@@ -19,7 +19,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export default function ExamParts() {
+export default function ExamGraphics() {
   const dispatch = useDispatch<IDispatch>();
   const { idAsign } = useParams<{ idAsign: string }>();
 
@@ -225,8 +225,12 @@ export default function ExamParts() {
 
           <Flex flex="1" justify={"flex-end"}>
             <Button
-            colorScheme="blue"
-            w={{ base: "100%", md: "auto" }}
+            bgColor={"#0055D4"}
+            _hover={{ borderColor: "#0055D4", boxShadow: "none" }}
+            color={"white"}
+            borderRadius={"15"}
+            w="25vh"
+            minH={"5vh"}
             onClick={handleExportPdf}
             isLoading={isExporting}
             isDisabled={isExporting}
@@ -237,7 +241,18 @@ export default function ExamParts() {
           </Flex>
         </Flex>
 
-        <Box w="100%" mx="auto" h={"60vh"} ref={chartRef}>
+        <Box
+          w="100%"
+          mx="auto"
+          h={"60vh"}
+          ref={chartRef}
+          sx={{
+            "& .recharts-wrapper:focus": { outline: "none" },
+            "& .recharts-wrapper:focus-visible": { outline: "none" },
+            "& .recharts-surface:focus": { outline: "none" },
+            "& .recharts-surface:focus-visible": { outline: "none" },
+          }}
+        >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <XAxis dataKey="label" textAnchor="end" height={60}/>

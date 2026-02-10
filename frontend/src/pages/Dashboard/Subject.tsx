@@ -514,7 +514,7 @@ export default function Parts() {
                               w={"45%"} 
                               borderRadius="full" 
                               bg="#000000"
-                              //onClick={() => handleOpenEdit(asignatura)}
+                              onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}/cuentaatras`)}
                               _hover={{ bg:  "#aaaaaa"}}
                             >
                               Comenzar

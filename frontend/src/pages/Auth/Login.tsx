@@ -23,7 +23,8 @@ import {
 type AuthMode = "signin" | "signup";
 
 import { useNavigate } from "react-router-dom";
-import { e } from "node_modules/@clerk/clerk-react/dist/useAuth-BfjxAfMb.d.mts";
+import Logo1 from "public/Logo.png";
+import time from "public/time.png";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -134,7 +135,7 @@ export default function Login() {
           justifyContent="center"
           py={{ base: 6, md: 0 }}
         >
-          <Image src="/time.png" alt="Time" objectFit="contain" maxW="100%" />
+          <Image src={time} alt="Time" objectFit="contain" maxW="100%" />
         </Box>
 
         <Box
@@ -148,7 +149,7 @@ export default function Login() {
             <SignedOut>
               <Box w="100%" px={2}>
                 <Flex justify="center" mb={10}>
-                  <Image src="./Logo.png" maxW={"40%"}/>
+                  <Image src={Logo1} maxW={"40%"}/>
                 </Flex>
                 <Flex
                   bg="gray.200"

@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import asignaturasRoutes from "./routes/asignaturas.routes.js"
+import clerkWebhookRoutes from "./routes/clerkWebhook.routes.js"
 import examenRoutes from "./routes/examen.routes.js"
 import partesExamenRoutes from "./routes/partesExamen.routes.js"
 import usuarioRoutes from "./routes/user.routes.js"
@@ -21,6 +22,9 @@ app.use(
     origin: ["http://localhost:5173"],
   }),
 );
+
+app.use("/api/webhooks", clerkWebhookRoutes);
+
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(clerkMiddleware());

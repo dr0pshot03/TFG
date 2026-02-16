@@ -1,18 +1,10 @@
 import axios from "axios";
 
-type IFlavour = "dev" | "prod";
-
-// Base URLs for different environments
-const BASE_URLS: Record<IFlavour, string> = {
-  dev: "http://localhost:3000",
-  prod: "",
-};
-
-const flavour: IFlavour = "dev";
-const baseUrl = BASE_URLS[flavour];
+// Si existe la variable de entorno (Vercel), usa esa. Si no, usa localhost.
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({
-  baseURL: baseUrl,
+  baseURL: baseURL,
   headers: {
     "Content-Type": "application/json",
   },

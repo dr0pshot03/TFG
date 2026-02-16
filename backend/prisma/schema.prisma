@@ -12,11 +12,12 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Usuario {
   //id           Int      @id @default(autoincrement())
-  clerkId      String   @unique  // ID que Clerk te da (user.id)
+  clerkId      String   @unique  // ID que Clerk te da
   nombre       String?
   apellidos    String?
   email        String?  

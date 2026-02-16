@@ -24,6 +24,7 @@ import {
   InputLeftElement,
   InputRightElement,
   Select,
+  Link,
 
 } from "@chakra-ui/react";
 import { InlineIcon } from "@iconify/react";
@@ -32,6 +33,7 @@ import { NavBar } from "./NavBar";
 import { Convocatoria, CreateExamenInput } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
 import { FiMoreVertical } from "react-icons/fi";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function Parts() {
   const dispatch = useDispatch<IDispatch>();
@@ -309,6 +311,9 @@ export default function Parts() {
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
+      <Link as={RouterLink} to={`/`} color="blue.600">
+        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard </Text>
+      </Link>
       {/* --- 2. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
         

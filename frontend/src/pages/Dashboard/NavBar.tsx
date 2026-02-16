@@ -1,6 +1,9 @@
 import { Box, Container, Flex, HStack, Spacer, Icon, Image} from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { FiLogOut, FiSettings } from "react-icons/fi";
+import {
+  UserButton,
+} from "@clerk/clerk-react";
 
 export function NavBar() {
     return (
@@ -17,8 +20,7 @@ export function NavBar() {
 
                     <Spacer />
                     <HStack spacing={6}>
-                    <Icon as={FiSettings} w={5} h={5} cursor="pointer" />
-                    <Icon as={FiLogOut} w={5} h={5} mr={"5"} cursor="pointer" color={"red"} />
+                    <UserButton />
                     </HStack>
                 </Flex>
                 </Container>

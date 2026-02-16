@@ -24,12 +24,14 @@ import {
   InputLeftElement,
   InputRightElement,
   Select,
+  Link,
 
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
 import { CreateExamenInput } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function Parts() {
   const navigate = useNavigate();
@@ -46,16 +48,6 @@ export default function Parts() {
   const examen =  useSelector((state: IRootState) => state.examenModel.selectedExamen);
   const partesExamenes =  useSelector((state: IRootState) => state.parteExamenModel.partesExamenes);
   const [selectedParteExamenId, setSelectedParteExamenId] = useState<string | null>(null);
-
-  let duracionTotalExamen = (examen?.duracion_h || 0) * 60 + (examen?.duracion_m || 0);
-  let duracionTotalPartes = partesExamenes.reduce((total, parte) => {
-    return total + (parte.duracion_h * 60) + parte.duracion_m;
-  }, 0);
-
-  // Convertir minutos totales a horas y minutos
-  const horasPartes = Math.floor(duracionTotalPartes / 60);
-  const minutosPartes = duracionTotalPartes % 60;
-  const coincide = duracionTotalExamen === duracionTotalPartes;
 
   const [ value, setValue ] = useState("");
   const [formValues, setFormValues] = useState({
@@ -120,7 +112,7 @@ export default function Parts() {
         }
       }
       await dispatch.parteExamenModel.deleteParteExamen(selectedParteExamenId!);
-      await dispatch.parteExamenModel.getPartesExamenes(id!);
+      await dispatch.parteExamenModel.getPartesExamen(id!);
       onCloseDelete();
     } catch (e) {
       console.error("Error al eliminar la asignatura", e);
@@ -151,7 +143,7 @@ export default function Parts() {
 
     try {
       await dispatch.parteExamenModel.updateParteExamen(payload);
-      await dispatch.parteExamenModel.getPartesExamenes(id!);
+      await dispatch.parteExamenModel.getPartesExamen(id!);
       setFormValues({ nombre: "", duracion_h: 0, duracion_m: 0 });
       setSelectedParteExamenId(null);
       onCloseEdit();
@@ -197,7 +189,10 @@ export default function Parts() {
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
-      {/* --- 2. CONTENIDO PRINCIPAL --- */}
+      <Link as={RouterLink} to={`/asignatura/}`} color="blue.600">
+        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard &lt; {asignatura?.nombre} </Text>
+      </Link>
+      {/* --- 1. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
         
         {/* Encabezado: Saludo y Botón Principal */}

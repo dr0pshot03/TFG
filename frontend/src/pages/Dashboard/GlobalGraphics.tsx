@@ -9,12 +9,15 @@ import {
   Text,
   Heading,
   VStack,
+  Link,
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
 import api from "@/configs/axios";
 import type { Asignatura } from "@/types/asignatura.type";
 import type { Examen } from "@/types/examen.type";
+
+import { Link as RouterLink } from "react-router-dom";
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -282,9 +285,11 @@ export default function GlobalGraphics() {
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
+      <Link as={RouterLink} to="/" color="blue.600" >
+        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver a pagina principal</Text>
+      </Link>
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
-      <Container maxW="full" py={10}>
-        
+      <Container maxW="full">
         <VStack align="center" spacing={2} mb={6} textAlign="center">
           <Heading as="h1" size="lg">
             Grafica historica de los tiempos de los examenes
@@ -317,7 +322,7 @@ export default function GlobalGraphics() {
                   value={selectedAsignaturaId}
                   onChange={(event) => setSelectedAsignaturaId(event.target.value)}
                 >
-                  {asignaturas.map((asignatura) => (
+                  {subjectsForChart.map((asignatura) => (
                     <option key={asignatura.id} value={asignatura.id}>
                       {asignatura.nombre}
                     </option>

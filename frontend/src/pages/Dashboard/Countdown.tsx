@@ -10,10 +10,13 @@ import {
   VStack,
   CircularProgress, 
   CircularProgressLabel,
-  Text
+  Text,
+  Link
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
+
+import { Link as RouterLink } from "react-router-dom";
 
 export default function Countdown() {
   const dispatch = useDispatch<IDispatch>();
@@ -123,21 +126,25 @@ export default function Countdown() {
   return (
     <Box bg="white" w="100%"> 
       <NavBar />   
+
+      <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
+        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver atrás</Text>
+      </Link>
       
-      <Container maxW="full" mt={10}>
+      <Container maxW="full" mt={5}>
         
         <VStack align="center" spacing={6} textAlign="center">
           <Box>
             <Heading>
                 {asignatura?.nombre || "Asignatura"}
             </Heading>
-            <Heading size={"lg"} mt={5} mb={5}>
+            <Heading size={"lg"} mt={2} mb={2}>
               {parteActual?.nombre || "Parte"}
             </Heading>
             <Text fontSize="lg" color="gray.600">
                 Convocatoria: {examen?.convocatoria} {año} 
             </Text>
-            <Text fontSize="lg" color="gray.600" mb={5}>
+            <Text fontSize="lg" color="gray.600" mb={2}>
                 Tiempo total: {INPUT_HORAS !== 0 ? INPUT_HORAS+"h" : ""} {INPUT_MINUTOS !== 0 ? INPUT_MINUTOS+"min" : ""}
             </Text>
           </Box>
@@ -147,7 +154,7 @@ export default function Countdown() {
           <CircularProgress 
             value={progress} 
             color={timeLeft < 300 ? "red.400" : "teal.400"} // Rojo si quedan menos de 5 min
-            size="450px" 
+            size="50vh" 
             thickness="8px" 
             capIsRound
             trackColor="gray.100"
@@ -168,7 +175,7 @@ export default function Countdown() {
             size="lg" 
             onClick={handleStart}
             isDisabled={isActive && timeLeft > 0}
-            w="200px"
+            w="25vh"
           >
             {
               isPause ? "Reanudar" : isActive ? "En curso..." : (timeLeft === 0 ? "Reiniciar" : "Comenzar Examen")
@@ -182,7 +189,7 @@ export default function Countdown() {
             onClick={handlePause}
             isDisabled={!isActive}
             ml="10"
-            w="200px"
+            w="25vh"
           >
             Pausar
           </Button>):(<></>)}
@@ -193,7 +200,7 @@ export default function Countdown() {
               size="lg" 
               onClick={handleBack}
               isDisabled={isActive && timeLeft > 0}
-              w="200px"
+              w="25vh"
               ml={"10"}
             >
               Parte Anterior
@@ -207,7 +214,7 @@ export default function Countdown() {
               size="lg" 
               onClick={handleNext}
               isDisabled={isActive && timeLeft > 0}
-              w="200px"
+              w="25vh"
               ml={"10"}
             >
               Siguiente parte

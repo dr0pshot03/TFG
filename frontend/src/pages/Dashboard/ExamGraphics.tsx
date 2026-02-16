@@ -10,11 +10,14 @@ import {
   Text,
   Heading,
   VStack,
+  Link,
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+
+import { Link as RouterLink } from "react-router-dom";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -163,7 +166,10 @@ export default function ExamGraphics() {
 
   return (
     <Box bg="white" w="100%" minH="100vh"> 
-      <NavBar></NavBar>   
+      <NavBar></NavBar> 
+      <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
+        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver atrás</Text>
+      </Link>  
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
         

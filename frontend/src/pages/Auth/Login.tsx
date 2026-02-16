@@ -235,7 +235,7 @@ export default function Login() {
                       {mode === "signup" && !canSubmit && password === "" ? (<Text color={"gray.500"} fontSize={"sm"}>* Asegúrese de que su contraseña contenga un mínimo de 8 letras 
                           con al menos una letra mayúscula, un número y un carácter especial. </Text>) : null}
 
-                      {mode === "signup" && !passwordOk && !canSubmit && password !== "" ? (
+                      {mode === "signup" && !validarPassword && !canSubmit && password !== "" ? (
                         <Text color="red.500" fontSize="sm">
                           La contraseña debe tener 8+ caracteres, una mayúscula, un número y un símbolo.
                         </Text>

@@ -1,6 +1,5 @@
-import { Box, Container, Flex, HStack, Spacer, Icon, Image} from "@chakra-ui/react";
+import { Box, Container, Flex, HStack, Spacer, Image} from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import { FiLogOut, FiSettings } from "react-icons/fi";
 import {
   UserButton,
 } from "@clerk/clerk-react";
@@ -20,7 +19,16 @@ export function NavBar() {
 
                     <Spacer />
                     <HStack spacing={6}>
-                    <UserButton />
+                    <UserButton
+                        appearance={{
+                            elements: {
+                                avatarBox: {
+                                    width: "40px",
+                                    height: "40px",
+                                },
+                            },
+                        }}
+                    />
                     </HStack>
                 </Flex>
                 </Container>

@@ -20,7 +20,6 @@ import {
   Tr,
   Td,
   InputGroup,
-  InputLeftElement,
   InputRightElement,
 
 } from "@chakra-ui/react";
@@ -28,21 +27,25 @@ import { InlineIcon } from "@iconify/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
+import { CreateAsignaturaInput } from "@/types/asignatura.type";
 
 export default function Dashboard() {
   const dispatch = useDispatch<IDispatch>();
-  const userId = "user_id_ejemplo"; 
+  const { userId } = useAuth();
   
   const { isOpen: isOpenAdd, onOpen: onOpenAdd, onClose: onCloseAdd } = useDisclosure();
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
   const { isOpen: isOpenDelete, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
 
+  const { user } = useUser();
+
   //const asignaturas = [];
   const asignaturas =  useSelector((state: IRootState) => state.asignaturaModel.asignaturas);
-  const user= useSelector((state: IRootState) => state.userModel.user);
-  const loading = useSelector((state: IRootState) => state.asignaturaModel.loading);
-  const NombreUsuario = user?.nombre || "Cargando...";
-  const ApellidosUsuario = user?.apellidos || "";
+  //const user= useSelector((state: IRootState) => state.userModel.user);
+  const NombreUsuario = user?.firstName || "Cargando...";
+  const ApellidosUsuario = user?.lastName || "";
   const [ value, setValue ] = useState("");
   const [formValues, setFormValues] = useState({
     nombre: "",
@@ -61,7 +64,7 @@ export default function Dashboard() {
   }, [dispatch, userId]);
 
   useEffect(() => {
-    dispatch.asignaturaModel.getAsignaturas(userId);
+    dispatch.asignaturaModel.getAsignaturas(userId!);
   }, [dispatch]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -82,11 +85,11 @@ export default function Dashboard() {
       user_id: userId,
       nombre: formValues.nombre,
       descripcion: formValues.descripcion || ""
-    };
+    } as CreateAsignaturaInput;
 
     try {
       await dispatch.asignaturaModel.createAsignatura(payload);
-      await dispatch.asignaturaModel.getAsignaturas(userId);
+      await dispatch.asignaturaModel.getAsignaturas(userId!);
       setFormValues({ nombre: "", descripcion: "" });
       onCloseAdd();
     } catch (e) {
@@ -97,7 +100,7 @@ export default function Dashboard() {
   const handleDelete = async () => {
     try {
       await dispatch.asignaturaModel.deleteAsignatura(selectedAsignaturaId!);
-      await dispatch.asignaturaModel.getAsignaturas(userId);
+      await dispatch.asignaturaModel.getAsignaturas(userId!);
       setFormValues({ nombre: "", descripcion: "" });
       onCloseDelete();
       onCloseEdit();
@@ -120,7 +123,7 @@ export default function Dashboard() {
 
     try {
       await dispatch.asignaturaModel.updateAsignatura(payload);
-      await dispatch.asignaturaModel.getAsignaturas(userId);
+      await dispatch.asignaturaModel.getAsignaturas(userId!);
       setFormValues({ nombre: "", descripcion: "" });
       setSelectedAsignaturaId(null);
       onCloseEdit();

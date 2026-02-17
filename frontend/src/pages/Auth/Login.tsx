@@ -16,6 +16,7 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
+  useAuth,
   useSignIn,
   useSignUp,
 } from "@clerk/clerk-react";
@@ -23,12 +24,15 @@ import {
 type AuthMode = "signin" | "signup";
 
 import { useNavigate } from "react-router-dom";
-import Logo1 from "public/Logo.png";
-import time from "public/time.png";
+import { IDispatch } from "../../store/store"; 
+import { useDispatch } from "react-redux";
+import { UpdateUsuario, Usuario } from "@/types/user.type";
 
 export default function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch<IDispatch>();
   const toast = useToast();
+  const { userId, getToken } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
@@ -64,6 +68,18 @@ export default function Login() {
     setError("");
   };
 
+  const getClerkIdFromToken = async (): Promise<string | null> => {
+    const token = await getToken();
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return typeof payload?.sub === "string" ? payload.sub : null;
+    } catch {
+      return null;
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
@@ -81,6 +97,23 @@ export default function Login() {
 
         if (attempt.status === "complete") {
           await setActiveSignIn({ session: attempt.createdSessionId });
+
+          const resolvedClerkId = userId ?? (await getClerkIdFromToken());
+          if (!resolvedClerkId) {
+            setError("No se pudo obtener el identificador de usuario.");
+            return;
+          }
+
+          const payload = {
+            clerkId: resolvedClerkId,
+            nombre: attempt.userData.firstName,
+            apellidos: attempt.userData.lastName,
+            email: email,
+            
+          } as UpdateUsuario;
+
+          await dispatch.userModel.updateUsuario(payload);
+
           navigate("/dashboard");
         } else {
           setError("Completa el segundo factor en Clerk.");
@@ -108,6 +141,17 @@ export default function Login() {
 
       if (verification.status === "complete") {
         await setActiveSignUp({ session: verification.createdSessionId });
+
+        const payload = {
+          clerkId: verification.createdUserId,
+          nombre: name,
+          apellidos: surname,
+          email: email,
+          
+        } as Usuario;
+
+        await dispatch.userModel.createUsuario(payload)
+
         navigate("/dashboard");
       } else {
         setError("Codigo incorrecto o expirado.");
@@ -135,7 +179,7 @@ export default function Login() {
           justifyContent="center"
           py={{ base: 6, md: 0 }}
         >
-          <Image src={time} alt="Time" objectFit="contain" maxW="100%" />
+          <Image src="/time.png" alt="Time" objectFit="contain" maxW="100%" />
         </Box>
 
         <Box
@@ -149,7 +193,7 @@ export default function Login() {
             <SignedOut>
               <Box w="100%" px={2}>
                 <Flex justify="center" mb={10}>
-                  <Image src={Logo1} maxW={"40%"}/>
+                  <Image src="/Logo.png" maxW={"40%"}/>
                 </Flex>
                 <Flex
                   bg="gray.200"
@@ -304,13 +348,6 @@ export default function Login() {
                 </form>
               </Box>
             </SignedOut>
-
-            <SignedIn>
-              <Flex align="center" justify="center" gap={3}>
-                <Text>Sesion iniciada.</Text>
-                <UserButton />
-              </Flex>
-            </SignedIn>
           </Container>
         </Box>
       </Flex>

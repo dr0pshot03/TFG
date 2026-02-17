@@ -3,7 +3,7 @@
 import api from "../../configs/axios";
 import { createModel } from "@rematch/core";
 
-import { Usuario } from "@/types/user.type";
+import { UpdateUsuario, Usuario } from "@/types/user.type";
 
 import { IRootModel } from ".";
 
@@ -62,6 +62,37 @@ const userModel = createModel<IRootModel>()({
 
       dispatch.userModel.addValue({ key: "loading", value: false });
     },
+    
+    async createUsuario (payload: Usuario, state) {
+      dispatch.userModel.addValue({ key: "loading", value: true });
+
+      const res = await api
+        .post(`/api/usuario/`, payload)
+        .then (() => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "success",
+              position: "top-right",
+              title: "Se ha creado correctamente el examen.",
+              isClosable: true,
+              duration: 5000,
+            });
+          return true;
+        })
+        .catch((error) => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "error",
+              title: error.message,
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          return false;
+        })
+      dispatch.userModel.addValue({ key:"loading", value: false })
+      return res;
+    },
 
     async getUser(id: string, state) {
       dispatch.userModel.addValue({ key:"loading", value: true });
@@ -84,30 +115,36 @@ const userModel = createModel<IRootModel>()({
       dispatch.userModel.addValue({ key: "loading", value: false })
     },
 
-    async updateUserProfile(payload: Partial<Usuario>, state:any) {
+    async updateUsuario(payload: UpdateUsuario, state:any) {
       dispatch.userModel.addValue({ key: "loading", value: true });
 
-      try {
-        // First update metadata in Clerk
-        await api.put("/auth/update-metadata", {
-          userId: state.userModel.user?.clerkUser?.id,
-        });
-
-        // Then refresh user data
-        await dispatch.userModel.getUserDetails();
-      } catch (error: any) {
-        state.toastModel.toast &&
-          state.toastModel.toast({
-            status: "error",
-            title: error.message,
-            duration: 5000,
-            isClosable: true,
-            position: "top-right",
-          });
-        throw error;
-      } finally {
-        dispatch.userModel.addValue({ key: "loading", value: false });
-      }
+      const res = await api
+        .put(`/api/usuario/${payload.clerkId}`, payload)
+        .then ((res) => {
+          dispatch.examenModel.addValue({ key: "selectedExamen", value: res.data })
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "success",
+              position: "top-right",
+              title: "Se ha actualizado correctamente el usuario.",
+              isClosable: true,
+              duration: 5000,
+            });
+          return true;
+        })
+        .catch((error) => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "error",
+              title: error.message,
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          return false;
+        })
+      dispatch.userModel.addValue({ key:"loading", value: false })
+      return res;
     },
 
     async logout() {

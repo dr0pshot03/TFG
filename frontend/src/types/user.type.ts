@@ -3,5 +3,8 @@ export interface Usuario{
     nombre: string;
     apellidos: string;
     email: string;
-    contrasenna: string;
+}
+
+export interface UpdateUsuario extends Partial<Omit<Usuario, 'clerkId'>> {
+  clerkId: string;
 }

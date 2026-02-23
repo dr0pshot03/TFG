@@ -13,9 +13,7 @@ import {
   useToast
 } from "@chakra-ui/react";
 import {
-  SignedIn,
   SignedOut,
-  UserButton,
   useAuth,
   useSignIn,
   useSignUp,
@@ -39,6 +37,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [againPassword, setAgainPassword] = useState("");
   const [code, setCode] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
+  const [isRecoveryCodeSent, setIsRecoveryCodeSent] = useState(false);
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
 
@@ -51,19 +53,34 @@ export default function Login() {
   const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
 
   const validarPassword= /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
+  const validarNewPassword = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(newPassword);
   const validarEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const canSubmit =
-    email.trim() !== "" &&
-    validarEmail &&
-    validarPassword &&
-    (mode === "signin" ||
-      (name.trim() !== "" && surname.trim() !== "" && againPassword === password));
+    mode === "signin"
+      ? isRecoveringPassword
+        ? email.trim() !== "" &&
+          validarEmail &&
+          (isRecoveryCodeSent
+            ? recoveryCode.trim() !== "" && validarNewPassword
+            : true)
+        : email.trim() !== "" && validarEmail && password.trim() !== ""
+      : email.trim() !== "" &&
+        validarEmail &&
+        validarPassword &&
+        name.trim() !== "" &&
+        surname.trim() !== "" &&
+        againPassword === password;
 
 
   const resetStateForMode = (nextMode: AuthMode) => {
     setMode(nextMode);
     setIsVerifying(false);
+    setIsRecoveringPassword(false);
+    setIsRecoveryCodeSent(false);
+    setRecoveryCode("");
+    setNewPassword("");
+    setPassword("");
     setCode("");
     setError("");
   };
@@ -90,6 +107,44 @@ export default function Login() {
     setIsLoading(true);
     try {
       if (mode === "signin") {
+        if (isRecoveringPassword) {
+          if (!isRecoveryCodeSent) {
+            await signIn.create({
+              strategy: "reset_password_email_code",
+              identifier: email,
+            });
+            setIsRecoveryCodeSent(true);
+            toast({
+              title: "Código enviado",
+              description: "Revisa tu correo para continuar con el cambio de contraseña.",
+              status: "success",
+              duration: 6000,
+              isClosable: true,
+              position: "top-right",
+            });
+            return;
+          }
+
+          const resetAttempt = await signIn.attemptFirstFactor({
+            strategy: "reset_password_email_code",
+            code: recoveryCode,
+            password: newPassword,
+          });
+
+          if (resetAttempt.status === "complete") {
+            await setActiveSignIn({ session: resetAttempt.createdSessionId });
+            setIsRecoveringPassword(false);
+            setIsRecoveryCodeSent(false);
+            setRecoveryCode("");
+            setNewPassword("");
+            setPassword("");
+            navigate("/dashboard");
+          } else {
+            setError("No se pudo restablecer la contraseña.");
+          }
+          return;
+        }
+
         const attempt = await signIn.create({
           identifier: email,
           password,
@@ -173,13 +228,14 @@ export default function Login() {
     <Box bg="white">
       <Flex minH="100vh" direction={{ base: "column", md: "row" }}>
         <Box
-          w={{ base: "50%", md: "50%" }}
+          w={{ base: "100%", md: "50%" }}
+          h="100vh"
           display="flex"
           alignItems="center"
           justifyContent="center"
-          py={{ base: 6, md: 0 }}
+          overflow="hidden"
         >
-          <Image src="/time.png" alt="Time" objectFit="contain" maxW="100%" />
+          <Image src="/time.png" alt="Time" w="100%" h="100%" objectFit="cover" />
         </Box>
 
         <Box
@@ -192,7 +248,7 @@ export default function Login() {
           <Container maxW="xl" w="100%">
             <SignedOut>
               <Box w="100%" px={2}>
-                <Flex justify="center" mb={10}>
+                <Flex justify="center" mb={5}>
                   <Image src="/Logo.png" maxW={"40%"}/>
                 </Flex>
                 <Flex
@@ -264,21 +320,59 @@ export default function Login() {
                         onChange={(event) => setEmail(event.target.value)}
                         autoComplete="email"
                         placeholder="Tu correo electronico"
+
+
                       />
                     </FormControl>
 
-                    <FormControl isRequired>
-                      <FormLabel>
-                        Contraseña
-                      </FormLabel>
+                    {!isRecoveringPassword ? (
+                      <FormControl isRequired>
+                      
+                        {mode === "signin" && isRecoveringPassword ? (
+                         <FormLabel>Introduce tu nueva contraseña</FormLabel> 
+                        ) : <FormLabel>Contraseña</FormLabel>}
+                      
                       <Input
                         type="password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        placeholder="Introduce tu contraseña"
+                        value={isRecoveringPassword ? newPassword : password}
+                        onChange={(event) =>
+                          isRecoveringPassword
+                            ? setNewPassword(event.target.value)
+                            : setPassword(event.target.value)
+                        }
+                        placeholder={
+                          isRecoveringPassword
+                            ? "Introduce tu nueva contraseña"
+                            : "Introduce tu contraseña"
+                        }
                       />
                       {mode === "signup" && !canSubmit && password === "" ? (<Text color={"gray.500"} fontSize={"sm"}>* Asegúrese de que su contraseña contenga un mínimo de 8 letras 
                           con al menos una letra mayúscula, un número y un carácter especial. </Text>) : null}
+
+                      {mode === "signin" && !isRecoveringPassword ? (
+                        <Text
+                          fontSize="sm"
+                          color="blue.600"
+                          cursor="pointer"
+                          mt="1"
+                          onClick={() => {
+                            setError("");
+                            setIsRecoveringPassword(true);
+                            setIsRecoveryCodeSent(false);
+                            setRecoveryCode("");
+                            setNewPassword("");
+                            setPassword("");
+                          }}
+                        >
+                          ¿Olvidaste la contraseña?
+                        </Text>
+                      ) : null}
+
+                      {mode === "signin" && isRecoveringPassword && !validarNewPassword && newPassword !== "" ? (
+                        <Text color="red.500" fontSize="sm">
+                          La contraseña debe tener 8+ caracteres, una mayúscula, un número y un símbolo.
+                        </Text>
+                      ) : null}
 
                       {mode === "signup" && !validarPassword && !canSubmit && password !== "" ? (
                         <Text color="red.500" fontSize="sm">
@@ -286,6 +380,7 @@ export default function Login() {
                         </Text>
                       ) : null}
                     </FormControl>
+                    ) : null}
 
                     {mode === "signup" ? (
                      <FormControl isRequired>
@@ -311,6 +406,44 @@ export default function Login() {
                           inputMode="numeric"
                         />  
                       </FormControl>
+                    ) : null}
+
+                    {mode === "signin" && isRecoveringPassword && isRecoveryCodeSent ? (
+                      <>
+                        <FormControl isRequired> 
+                          <FormLabel>Codigo de recuperacion</FormLabel>
+                          <Input
+                            value={recoveryCode}
+                            onChange={(event) => setRecoveryCode(event.target.value)}
+                            inputMode="numeric"
+                            placeholder="Introduce el código recibido"
+                          />
+                        </FormControl>
+                        
+                        <FormControl isRequired>
+                         <FormLabel>Introduce tu nueva contraseña</FormLabel> 
+                          <Input
+                            type="password"
+                            value={isRecoveringPassword ? newPassword : password}
+                            onChange={(event) =>
+                              isRecoveringPassword
+                                ? setNewPassword(event.target.value)
+                                : setPassword(event.target.value)
+                            }
+                            placeholder={
+                              isRecoveringPassword
+                                ? "Introduce tu nueva contraseña"
+                                : "Introduce tu contraseña"
+                            }
+                          />
+                          
+                          {mode === "signin" && isRecoveringPassword && !validarNewPassword && newPassword !== "" ? (
+                            <Text color="red.500" fontSize="sm">
+                              La contraseña debe tener 8+ caracteres, una mayúscula, un número y un símbolo.
+                            </Text>
+                          ) : null}
+                        </FormControl>
+                    </>
                     ) : null}
                     
 
@@ -339,11 +472,31 @@ export default function Login() {
                       }}
                     >
                       {mode === "signin"
-                        ? "Entrar"
+                        ? isRecoveringPassword
+                          ? isRecoveryCodeSent
+                            ? "Restablecer contraseña"
+                            : "Enviar codigo"
+                          : "Entrar"
                         : isVerifying
-                        ? "Verificar codigo"
-                        : "Registrarme"}
+                          ? "Verificar codigo"
+                          : "Registrarme"}
                     </Button>
+
+                    {mode === "signin" && isRecoveringPassword ? (
+                      <Button
+                        variant="ghost"
+                        bg={"#e6e6e6"}
+                        onClick={() => {
+                          setError("");
+                          setIsRecoveringPassword(false);
+                          setIsRecoveryCodeSent(false);
+                          setRecoveryCode("");
+                          setNewPassword("");
+                        }}
+                      >
+                        Volver al login
+                      </Button>
+                    ) : null}
                   </Stack>
                 </form>
               </Box>

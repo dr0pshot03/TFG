@@ -260,7 +260,7 @@ export default function ExamGraphics() {
           }}
         >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
+              <BarChart data={chartData} barCategoryGap="40%" barGap={8}>
                 <XAxis dataKey="label" textAnchor="end" height={60}/>
                 <YAxis
                   ticks={yAxisTicks}

@@ -174,7 +174,7 @@ export default function Dashboard() {
           mb={10}
         >
           <Heading as="h1" size="lg" mb={{ base: 4, md: 0 }}>
-            Bienvenido {NombreUsuario} {ApellidosUsuario}
+            Bienvenido/a {NombreUsuario} {ApellidosUsuario}
           </Heading>
           {asignaturas.length != 0 ? 
             (<Button 

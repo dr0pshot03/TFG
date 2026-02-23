@@ -48,6 +48,30 @@ export async function updateParte(req: Request, res: Response){
     }
 }
 
+export async function moveUpParte(req: Request, res: Response){
+    try{
+        const {idParte} = req.params;
+        const parte = await partesExamenService.moveUpParte(idParte);
+        res.json(parte);
+    }catch(error)
+    {
+        console.error("Error al mover hacia arriba la parte del examen", error);
+        res.status(500).json({ error: "Error al mover hacia arriba la parte del examen" });
+    }
+}
+
+export async function moveDownParte(req: Request, res: Response){
+    try{
+        const {idParte} = req.params;
+        const parte = await partesExamenService.moveDownParte(idParte);
+        res.json(parte);
+    }catch(error)
+    {
+        console.error("Error al mover hacia abajo la parte del examen", error);
+        res.status(500).json({ error: "Error al mover hacia abajo la parte del examen" });
+    }
+}
+
 export async function deleteParte(req: Request, res: Response){
     try{
         const {idParte} = req.params;

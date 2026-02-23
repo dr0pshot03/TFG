@@ -16,6 +16,12 @@ router.get("/parte/:idParte", /*requireAuth,*/partesExamenController.getParte);
 // Actualizar parte de un examen
 router.put("/:idParte", /*requireAuth,*/ partesExamenController.updateParte);
 
+// Mover hacia arriba de orden una parte de un examen
+router.put("/:idParte/moveUp", /*requireAuth,*/ partesExamenController.moveUpParte);
+
+// Mover hacia abajo de orden una parte de un examen
+router.put("/:idParte/moveDown", /*requireAuth,*/ partesExamenController.moveDownParte);
+
 // Eliminar una parte de un examen
 router.delete("/:idParte", /*requireAuth,*/ partesExamenController.deleteParte);
 

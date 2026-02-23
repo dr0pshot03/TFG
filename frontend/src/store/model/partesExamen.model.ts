@@ -149,6 +149,70 @@ const partesExamenModel = createModel<IRootModel>() ({
       return res;
     },
 
+    async moveUpParteExamen (payload: UpdateParteExamenInput, state) {
+      dispatch.parteExamenModel.addValue({ key: "loading", value: true });
+
+      const res = await api
+        .put(`/api/partesExamen/${payload.id}/moveUp`)
+        .then ((res) => {
+          dispatch.parteExamenModel.addValue({ key: "selectedParteExamen", value: res.data })
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "success",
+              position: "top-right",
+              title: "Se ha movido correctamente la parte del examen.",
+              isClosable: true,
+              duration: 5000,
+            });
+          return true;
+        })
+        .catch((error) => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "error",
+              title: error.message,
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          return false;
+        })
+      dispatch.parteExamenModel.addValue({ key:"loading", value: false })
+      return res;
+    },
+
+    async moveDownParteExamen (payload: UpdateParteExamenInput, state) {
+      dispatch.parteExamenModel.addValue({ key: "loading", value: true });
+
+      const res = await api
+        .put(`/api/partesExamen/${payload.id}/moveDown`)
+        .then ((res) => {
+          dispatch.parteExamenModel.addValue({ key: "selectedParteExamen", value: res.data })
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "success",
+              position: "top-right",
+              title: "Se ha movido correctamente la parte del examen.",
+              isClosable: true,
+              duration: 5000,
+            });
+          return true;
+        })
+        .catch((error) => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "error",
+              title: error.message,
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          return false;
+        })
+      dispatch.parteExamenModel.addValue({ key:"loading", value: false })
+      return res;
+    },
+
     async deleteParteExamen (id: string, state) {
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 

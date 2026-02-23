@@ -12,8 +12,13 @@ export function NavBar() {
                 <Container maxW="full"> 
                 <Flex alignItems="center">
                     <HStack spacing={2}>
-                    <Box as={RouterLink} to="/dashboard">
-                        <Image src="/Logo.png" alt="Logo" w={"20%"} />
+                    <Box
+                        as={RouterLink}
+                        to="/dashboard"
+                        display="inline-block"
+                        lineHeight={0}
+                    >
+                        <Image src="/Logo.png" alt="Logo" h="56px" w="auto" objectFit="contain" />
                     </Box>
                     </HStack>
 

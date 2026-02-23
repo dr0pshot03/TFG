@@ -131,20 +131,20 @@ export default function Countdown() {
         <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver atrás</Text>
       </Link>
       
-      <Container maxW="full" mt={5}>
+      <Container maxW="full" >
         
         <VStack align="center" spacing={6} textAlign="center">
           <Box>
             <Heading>
                 {asignatura?.nombre || "Asignatura"}
             </Heading>
-            <Heading size={"lg"} mt={2} mb={2}>
+            <Heading size={"lg"}>
               {parteActual?.nombre || "Parte"}
             </Heading>
             <Text fontSize="lg" color="gray.600">
                 Convocatoria: {examen?.convocatoria} {año} 
             </Text>
-            <Text fontSize="lg" color="gray.600" mb={2}>
+            <Text fontSize="lg" color="gray.600" >
                 Tiempo total: {INPUT_HORAS !== 0 ? INPUT_HORAS+"h" : ""} {INPUT_MINUTOS !== 0 ? INPUT_MINUTOS+"min" : ""}
             </Text>
           </Box>

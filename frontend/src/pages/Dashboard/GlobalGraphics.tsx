@@ -19,6 +19,8 @@ import type { Examen } from "@/types/examen.type";
 
 import { Link as RouterLink } from "react-router-dom";
 
+import { useAuth } from "@clerk/clerk-react";
+
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 import html2canvas from "html2canvas";
@@ -26,7 +28,9 @@ import jsPDF from "jspdf";
 
 export default function GlobalGraphics() {
   const dispatch = useDispatch<IDispatch>();
-  const userID = "user_id_ejemplo"
+  const { userId } = useAuth();
+
+
   const chartRef = useRef<HTMLDivElement | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedAsignaturaId, setSelectedAsignaturaId] = useState("");
@@ -39,8 +43,8 @@ export default function GlobalGraphics() {
   const [allExamenes, setAllExamenes] = useState<Examen[]>([]);
 
   useEffect(() => {
-    dispatch.asignaturaModel.getAsignaturas(userID);
-  }, [dispatch, userID]);
+    dispatch.asignaturaModel.getAsignaturas(userId!);
+  }, [dispatch, userId]);
 
   useEffect(() => {
     let isActive = true;
@@ -111,7 +115,7 @@ export default function GlobalGraphics() {
   }, [allExamenes, selectedAsignaturaId, selectedConvocatoria, selectedCurso]);
 
   // Prepara los datos que mostrará la gráfica
-  const chartData = useMemo(() => {
+  const chartData = useMemo<Array<Record<string, number | string>>>(() => {
     const grouped = new Map<
       string,
       Record<string, number | string>
@@ -251,7 +255,7 @@ export default function GlobalGraphics() {
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 32;
       const titleGap = 20;
-      const title = selectedAsignatura?.nombre ?? "Historico de asignaturas";
+      const title = selectedAsignatura?.nombre ?? "Histórico de asignaturas";
 
       pdf.setFontSize(30);
       const titleWidth = pdf.getTextWidth(title);
@@ -292,7 +296,7 @@ export default function GlobalGraphics() {
       <Container maxW="full">
         <VStack align="center" spacing={2} mb={6} textAlign="center">
           <Heading as="h1" size="lg">
-            Grafica historica de los tiempos de los examenes
+            Gráfica histórica de los tiempos de los examenes
           </Heading>
           <Text color="gray.600">
             {selectedAsignatura?.nombre ?? "Todas las asignaturas"}
@@ -384,8 +388,8 @@ export default function GlobalGraphics() {
 
         <Box
           w="100%"
-          mx="auto"
           h={"60vh"}
+          minH="320px"
           ref={chartRef}
           sx={{
             "& .recharts-wrapper:focus": { outline: "none" },
@@ -394,9 +398,9 @@ export default function GlobalGraphics() {
             "& .recharts-surface:focus-visible": { outline: "none" },
           }}
         >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <XAxis dataKey="label" textAnchor="end" height={60} />
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
+              <BarChart data={chartData} barCategoryGap="40%" barGap={8}>
+                <XAxis dataKey="label" textAnchor="middle" height={60} />
                 <YAxis
                   ticks={yAxisTicks}
                   domain={[0, yAxisTicks[yAxisTicks.length - 1] ?? 0]}
@@ -419,7 +423,6 @@ export default function GlobalGraphics() {
                     dataKey={subject.id}
                     name={subject.nombre}
                     fill={subjectColors[subject.id] ?? "#2f6fe4"}
-                    radius={[4, 4, 0, 0]}
                   />
                 ))}
               </BarChart>

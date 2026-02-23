@@ -25,8 +25,10 @@ import {
   InputRightElement,
   Select,
   Link,
+  IconButton,
 
 } from "@chakra-ui/react";
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
 import { CreateExamenInput } from "@/types/examen.type";
@@ -181,6 +183,24 @@ export default function Parts() {
     onCloseEdit();
   };
 
+  const handleMoveUp = async (parteId: string) => {
+    try {
+      await dispatch.parteExamenModel.moveUpParteExamen({ id: parteId });
+      await dispatch.parteExamenModel.getPartesExamen(id!);
+    } catch (e) {
+      console.error("Error al mover hacia arriba la parte del examen", e);
+    }
+  };
+
+  const handleMoveDown = async (parteId: string) => {
+    try {
+      await dispatch.parteExamenModel.moveDownParteExamen({ id: parteId });
+      await dispatch.parteExamenModel.getPartesExamen(id!);
+    } catch (e) {
+      console.error("Error al mover hacia abajo la parte del examen", e);
+    }
+  };
+
   const filteredPartesExamenes= partesExamenes.filter((parteExamen) => 
     parteExamen.nombre.toLowerCase().includes(value.toLowerCase())
   );
@@ -189,7 +209,7 @@ export default function Parts() {
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
-      <Link as={RouterLink} to={`/asignatura/}`} color="blue.600">
+      <Link as={RouterLink} to={idAsign ? `/asignatura/${idAsign}` : "/"} color="blue.600">
         <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard &lt; {asignatura?.nombre} </Text>
       </Link>
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
@@ -246,7 +266,27 @@ export default function Parts() {
                       borderRight="1px solid #aaaaaa"
                       borderBottom="1px solid #aaaaaa"
                     >
-                      <Text fontSize="lg">{parteExamen.num_parte}</Text>
+                      <Box position="relative" w="100%">
+                        <HStack spacing={1} position="absolute" left={0} top="50%" transform="translateY(-50%)">
+                          <IconButton
+                            aria-label="Subir parte"
+                            icon={<FiChevronUp />}
+                            size="sm"
+                            borderRadius="full"
+                            onClick={() => handleMoveUp(parteExamen.id)}
+                            isDisabled={index === 0}
+                          />
+                          <IconButton
+                            aria-label="Bajar parte"
+                            icon={<FiChevronDown />}
+                            size="sm"
+                            borderRadius="full"
+                            onClick={() => handleMoveDown(parteExamen.id)}
+                            isDisabled={index === filteredPartesExamenes.length - 1}
+                          />
+                        </HStack>
+                        <Text fontSize="lg" textAlign="center">{parteExamen.num_parte}</Text>
+                      </Box>
                     </Td>
 
                     <Td
@@ -268,7 +308,7 @@ export default function Parts() {
                     </Td>
 
                     <Td minW="200px" textAlign="center" p={2} borderBottom="1px solid #aaaaaa">
-                      <Flex justify={"space-between"}>
+                      <Flex justify={"space-between"} align="center" gap={2}>
                         <Button 
                           colorScheme="blue" 
                           w={"45%"} 
@@ -304,7 +344,7 @@ export default function Parts() {
 
         <Modal isOpen={isOpenDelete} onClose={onCloseDelete} isCentered>
           <ModalOverlay />
-            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"} minW={"75vh"}>
+            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"} minW={"100vh"}>
               <ModalHeader textAlign={"center"}>¿Estás seguro/a de que quieres eliminar esta parte del examen?</ModalHeader>
               <ModalCloseButton />
               <ModalBody >

@@ -11,7 +11,18 @@ import {
   CircularProgress, 
   CircularProgressLabel,
   Text,
-  Link
+  Link,
+  Modal, 
+  ModalBody,
+  ModalOverlay,
+  ModalHeader,
+  ModalCloseButton,
+  ModalContent,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Input,
+  ModalFooter
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
@@ -26,6 +37,9 @@ export default function Countdown() {
   const asignatura = useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examen = useSelector((state: IRootState) => state.examenModel.selectedExamen);
   const partes = useSelector((state: IRootState) => state.parteExamenModel.partesExamenes);
+
+  const { isOpen: isOpenTime, onOpen: onOpenTime, onClose: onCloseTime } = useDisclosure();
+  const [timeExtra, setTimeExtra] = useState(0);
 
   const [timeLeft, setTimeLeft] = useState(0);
   const [isActive, setIsActive] = useState(false);
@@ -118,6 +132,17 @@ export default function Countdown() {
 
   const handleBack = () => {
     setContador((prev) => Math.min(prev - 1, totalPartes));
+  };
+
+  const handleMoreTime = () => {
+    setTimeLeft((prev) => prev + timeExtra * 60);
+    setTimeExtra(0);
+    onCloseTime();
+  };
+
+  const handleTimeExtraChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const minutes = Number(event.target.value);
+    setTimeExtra(minutes);
   };
 
   // Cálculo del porcentaje para la barra (0 a 100)
@@ -220,8 +245,59 @@ export default function Countdown() {
               Siguiente parte
             </Button>) : (<></>)
           }
+
+          {(timeLeft == 0) ?
+            (<Button 
+              colorScheme="teal" 
+              size="lg" 
+              onClick={onOpenTime}
+              w="25vh"
+              ml={"10"}
+            >
+              Añadir más tiempo
+            </Button>) : (<></>)
+          }
         </Flex>
       </Container>  
+
+      <Modal isOpen={isOpenTime} onClose={onCloseTime} isCentered>
+          <ModalOverlay />
+            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
+              <ModalHeader textAlign={"center"}>Añadir más tiempo</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody >
+                <Flex justifyContent={"center"} mb={"3"}>
+                  <FormControl isRequired>
+                    <FormLabel fontWeight="semibold">¿Cuántos minutos?</FormLabel>
+                    <Input
+                      id="minutos" 
+                      name="minutos" 
+                      type="number"
+                      placeholder="" 
+                      onChange={handleTimeExtraChange}
+                      value={timeExtra === 0 ? "" : timeExtra}
+                      size="lg"
+                      borderRadius="xl"    
+                      focusBorderColor="blue.500"
+                    />
+                  </FormControl>
+                </Flex>
+              
+                
+              </ModalBody>
+              <ModalFooter justifyContent={"center"}>
+                <Button 
+                    colorScheme='blue' 
+                    onClick={handleMoreTime}
+                    isDisabled={timeExtra <= 0}
+                    _hover={{bgcolor:"red"}}
+                  >
+                    Añadir
+                  </Button>
+              </ModalFooter>
+            </ModalContent>
+
+        </Modal>
     </Box>
   );
 }

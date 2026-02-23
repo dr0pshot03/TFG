@@ -58,8 +58,6 @@ export default function Parts() {
     duracion_m: 0
   });
 
-  console.log(examen)
-
   useEffect(() => {
     dispatch.examenModel.getExamen(id!);
     dispatch.parteExamenModel.getPartesExamen(id!);
@@ -130,18 +128,24 @@ export default function Parts() {
     };
 
     if (selectedParteExamenId && examen) {
-        {
-          const totalExamenMin = (examen.duracion_h || 0) * 60 + (examen.duracion_m || 0);
-          const parteMin = payload.duracion_h * 60 + payload.duracion_m;
-          const nuevoTotal = Math.max(totalExamenMin + parteMin, 0);
-          await dispatch.examenModel.updateTimeExamen({
-            id: id!,
-            duracion_h: Math.floor(nuevoTotal / 60),
-            partes: examen.partes,
-            duracion_m: nuevoTotal % 60
-          });
-        }
-      }
+      const totalExamenMin = (examen.duracion_h || 0) * 60 + (examen.duracion_m || 0);
+
+      const parteActual = partesExamenes.find((parte) => parte.id === selectedParteExamenId);
+      const parteActualMin = parteActual
+        ? payload.duracion_h * 60 + payload.duracion_m
+        : 0;
+
+      const parteNuevaMin = payload.duracion_h * 60 + payload.duracion_m;
+      
+      const nuevoTotal = Math.max(totalExamenMin - parteActualMin + parteNuevaMin, 0);
+
+      await dispatch.examenModel.updateTimeExamen({
+        id: id!,
+        duracion_h: Math.floor(nuevoTotal / 60),
+        partes: examen.partes,
+        duracion_m: nuevoTotal % 60
+      });
+    }
 
     try {
       await dispatch.parteExamenModel.updateParteExamen(payload);
@@ -209,7 +213,7 @@ export default function Parts() {
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
-      <Link as={RouterLink} to={idAsign ? `/asignatura/${idAsign}` : "/"} color="blue.600">
+      <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
         <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard &lt; {asignatura?.nombre} </Text>
       </Link>
       {/* --- 1. CONTENIDO PRINCIPAL --- */}

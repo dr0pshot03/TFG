@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
 import { useParams } from "react-router-dom";
 import { 
-  Box, Container, Flex, HStack, Icon, Text, Spacer, Heading, Button, VStack, SimpleGrid, useDisclosure, Modal,
+  Box, Container, Flex, Icon, Text, Spacer, Heading, Button, VStack, useDisclosure, Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
@@ -12,8 +12,6 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Textarea,
-  Image,
   Table,
   TableContainer,
   Thead,
@@ -21,23 +19,21 @@ import {
   Tr,
   Td,
   InputGroup,
-  InputLeftElement,
   InputRightElement,
   Select,
   Link,
 
 } from "@chakra-ui/react";
 import { InlineIcon } from "@iconify/react";
-import { IRootState, IDispatch, select } from "../../store/store"; 
+import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
-import { Convocatoria, CreateExamenInput } from "@/types/examen.type";
+import { Convocatoria, CreateExamenInput, UpdateExamenInput } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
 import { FiMoreVertical } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
 
 export default function Parts() {
   const dispatch = useDispatch<IDispatch>();
-  const userId = "user_id_ejemplo"; 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
@@ -45,10 +41,13 @@ export default function Parts() {
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
   const { isOpen: isOpenOptions, onOpen: onOpenOptions, onClose: onCloseOptions } = useDisclosure();
   const { isOpen: isOpenFilters, onOpen: onOpenFilters, onClose: onCloseFilters } = useDisclosure();
+  const { isOpen: isOpenPresentados, onOpen: onOpenPresentados, onClose: onClosePresentados } = useDisclosure();
   const [examenID, setExamenID] = useState("");
 
   const asignatura =  useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examenes =  useSelector((state: IRootState) => state.examenModel.examenes);
+
+  const [ presentados, setPresentados ] = useState(0);
 
   const [ value, setValue ] = useState("");
   const [formValues, setFormValues] = useState({
@@ -56,7 +55,7 @@ export default function Parts() {
     partes: 0,
     fecha_examen: "",
     aula: "",
-    n_present: 0
+    n_esperados: 0
   });
 
   const [filtersValues, setFiltersValues] = useState({
@@ -64,7 +63,7 @@ export default function Parts() {
     partes: 0,
     fecha_examen: "",
     aula: "",
-    n_present: 0
+    n_esperados: 0
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -72,14 +71,14 @@ export default function Parts() {
     partes: 0,
     fecha_examen: "",
     aula: "",
-    n_present: 0
+    n_esperados: 0
   });
   
   const [editExamenValues, setEditExamenValues] = useState({
     convocatoria: "",
     fecha_examen: "",
     aula: "",
-    n_present: 0
+    n_esperados: 0
   });
   
   const [partesData, setPartesData] = useState<Array<{
@@ -115,7 +114,7 @@ export default function Parts() {
       duracion_m: duracion_total_m,
       fecha_examen: new Date(formValues.fecha_examen),
       aula: formValues.aula,
-      n_present: formValues.n_present,
+      n_esperados: formValues.n_esperados,
       anno: new Date().getFullYear()
     } as CreateExamenInput; 
 
@@ -135,7 +134,7 @@ export default function Parts() {
     }
     
     await dispatch.examenModel.getExamenes(id!);
-    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_present: 0 });
+    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
     setPartesData([]);
     handleCloseAdd();
   } catch (e) {
@@ -160,7 +159,7 @@ export default function Parts() {
     } else {
       setFormValues(prev => ({
         ...prev,
-        [name]: (name === "n_present") ? parseInt(value) || 0 : value
+        [name]: (name === "n_esperados") ? parseInt(value) || 0 : value
       }));
     }
   };
@@ -180,12 +179,12 @@ export default function Parts() {
     const { name, value } = e.target;
     setEditExamenValues(prev => ({
       ...prev,
-      [name]: name === "n_present" ? parseInt(value) || 0 : value
+      [name]: name === "n_esperados" ? parseInt(value) || 0 : value
     }));
   };
 
   const handleCloseAdd = () => {
-    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_present: 0 });
+    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
     setPartesData([]);
     setCurrentStep(0);
     onCloseAdd();
@@ -200,7 +199,7 @@ export default function Parts() {
   };
   
   const handleCloseEdit = () => {
-    setEditExamenValues({ convocatoria: "", fecha_examen: "", aula: "", n_present: 0 });
+    setEditExamenValues({ convocatoria: "", fecha_examen: "", aula: "", n_esperados: 0 });
     onCloseEdit();
   };
 
@@ -215,7 +214,7 @@ export default function Parts() {
         ? new Date(selected.fecha_examen).toISOString().slice(0, 10)
         : "",
       aula: selected.aula || "",
-      n_present: selected.n_present || 0
+      n_esperados: selected.n_esperados || 0
     });
     onCloseOptions();
     onOpenEdit();
@@ -228,7 +227,7 @@ export default function Parts() {
         convocatoria: editExamenValues.convocatoria as Convocatoria,
         fecha_examen: new Date(editExamenValues.fecha_examen),
         aula: editExamenValues.aula,
-        n_present: editExamenValues.n_present
+        n_esperados: editExamenValues.n_esperados
       });
       await dispatch.examenModel.getExamenes(id!);
       handleCloseEdit();
@@ -251,15 +250,15 @@ export default function Parts() {
     const { name, value } = e.target;
     setFiltersValues(prev => ({
       ...prev,
-      [name]: (name === "partes" || name === "n_present")
+      [name]: (name === "partes" || name === "n_esperados")
         ? (value === "" ? 0 : parseInt(value) || 0)
         : value
     }));
   };
 
   const handleClearFilters = () => {
-    setFiltersValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_present: 0 });
-    setAppliedFilters({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_present: 0 });
+    setFiltersValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
+    setAppliedFilters({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
   };
 
   const handleApplyFilters = () => {
@@ -272,10 +271,11 @@ export default function Parts() {
     appliedFilters.partes ||
     appliedFilters.fecha_examen ||
     appliedFilters.aula ||
-    appliedFilters.n_present
+    appliedFilters.n_esperados
   );
 
   const normalizedSearch = value.trim().toLowerCase();
+
   const filteredExamenes = examenes.filter((examen) => {
     if (normalizedSearch && !examen.convocatoria.toLowerCase().includes(normalizedSearch)) {
       return false;
@@ -293,13 +293,13 @@ export default function Parts() {
       return false;
     }
 
-    if (appliedFilters.n_present && examen.n_present !== appliedFilters.n_present) {
+    if (appliedFilters.n_esperados && examen.n_esperados < appliedFilters.n_esperados) {
       return false;
     }
 
     if (appliedFilters.fecha_examen) {
       const examenFecha = new Date(examen.fecha_examen).toISOString().slice(0, 10);
-      if (examenFecha !== appliedFilters.fecha_examen) {
+      if (examenFecha < appliedFilters.fecha_examen) {
         return false;
       }
     }
@@ -307,6 +307,20 @@ export default function Parts() {
     return true;
   });
 
+  const handlePresentados = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const present = Number(event.target.value);
+    setPresentados(present);
+  };
+
+  const handleUpdatePresentados = async () => {
+    if (!examenID) return;
+    const payload: UpdateExamenInput = {
+      id: examenID,
+      n_present: presentados
+    };
+    await dispatch.examenModel.updateExamen(payload);
+    onClosePresentados();
+  };
 
   return (
     <Box bg="white" w="100%" minH="100vh"> 
@@ -449,14 +463,14 @@ export default function Parts() {
                       <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Convocatoria</Td>
                       <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Partes</Td>
                       <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Duración </Td>
-                      <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Alumnos Presentados </Td>
+                      <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Alumnos Esperados </Td>
                       <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Aula </Td>
                       <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"20%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Acciones </Td>
                     </Tr>
                   </Thead>
                   <Tbody>
                     {filteredExamenes.map((examen, index) => (
-                      <Tr key={examen.id || index} bgColor={"#d9d9d9"} _hover={{ bg: "#e9e9e9" }}>
+                      <Tr key={examen.id || index} bgColor={examen.finalizado ? "#B9F6CA" : "#E2E8F0"}>
                         <Td
                           p={2}
                           textAlign="center"
@@ -499,7 +513,7 @@ export default function Parts() {
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
                         >
-                          <Text fontSize="lg">{examen.n_present}</Text>
+                          <Text fontSize="lg">{examen.n_esperados}</Text>
                         </Td>
 
                         <Td
@@ -510,20 +524,38 @@ export default function Parts() {
                         >
                           <Text fontSize="lg">{examen.aula}</Text>
                         </Td>
-
+                      
+                      
                         <Td minW="200px" textAlign="center" p={2} borderBottom="1px solid #aaaaaa">
                           <Flex justify={"space-between"}>
-                            <Button 
+                            {examen.finalizado ? (
+                              <Button 
+                              colorScheme="blue" 
+                              size="sm"
+                              w={"45%"} 
+                              borderRadius="full" 
+                              bg="#000000"
+                              onClick={() => {
+                                setExamenID(examen.id);
+                                setPresentados(examen.n_esperados ?? 0);
+                                onOpenPresentados();
+                              }}
+                              _hover={{ bg:  "#2e2e2e"}}
+                            >
+                              Alumnos Presentados
+                            </Button>
+                            ) : (<Button 
                               colorScheme="blue" 
                               size="sm"
                               w={"45%"} 
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}/cuentaatras`)}
-                              _hover={{ bg:  "#aaaaaa"}}
+                              _hover={{ bg:  "#2e2e2e"}}
                             >
                               Comenzar
-                            </Button>
+                            </Button>)}
+                            
 
                             <Button 
                               colorScheme="blue" 
@@ -532,7 +564,7 @@ export default function Parts() {
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}`)}
-                              _hover={{ bg:  "#aaaaaa"}}
+                              _hover={{ bg:  "#2e2e2e"}}
                             >
                               Acceder
                             </Button>
@@ -561,6 +593,44 @@ export default function Parts() {
             </VStack>
           )
         }
+
+        <Modal isOpen={isOpenPresentados} onClose={onClosePresentados} isCentered>
+          <ModalOverlay />
+            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
+              <ModalHeader textAlign={"center"}>Añadir Alumnos Presentados</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody >
+                <Flex justifyContent={"center"} mb={"3"}>
+                  <FormControl isRequired>
+                    <FormLabel fontWeight="semibold">¿Cuántos alumnos se han presentado?</FormLabel>
+                    <Input
+                      id="minutos" 
+                      name="minutos" 
+                      type="number"
+                      placeholder="" 
+                      onChange={handlePresentados}
+                      value={presentados === 0 ? "" : presentados}
+                      size="lg"
+                      borderRadius="xl"    
+                      focusBorderColor="blue.500"
+                    />
+                  </FormControl>
+                </Flex>
+              
+                
+              </ModalBody>
+              <ModalFooter justifyContent={"center"}>
+                <Button 
+                    colorScheme='blue' 
+                    onClick={handleUpdatePresentados}
+                    _hover={{bgcolor:"red"}}
+                  >
+                    Añadir
+                  </Button>
+              </ModalFooter>
+            </ModalContent>
+        </Modal>
+
         <Modal isOpen={isOpenAdd} onClose={handleCloseAdd} isCentered>
           <ModalOverlay />
             <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"} minW={"70vh"}>
@@ -654,14 +724,14 @@ export default function Parts() {
                   </FormControl>
 
                   <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">Número de Presentados</FormLabel>
+                    <FormLabel fontWeight="semibold">Número de Alumnos Esperado</FormLabel>
                     <Input
-                      id="n_present" 
-                      name="n_present" 
+                      id="n_esperados" 
+                      name="n_esperados" 
                       type="number"
-                      value={formValues.n_present || ""}
+                      value={formValues.n_esperados || ""}
                       onChange={handleFormChange}
-                      placeholder="Número de alumnos presentados" 
+                      placeholder="Número de alumnos esperados" 
                       size="lg"      
                       borderRadius="xl"    
                       focusBorderColor="blue.500"
@@ -854,10 +924,10 @@ export default function Parts() {
                   <FormControl isRequired>
                     <FormLabel fontWeight="semibold">Número de Presentados</FormLabel>
                     <Input
-                      id="n_present"
-                      name="n_present"
+                      id="n_esperados"
+                      name="n_esperados"
                       type="number"
-                      value={editExamenValues.n_present || ""}
+                      value={editExamenValues.n_esperados || ""}
                       onChange={handleEditExamenChange}
                       placeholder="Número de alumnos presentados"
                       size="lg"
@@ -971,10 +1041,10 @@ export default function Parts() {
                   <FormControl>
                     <FormLabel fontWeight="semibold">Número de Presentados</FormLabel>
                     <Input
-                      id="n_present" 
-                      name="n_present" 
+                      id="n_esperados" 
+                      name="n_esperados" 
                       type="number"
-                      value={filtersValues.n_present || ""}
+                      value={filtersValues.n_esperados || ""}
                       onChange={handleFiltersChange}
                       placeholder="Número de alumnos presentados" 
                       size="lg"      

@@ -64,6 +64,18 @@ export async function updateTiempoExamen(req: Request, res: Response){
     }
 }
 
+export async function updateEstadoExamen(req: Request, res: Response){
+    try{
+        const id = req.params.id;
+        const examen = await examenService.updateEstadoExamen(id);
+        res.json(examen);
+    }catch(error)
+    {
+        console.error("Error al actualizar el examen", error);
+        res.status(500).json({ error: "Error al actualizar el examen" });
+    }
+}
+
 export async function updateExamen(req: Request, res: Response){
     try{
         const id = req.params.id;

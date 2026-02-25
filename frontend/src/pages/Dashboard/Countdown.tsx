@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
   Button,
@@ -31,6 +31,7 @@ import { Link as RouterLink } from "react-router-dom";
 
 export default function Countdown() {
   const dispatch = useDispatch<IDispatch>();
+  const navigate = useNavigate();
   const { idAsign } = useParams<{ idAsign: string }>();
   const { idExamen } = useParams<{ idExamen: string }>();
 
@@ -145,6 +146,12 @@ export default function Countdown() {
     setTimeExtra(minutes);
   };
 
+  const handleFinish = async () => {
+    if (!examen?.id || !idAsign) return;
+    await dispatch.examenModel.updateEstadoExamen(examen.id);
+    navigate(`/asignatura/${idAsign}`);
+  }
+
   // Cálculo del porcentaje para la barra (0 a 100)
   const progress = TOTAL_SECONDS_INITIAL === 0 ? 0 : (timeLeft / TOTAL_SECONDS_INITIAL) * 100;
 
@@ -256,6 +263,19 @@ export default function Countdown() {
             >
               Añadir más tiempo
             </Button>) : (<></>)
+          }
+
+          {(contador === 0) && (!isActive) && (timeLeft != 0) ?
+            (<Button 
+              colorScheme="teal" 
+              size="lg" 
+              onClick={handleFinish}
+              w="25vh"
+              ml={"10"}
+            >
+              Finalizar Examen
+            </Button>
+            ) : (<></>)
           }
         </Flex>
       </Container>  

@@ -53,9 +53,14 @@ model Examen {
   convocatoria Convocatoria 
   fecha_examen DateTime
   aula String
-  n_present Int
+  n_present Int @default(0)
+  n_esperados Int 
+  n_aprobados Int @default(0)
   duracion_h Int
   duracion_m  Int
+
+  finalizado Boolean @default(false)
+  
   created_at  DateTime @default(now())
   updated_at DateTime @updatedAt
 

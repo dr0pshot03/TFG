@@ -16,11 +16,14 @@ router.get("/:id", /*requireAuth,*/  examenController.getExamen);
 // Actualizar convocatoria examen
 router.put("/convocatoria/:id", /*requireAuth,*/  examenController.updateConvocatoriaExamen);
 
-// Actualizar timepo de examen
+// Actualizar tiempo de examen
 router.put("/tiempo/:id", /*requireAuth,*/  examenController.updateTiempoExamen);
 
+// Actualizar estado finalizado de examen
+router.put("/finalizado/:id", /*requireAuth,*/  examenController.updateEstadoExamen);
+
 // Actualizar examen
-router.put("/:id", /*requireAuth,*/  examenController.updateExamen);
+router.patch("/:id", /*requireAuth,*/  examenController.updateExamen);
 
 // Eliminar examen
 router.delete("/:id", /*requireAuth,*/  examenController.deleteExamen);

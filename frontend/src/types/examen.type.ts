@@ -5,7 +5,10 @@ export interface Examen{
     convocatoria: Convocatoria;
     fecha_examen: Date;
     aula: string;
-    n_present: number;
+    n_present?: number;
+    n_esperados: number;
+    n_aprobados?: number;
+    finalizado?: boolean;
     duracion_h: number;
     duracion_m: number;
 }

@@ -16,7 +16,10 @@ export interface examen {
     convocatoria: Convocatoria;
     fecha_examen: Date;
     aula: string;
-    n_present: number;
+    n_present?: number;
+    n_esperados: number;
+    n_aprobados?: number;
+    finalizado?: boolean;
     duracion_h: number;
     duracion_m: number;
 }
@@ -32,7 +35,7 @@ export async function createExamen(data: examen) {
                 duracion_h : data.duracion_h,
                 duracion_m : data.duracion_m,
                 aula: data.aula,
-                n_present: data.n_present
+                n_esperados: data.n_esperados,
             }
         })
     }catch(error)
@@ -65,31 +68,31 @@ export async function getExamen(id: string){
     }
 }
 
-export async function updateExamen(id: string, data : Partial<examen>){
+export async function updateExamen(id: string, body : any){
     try {
-        const {
-            id_asign,
-            partes,
-            convocatoria,
-            fecha_examen,
-            aula,
-            n_present,
-            duracion_h,
-            duracion_m,
-            ...updateData
-        } = data;
-        return await prisma.examen.update({
-            where:{ id : id},
-            data: {
-                id_asign,
-                partes,
-                convocatoria,
-                fecha_examen,
-                aula,
-                n_present,
-                duracion_h,
-                duracion_m
-            }
+        const allowedFields = [
+            "convocatoria",
+            "fecha_examen",
+            "aula",
+            "n_present",
+            "n_aprobados",
+            "finalizado",
+            "partes"
+        ];
+
+        const data: Record<string, any> = {};
+
+        for (const key of allowedFields) {
+            if (body[key] !== undefined) data[key] = body[key];
+        }
+
+        if (Object.keys(data).length === 0) {
+            throw new Error("No hay campos para actualizar");
+        }
+
+        return prisma.examen.update({
+            where: { id },
+            data
         });
     } catch (error) {
         console.error("Error al actualizar el examen", error);
@@ -124,6 +127,20 @@ export async function updateTiempoExamen(id: string, data : Partial<examen>){
     } catch (error) {
         console.error("Error al actualizar la duración del examen", error);
         throw new Error("No se pudo actualizar la duración del examen");
+    }
+}
+
+export async function updateEstadoExamen(id: string){
+    try {
+        return await prisma.examen.update({
+            where:{ id : id},
+            data: {
+                finalizado: true
+            }
+        });
+    } catch (error) {
+        console.error("Error al actualizar el estado finalizado del examen", error);
+        throw new Error("No se pudo actualizar el estado finalizado del examen");
     }
 }
 

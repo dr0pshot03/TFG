@@ -47,7 +47,8 @@ export default function Parts() {
   const asignatura =  useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examenes =  useSelector((state: IRootState) => state.examenModel.examenes);
 
-  const [ presentados, setPresentados ] = useState(0);
+  const [ presentados, setPresentados ] = useState("");
+  const [ aprobados, setAprobados ] = useState("");
 
   const [ value, setValue ] = useState("");
   const [formValues, setFormValues] = useState({
@@ -308,17 +309,28 @@ export default function Parts() {
   });
 
   const handlePresentados = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const present = Number(event.target.value);
-    setPresentados(present);
+    const present = event.target.value;
+    if (/^\d*$/.test(present)) {
+      setPresentados(present);
+    }
+  };
+
+  const handleAprobados = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const aprob = event.target.value;
+    if (/^\d*$/.test(aprob)) {
+      setAprobados(aprob);
+    }
   };
 
   const handleUpdatePresentados = async () => {
     if (!examenID) return;
     const payload: UpdateExamenInput = {
       id: examenID,
-      n_present: presentados
+      n_present: presentados === "" ? 0 : Number(presentados),
+      n_aprobados: aprobados === "" ? 0 : Number(aprobados),
     };
     await dispatch.examenModel.updateExamen(payload);
+    await dispatch.examenModel.getExamenes(id!);
     onClosePresentados();
   };
 
@@ -537,7 +549,8 @@ export default function Parts() {
                               bg="#000000"
                               onClick={() => {
                                 setExamenID(examen.id);
-                                setPresentados(examen.n_esperados ?? 0);
+                                setPresentados((examen.n_present ?? 0) > 0 ? String(examen.n_present) : "");
+                                setAprobados((examen.n_aprobados ?? 0) > 0 ? String(examen.n_aprobados) : "");
                                 onOpenPresentados();
                               }}
                               _hover={{ bg:  "#2e2e2e"}}
@@ -601,20 +614,33 @@ export default function Parts() {
               <ModalCloseButton />
               <ModalBody >
                 <Flex justifyContent={"center"} mb={"3"}>
-                  <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">¿Cuántos alumnos se han presentado?</FormLabel>
-                    <Input
-                      id="minutos" 
-                      name="minutos" 
-                      type="number"
-                      placeholder="" 
-                      onChange={handlePresentados}
-                      value={presentados === 0 ? "" : presentados}
-                      size="lg"
-                      borderRadius="xl"    
-                      focusBorderColor="blue.500"
-                    />
-                  </FormControl>
+                  <VStack>
+                    <FormControl isRequired>
+                      <FormLabel fontWeight="semibold">¿Cuántos alumnos se han presentado?</FormLabel>
+                      <Input
+                        type="number"
+                        placeholder="" 
+                        onChange={handlePresentados}
+                        value={presentados}
+                        size="lg"
+                        borderRadius="xl"    
+                        focusBorderColor="blue.500"
+                      />
+                    </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel fontWeight="semibold">¿Cuántos alumnos han aprobado?</FormLabel>
+                      <Input
+                        type="number"
+                        placeholder="" 
+                        onChange={handleAprobados}
+                        value={aprobados}
+                        size="lg"
+                        borderRadius="xl"    
+                        focusBorderColor="blue.500"
+                      />
+                    </FormControl>
+                  </VStack>
+                  
                 </Flex>
               
                 
@@ -724,7 +750,7 @@ export default function Parts() {
                   </FormControl>
 
                   <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">Número de Alumnos Esperado</FormLabel>
+                    <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
                     <Input
                       id="n_esperados" 
                       name="n_esperados" 
@@ -922,14 +948,14 @@ export default function Parts() {
                   </FormControl>
 
                   <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">Número de Presentados</FormLabel>
+                    <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
                     <Input
                       id="n_esperados"
                       name="n_esperados"
                       type="number"
                       value={editExamenValues.n_esperados || ""}
                       onChange={handleEditExamenChange}
-                      placeholder="Número de alumnos presentados"
+                      placeholder="Número de alumnos esperados"
                       size="lg"
                       borderRadius="xl"
                       focusBorderColor="blue.500"

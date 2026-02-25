@@ -5,11 +5,23 @@ import {
   Button,
   Container,
   Flex,
-  Select,
   Text,
   Heading,
   VStack,
   Link,
+  Modal,
+  useDisclosure,
+  ModalBody,
+  ModalOverlay,
+  ModalHeader,
+  ModalContent,
+  ModalCloseButton,
+  ModalFooter,
+  FormControl,
+  FormLabel,
+  Checkbox,
+  Stack,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
@@ -33,9 +45,14 @@ export default function GlobalGraphics() {
 
   const chartRef = useRef<HTMLDivElement | null>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [selectedAsignaturaId, setSelectedAsignaturaId] = useState("");
-  const [selectedConvocatoria, setSelectedConvocatoria] = useState("");
-  const [selectedCurso, setSelectedCurso] = useState("");
+  const [selectedAsignaturaIds, setSelectedAsignaturaIds] = useState<string[]>([]);
+  const [selectedConvocatorias, setSelectedConvocatorias] = useState<string[]>([]);
+  const [selectedCursos, setSelectedCursos] = useState<string[]>([]);
+  const [draftAsignaturaIds, setDraftAsignaturaIds] = useState<string[]>([]);
+  const [draftConvocatorias, setDraftConvocatorias] = useState<string[]>([]);
+  const [draftCursos, setDraftCursos] = useState<string[]>([]);
+
+  const { isOpen: isOpenFilter, onOpen: onOpenFilter, onClose: onCloseFilters } = useDisclosure();
 
   const asignaturas = useSelector(
     (state: IRootState) => state.asignaturaModel.asignaturas
@@ -79,40 +96,89 @@ export default function GlobalGraphics() {
     };
   }, [asignaturas]);
 
-  const selectedAsignatura = useMemo<Asignatura | undefined>(() => {
-    if (!selectedAsignaturaId) {
-      return undefined;
+  const selectedAsignaturas = useMemo<Asignatura[]>(() => {
+    if (selectedAsignaturaIds.length === 0) {
+      return [];
     }
-    return asignaturas.find((asignatura) => asignatura.id === selectedAsignaturaId);
-  }, [asignaturas, selectedAsignaturaId]);
+    return asignaturas.filter((asignatura) => selectedAsignaturaIds.includes(asignatura.id));
+  }, [asignaturas, selectedAsignaturaIds]);
+
+  const selectedAsignaturaLabel = useMemo(() => {
+    if (selectedAsignaturas.length === 1) {
+      return selectedAsignaturas[0].nombre;
+    }
+    if (selectedAsignaturas.length > 1) {
+      return "Varias asignaturas";
+    }
+    return "Todas las asignaturas";
+  }, [selectedAsignaturas]);
+
+  const toggleValue = (
+    value: string,
+    selected: string[],
+    setSelected: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
+    if (selected.includes(value)) {
+      setSelected(selected.filter((item) => item !== value));
+      return;
+    }
+    setSelected([...selected, value]);
+  };
+
+  const handleOpenFilters = () => {
+    setDraftAsignaturaIds(selectedAsignaturaIds);
+    setDraftConvocatorias(selectedConvocatorias);
+    setDraftCursos(selectedCursos);
+    onOpenFilter();
+  };
+
+  const handleApplyFilters = () => {
+    setSelectedAsignaturaIds(draftAsignaturaIds);
+    setSelectedConvocatorias(draftConvocatorias);
+    setSelectedCursos(draftCursos);
+    onCloseFilters();
+  };
+
+  const handleClearFilters = () => {
+    setDraftAsignaturaIds([]);
+    setDraftConvocatorias([]);
+    setDraftCursos([]);
+    setSelectedAsignaturaIds([]);
+    setSelectedConvocatorias([]);
+    setSelectedCursos([]);
+  };
+
+  const subjectsWithExams = useMemo(() => {
+    const idsWithExams = new Set(allExamenes.map((examen) => examen.id_asign));
+    return asignaturas.filter((asignatura) => idsWithExams.has(asignatura.id));
+  }, [asignaturas, allExamenes]);
 
   const subjectsForChart = useMemo(() => {
-    const base = selectedAsignaturaId
-      ? asignaturas.filter((asignatura) => asignatura.id === selectedAsignaturaId)
-      : asignaturas;
-    const idsWithExams = new Set(allExamenes.map((examen) => examen.id_asign));
-    return base.filter((asignatura) => idsWithExams.has(asignatura.id));
-  }, [asignaturas, selectedAsignaturaId, allExamenes]);
+    if (selectedAsignaturaIds.length === 0) {
+      return subjectsWithExams;
+    }
+    return subjectsWithExams.filter((asignatura) => selectedAsignaturaIds.includes(asignatura.id));
+  }, [subjectsWithExams, selectedAsignaturaIds]);
 
   // Filtra los datos según el usuario elija
   const filteredExamenes = useMemo(() => {
     return allExamenes.filter((examen) => {
-      if (selectedAsignaturaId && examen.id_asign !== selectedAsignaturaId) {
+      if (selectedAsignaturaIds.length > 0 && !selectedAsignaturaIds.includes(examen.id_asign)) {
         return false;
       }
-      if (selectedConvocatoria && examen.convocatoria !== selectedConvocatoria) {
+      if (selectedConvocatorias.length > 0 && !selectedConvocatorias.includes(examen.convocatoria)) {
         return false;
       }
-      if (!selectedCurso) {
+      if (selectedCursos.length === 0) {
         return true;
       }
       const parsed = new Date(examen.fecha_examen as unknown as string);
       if (Number.isNaN(parsed.getTime())) {
         return false;
       }
-      return String(parsed.getFullYear()) === selectedCurso;
+      return selectedCursos.includes(String(parsed.getFullYear()));
     });
-  }, [allExamenes, selectedAsignaturaId, selectedConvocatoria, selectedCurso]);
+  }, [allExamenes, selectedAsignaturaIds, selectedConvocatorias, selectedCursos]);
 
   // Prepara los datos que mostrará la gráfica
   const chartData = useMemo<Array<Record<string, number | string>>>(() => {
@@ -211,29 +277,18 @@ export default function GlobalGraphics() {
     return `${hours}h ${mins}m`;
   };
 
-  const baseExamenesForOptions = useMemo(() => {
-    if (!selectedAsignaturaId) {
-      return allExamenes;
-    }
-    return allExamenes.filter(
-      (examen) => examen.id_asign === selectedAsignaturaId
-    );
-  }, [allExamenes, selectedAsignaturaId]);
-
   const convocatoriaOptions = Array.from(
-    new Set(
-      baseExamenesForOptions.map((examen) => examen.convocatoria).filter(Boolean)
-    )
+    new Set(allExamenes.map((examen) => examen.convocatoria).filter(Boolean))
   );
   const cursoOptions = useMemo(() => {
-    const years = baseExamenesForOptions
+    const years = allExamenes
       .map((examen) => new Date(examen.fecha_examen as unknown as string))
       .filter((date) => !Number.isNaN(date.getTime()))
       .map((date) => date.getFullYear());
     return Array.from(new Set(years))
       .sort((a, b) => a - b)
       .map((year) => String(year));
-  }, [baseExamenesForOptions]);
+  }, [allExamenes]);
 
   // Función para exportar el pdf.
   const handleExportPdf = async () => {
@@ -255,7 +310,9 @@ export default function GlobalGraphics() {
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 32;
       const titleGap = 20;
-      const title = selectedAsignatura?.nombre ?? "Histórico de asignaturas";
+      const title = selectedAsignaturaLabel === "Todas las asignaturas"
+        ? "Histórico de asignaturas"
+        : selectedAsignaturaLabel;
 
       pdf.setFontSize(30);
       const titleWidth = pdf.getTextWidth(title);
@@ -278,7 +335,11 @@ export default function GlobalGraphics() {
       const y = titleY + titleGap + (maxHeight - imgHeight) / 2;
       pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
 
-      const safeName = (selectedAsignatura?.nombre ?? "historico-asignaturas")
+      const safeName = (selectedAsignaturas.length === 1
+        ? selectedAsignaturas[0].nombre
+        : selectedAsignaturas.length > 1
+          ? "varias-asignaturas"
+          : "historico-asignaturas")
         .replace(/[^a-zA-Z0-9-_]+/g, "_");
       pdf.save(`grafica-${safeName}.pdf`);
     } finally {
@@ -299,7 +360,7 @@ export default function GlobalGraphics() {
             Gráfica histórica de los tiempos de los examenes
           </Heading>
           <Text color="gray.600">
-            {selectedAsignatura?.nombre ?? "Todas las asignaturas"}
+            {selectedAsignaturaLabel}
           </Text>
         </VStack>
 
@@ -309,64 +370,16 @@ export default function GlobalGraphics() {
           gap={4}
           mb={8}
         >
-          <Box flex="1" display={{ base: "none", md: "block" }} />
-
-          <Flex flex="1" justify="center">
-            <Flex
-              gap={4}
-              w={{ base: "100%", md: "700px" }}
-              direction={{ base: "column", md: "row" }}
-            >
-              <Box w="100%">
-                <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
-                  Asignatura
-                </Text>
-                <Select
-                  placeholder="Elige la asignatura"
-                  value={selectedAsignaturaId}
-                  onChange={(event) => setSelectedAsignaturaId(event.target.value)}
-                >
-                  {subjectsForChart.map((asignatura) => (
-                    <option key={asignatura.id} value={asignatura.id}>
-                      {asignatura.nombre}
-                    </option>
-                  ))}
-                </Select>
-              </Box>
-              <Box w="100%">
-                <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
-                  Curso
-                </Text>
-                <Select
-                  placeholder="Elige el curso"
-                  value={selectedCurso}
-                  onChange={(event) => setSelectedCurso(event.target.value)}
-                >
-                  {cursoOptions.map((curso) => (
-                    <option key={curso} value={curso}>
-                      {curso}
-                    </option>
-                  ))}
-                </Select>
-              </Box>
-              <Box w="100%">
-                <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
-                  Convocatoria
-                </Text>
-                <Select
-                  placeholder="Elige la convocatoria"
-                  value={selectedConvocatoria}
-                  onChange={(event) => setSelectedConvocatoria(event.target.value)}
-                >
-                  {convocatoriaOptions.map((convocatoria) => (
-                    <option key={convocatoria} value={convocatoria}>
-                      {convocatoria}
-                    </option>
-                  ))}
-                </Select>
-              </Box>
-            </Flex>
-          </Flex>
+          <Button 
+            onClick={handleOpenFilters} 
+            bgColor={"#0055D4"}
+            _hover={{ borderColor: "#0055D4", boxShadow: "none" }}
+            color={"white"}
+            borderRadius={"15"}
+            w="25vh"
+            minH={"5vh"}>
+            Filtros
+          </Button>
 
           <Flex flex="1" justify={"flex-end"}>
             <Button
@@ -429,6 +442,77 @@ export default function GlobalGraphics() {
             </ResponsiveContainer>
         </Box>
       </Container>  
+
+      <Modal isOpen={isOpenFilter} onClose={onCloseFilters} isCentered >
+        <ModalOverlay />
+          <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
+            <ModalHeader textAlign={"center"}>Filtros</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody >
+              <Flex justifyContent={"center"} mb={"3"}>
+                <VStack w="100%">
+                  <FormControl>
+                    <FormLabel fontWeight="semibold">Asignaturas</FormLabel>
+                    <SimpleGrid columns={1} spacing={2} overflowY="auto" border="1px solid" borderColor="gray.200" borderRadius="xl" p={3}>
+                      {subjectsWithExams.map((asignatura) => (
+                        <Checkbox
+                          key={asignatura.id}
+                          isChecked={draftAsignaturaIds.includes(asignatura.id)}
+                          onChange={() => toggleValue(asignatura.id, draftAsignaturaIds, setDraftAsignaturaIds)}
+                        >
+                          {asignatura.nombre}
+                        </Checkbox>
+                      ))}
+                    </SimpleGrid>
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel fontWeight="semibold">Curso</FormLabel>
+                    <SimpleGrid columns={2} spacing={2} maxH="140px" overflowY="auto" border="1px solid" borderColor="gray.200" borderRadius="xl" p={3}>
+                      {cursoOptions.map((curso) => (
+                        <Checkbox
+                          key={curso}
+                          isChecked={draftCursos.includes(curso)}
+                          onChange={() => toggleValue(curso, draftCursos, setDraftCursos)}
+                        >
+                          {curso}
+                        </Checkbox>
+                      ))}
+                    </SimpleGrid>
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel fontWeight="semibold">Convocatoria</FormLabel>
+                    <Stack spacing={2} border="1px solid" borderColor="gray.200" borderRadius="xl" p={3}>
+                      {convocatoriaOptions.map((convocatoria) => (
+                        <Checkbox
+                          key={convocatoria}
+                          isChecked={draftConvocatorias.includes(convocatoria)}
+                          onChange={() => toggleValue(convocatoria, draftConvocatorias, setDraftConvocatorias)}
+                        >
+                          {convocatoria}
+                        </Checkbox>
+                      ))}
+                    </Stack>
+                  </FormControl>
+                </VStack>
+              </Flex>
+            </ModalBody>
+            <ModalFooter justifyContent={"center"} gap={3}>
+              <Button
+                variant="outline"
+                onClick={handleClearFilters}
+              >
+                Limpiar
+              </Button>
+              <Button 
+                  colorScheme='blue' 
+                  onClick={handleApplyFilters}
+                  _hover={{bgcolor:"red"}}
+                >
+                  Filtrar
+                </Button>
+            </ModalFooter>
+          </ModalContent>
+      </Modal>
     </Box>
   );
 }

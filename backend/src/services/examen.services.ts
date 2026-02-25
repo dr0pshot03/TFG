@@ -76,6 +76,7 @@ export async function updateExamen(id: string, body : any){
             "aula",
             "n_present",
             "n_aprobados",
+            "n_esperados",
             "finalizado",
             "partes"
         ];

@@ -6,11 +6,23 @@ import {
   Button,
   Container,
   Flex,
-  Select,
   Text,
   Heading,
   VStack,
   Link,
+  Modal,
+  useDisclosure,
+  ModalBody,
+  ModalOverlay,
+  ModalHeader,
+  ModalContent,
+  ModalCloseButton,
+  ModalFooter,
+  FormControl,
+  FormLabel,
+  Checkbox,
+  Stack,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
@@ -36,24 +48,58 @@ export default function ExamGraphics() {
 
   const chartRef = useRef<HTMLDivElement | null>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [selectedConvocatoria, setSelectedConvocatoria] = useState("");
-  const [selectedCurso, setSelectedCurso] = useState("");
+  const [selectedConvocatorias, setSelectedConvocatorias] = useState<string[]>([]);
+  const [selectedCursos, setSelectedCursos] = useState<string[]>([]);
+  const [draftConvocatorias, setDraftConvocatorias] = useState<string[]>([]);
+  const [draftCursos, setDraftCursos] = useState<string[]>([]);
+  const { isOpen: isOpenFilter, onOpen: onOpenFilter, onClose: onCloseFilters } = useDisclosure();
+
+  const toggleValue = (
+    value: string,
+    selected: string[],
+    setSelected: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
+    if (selected.includes(value)) {
+      setSelected(selected.filter((item) => item !== value));
+      return;
+    }
+    setSelected([...selected, value]);
+  };
+
+  const handleOpenFilters = () => {
+    setDraftConvocatorias(selectedConvocatorias);
+    setDraftCursos(selectedCursos);
+    onOpenFilter();
+  };
+
+  const handleApplyFilters = () => {
+    setSelectedConvocatorias(draftConvocatorias);
+    setSelectedCursos(draftCursos);
+    onCloseFilters();
+  };
+
+  const handleClearFilters = () => {
+    setDraftConvocatorias([]);
+    setDraftCursos([]);
+    setSelectedConvocatorias([]);
+    setSelectedCursos([]);
+  };
 
   const filteredExamenes = useMemo(() => {
     return examenes.filter((examen) => {
-      if (selectedConvocatoria && examen.convocatoria !== selectedConvocatoria) {
+      if (selectedConvocatorias.length > 0 && !selectedConvocatorias.includes(examen.convocatoria)) {
         return false;
       }
-      if (!selectedCurso) {
+      if (selectedCursos.length === 0) {
         return true;
       }
       const parsed = new Date(examen.fecha_examen as unknown as string);
       if (Number.isNaN(parsed.getTime())) {
         return false;
       }
-      return String(parsed.getFullYear()) === selectedCurso;
+      return selectedCursos.includes(String(parsed.getFullYear()));
     });
-  }, [examenes, selectedConvocatoria, selectedCurso]);
+  }, [examenes, selectedConvocatorias, selectedCursos]);
 
   const chartData = useMemo(() => {
     const grouped = new Map<
@@ -186,48 +232,16 @@ export default function ExamGraphics() {
           gap={4}
           mb={8}
         >
-          <Box flex="1" display={{ base: "none", md: "block" }} />
-
-          <Flex flex="1" justify="center">
-            <Flex
-              gap={4}
-              w={{ base: "100%", md: "480px" }}
-              direction={{ base: "column", md: "row" }}
-            >
-              <Box w="100%">
-                <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
-                  Convocatoria
-                </Text>
-                <Select
-                  placeholder="Elige la convocatoria"
-                  value={selectedConvocatoria}
-                  onChange={(event) => setSelectedConvocatoria(event.target.value)}
-                >
-                  {convocatoriaOptions.map((convocatoria) => (
-                    <option key={convocatoria} value={convocatoria}>
-                      {convocatoria}
-                    </option>
-                  ))}
-                </Select>
-              </Box>
-              <Box w="100%">
-                <Text fontSize="sm" mb={1} color="gray.600" textAlign="center">
-                  Año
-                </Text>
-                <Select
-                  placeholder="Elige el año"
-                  value={selectedCurso}
-                  onChange={(event) => setSelectedCurso(event.target.value)}
-                >
-                  {cursoOptions.map((curso) => (
-                    <option key={curso} value={curso}>
-                      {curso}
-                    </option>
-                  ))}
-                </Select>
-              </Box>
-            </Flex>
-          </Flex>
+          <Button 
+            onClick={handleOpenFilters} 
+            bgColor={"#0055D4"}
+            _hover={{ borderColor: "#0055D4", boxShadow: "none" }}
+            color={"white"}
+            borderRadius={"15"}
+            w="25vh"
+            minH={"5vh"}>
+            Filtros
+          </Button>
 
           <Flex flex="1" justify={"flex-end"}>
             <Button
@@ -280,6 +294,53 @@ export default function ExamGraphics() {
             </ResponsiveContainer>
         </Box>
       </Container>  
+
+      <Modal isOpen={isOpenFilter} onClose={onCloseFilters} isCentered>
+        <ModalOverlay />
+        <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
+          <ModalHeader textAlign={"center"}>Filtros</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Flex justifyContent={"center"} mb={"3"}>
+              <VStack w="100%" spacing={4}>
+                <FormControl>
+                  <FormLabel fontWeight="semibold">Convocatoria</FormLabel>
+                  <Stack spacing={2} border="1px solid" borderColor="gray.200" borderRadius="xl" p={3}>
+                    {convocatoriaOptions.map((convocatoria) => (
+                      <Checkbox
+                        key={convocatoria}
+                        isChecked={draftConvocatorias.includes(convocatoria)}
+                        onChange={() => toggleValue(convocatoria, draftConvocatorias, setDraftConvocatorias)}
+                      >
+                        {convocatoria}
+                      </Checkbox>
+                    ))}
+                  </Stack>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel fontWeight="semibold">Año</FormLabel>
+                  <SimpleGrid columns={2} spacing={2} maxH="140px" overflowY="auto" border="1px solid" borderColor="gray.200" borderRadius="xl" p={3}>
+                    {cursoOptions.map((curso) => (
+                      <Checkbox
+                        key={curso}
+                        isChecked={draftCursos.includes(curso)}
+                        onChange={() => toggleValue(curso, draftCursos, setDraftCursos)}
+                      >
+                        {curso}
+                      </Checkbox>
+                    ))}
+                  </SimpleGrid>
+                </FormControl>
+              </VStack>
+            </Flex>
+          </ModalBody>
+          <ModalFooter justifyContent={"center"} gap={3}>
+            <Button variant="outline" onClick={handleClearFilters}>Limpiar</Button>
+            <Button colorScheme="blue" onClick={handleApplyFilters}>Filtrar</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }

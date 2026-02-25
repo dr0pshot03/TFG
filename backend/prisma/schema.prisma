@@ -68,6 +68,21 @@ model Examen {
   partesExamen partesExamen[]
   // FK hacia asignatura
   asignatura Asignatura @relation(fields: [id_asign], references: [id], onDelete: Cascade)
+  // Aulas - alumnos esperados
+  aulaAlumnos AulaAlumnos[]
+}
+
+model AulaAlumnos {
+  id String @id @default(uuid()) @db.Uuid
+
+  aula String
+  n_esperados Int
+
+  created_at  DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  examen    Examen   @relation(fields: [id], references: [id])
+  examenId  Int
 }
 
 model partesExamen{

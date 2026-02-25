@@ -265,7 +265,7 @@ export default function Countdown() {
             </Button>) : (<></>)
           }
 
-          {(contador === 0) && (!isActive) && (timeLeft != 0) ?
+          {!isActive ?
             (<Button 
               colorScheme="teal" 
               size="lg" 

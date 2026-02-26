@@ -52,7 +52,6 @@ model Examen {
   partes Int
   convocatoria Convocatoria 
   fecha_examen DateTime
-  aula String
   n_present Int @default(0)
   n_esperados Int 
   n_aprobados Int @default(0)
@@ -81,8 +80,8 @@ model AulaAlumnos {
   created_at  DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  examen    Examen   @relation(fields: [id], references: [id])
-  examenId  Int
+  examen    Examen   @relation(fields: [examenId], references: [id], onDelete: Cascade)
+  examenId  String @db.Uuid
 }
 
 model partesExamen{

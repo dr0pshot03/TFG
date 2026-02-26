@@ -11,6 +11,12 @@ export interface Examen{
     finalizado?: boolean;
     duracion_h: number;
     duracion_m: number;
+
+    aulaAlumnos: {
+        id?: string;
+        aula: string;
+        n_esperados: number;
+    }[];
 }
 
 export interface ExamenForm{
@@ -18,7 +24,6 @@ export interface ExamenForm{
     partes: number;
     convocatoria: Convocatoria;
     fecha_examen: Date;
-    aula: string;
     n_present: number;
     duracion_h: number;
     duracion_m: number;

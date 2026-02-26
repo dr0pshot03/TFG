@@ -41,6 +41,7 @@ export default function Parts() {
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
   const { isOpen: isOpenOptions, onOpen: onOpenOptions, onClose: onCloseOptions } = useDisclosure();
   const { isOpen: isOpenFilters, onOpen: onOpenFilters, onClose: onCloseFilters } = useDisclosure();
+  
   const { isOpen: isOpenPresentados, onOpen: onOpenPresentados, onClose: onClosePresentados } = useDisclosure();
   const [examenID, setExamenID] = useState("");
 
@@ -49,6 +50,10 @@ export default function Parts() {
 
   const [ presentados, setPresentados ] = useState("");
   const [ aprobados, setAprobados ] = useState("");
+  const [editAulasData, setEditAulasData] = useState<{aula: string, n_esperados: number}[]>([]);
+  const [editAulaValues, setEditAulaValues] = useState({ aula: "", n_esperados: 0 });
+  const [showEditAulaForm, setShowEditAulaForm] = useState(false);
+  const [ aulasData, setAulasData ] = useState<{aula: string, n_esperados: number}[]>([]);
 
   const [ value, setValue ] = useState("");
   const [formValues, setFormValues] = useState({
@@ -63,7 +68,6 @@ export default function Parts() {
     convocatoria: "",
     partes: 0,
     fecha_examen: "",
-    aula: "",
     n_esperados: 0
   });
 
@@ -71,7 +75,6 @@ export default function Parts() {
     convocatoria: "",
     partes: 0,
     fecha_examen: "",
-    aula: "",
     n_esperados: 0
   });
   
@@ -88,7 +91,25 @@ export default function Parts() {
     duracion_m: number;
   }>>([]);
   
-  const [currentStep, setCurrentStep] = useState(0); // 0 = datos básicos, 1+ = partes
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const agregarAula = () => {
+    if (!formValues.aula.trim()) return;
+
+    setAulasData((prev) => [
+      ...prev,
+      {
+        aula: formValues.aula.trim(),
+        n_esperados: Number(formValues.n_esperados) || 0,
+      },
+    ]);
+
+    setFormValues((prev) => ({
+      ...prev,
+      aula: "",
+      n_esperados: 0,
+    }));
+  };
 
   useEffect(() => {
     dispatch.examenModel.getExamenes(id!);
@@ -107,6 +128,16 @@ export default function Parts() {
     duracion_total_h = Math.floor(duracion_total_m / 60);
     duracion_total_m = duracion_total_m % 60;
 
+    const aulaAlumnos = [
+      ...aulasData,
+      ...(formValues.aula.trim()
+        ? [{ aula: formValues.aula.trim(), n_esperados: Number(formValues.n_esperados) || 0 }]
+        : []),
+    ];
+
+    let n_total_esperados = 0;
+    for(let i = 0 ; i < aulaAlumnos.length ; i++) n_total_esperados += aulaAlumnos[i].n_esperados;
+
     const payload= {
       id_asign: id!,
       convocatoria: formValues.convocatoria as Convocatoria,
@@ -114,9 +145,13 @@ export default function Parts() {
       duracion_h: duracion_total_h,
       duracion_m: duracion_total_m,
       fecha_examen: new Date(formValues.fecha_examen),
-      aula: formValues.aula,
-      n_esperados: formValues.n_esperados,
-      anno: new Date().getFullYear()
+      aula: aulaAlumnos[0]?.aula || "",
+      n_esperados: n_total_esperados,
+      anno: new Date().getFullYear(),
+      aulaAlumnos: aulaAlumnos.map(item => ({
+        aula: item.aula,
+        n_esperados: Number(item.n_esperados) 
+      }))
     } as CreateExamenInput; 
 
   try {
@@ -136,6 +171,7 @@ export default function Parts() {
     
     await dispatch.examenModel.getExamenes(id!);
     setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
+    setAulasData([]);
     setPartesData([]);
     handleCloseAdd();
   } catch (e) {
@@ -184,8 +220,35 @@ export default function Parts() {
     }));
   };
 
+  const handleEditAulaChange = (index: number, field: "aula" | "n_esperados", value: string) => {
+    setEditAulasData((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: field === "n_esperados" ? parseInt(value) || 0 : value,
+      };
+      return updated;
+    });
+  };
+
+  const agregarAulaEdicion = () => {
+    if (!editAulaValues.aula.trim()) return;
+
+    setEditAulasData((prev) => [
+      ...prev,
+      {
+        aula: editAulaValues.aula.trim(),
+        n_esperados: Number(editAulaValues.n_esperados) || 0,
+      },
+    ]);
+
+    setEditAulaValues({ aula: "", n_esperados: 0 });
+    setShowEditAulaForm(false);
+  };
+
   const handleCloseAdd = () => {
     setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
+    setAulasData([]);
     setPartesData([]);
     setCurrentStep(0);
     onCloseAdd();
@@ -201,6 +264,9 @@ export default function Parts() {
   
   const handleCloseEdit = () => {
     setEditExamenValues({ convocatoria: "", fecha_examen: "", aula: "", n_esperados: 0 });
+    setEditAulasData([]);
+    setEditAulaValues({ aula: "", n_esperados: 0 });
+    setShowEditAulaForm(false);
     onCloseEdit();
   };
 
@@ -217,18 +283,49 @@ export default function Parts() {
       aula: selected.aula || "",
       n_esperados: selected.n_esperados || 0
     });
+
+    const aulasIniciales = selected.aulaAlumnos?.length
+      ? selected.aulaAlumnos.map((item) => ({
+          aula: item.aula,
+          n_esperados: Number(item.n_esperados) || 0,
+        }))
+      : [{ aula: selected.aula || "", n_esperados: selected.n_esperados || 0 }];
+
+    setEditAulasData(aulasIniciales);
+    setEditAulaValues({ aula: "", n_esperados: 0 });
+    setShowEditAulaForm(false);
     onCloseOptions();
     onOpenEdit();
   };
 
   const handleEditExamenSubmit = async () => {
     try {
+      const aulaPendiente = editAulaValues.aula.trim()
+        ? [{
+            aula: editAulaValues.aula.trim(),
+            n_esperados: Number(editAulaValues.n_esperados) || 0,
+          }]
+        : [];
+
+      const aulaAlumnosPayload = [...editAulasData, ...aulaPendiente]
+        .filter((item) => item.aula.trim())
+        .map((item) => ({
+          aula: item.aula.trim(),
+          n_esperados: Number(item.n_esperados) || 0,
+        }));
+
+      const nTotalEsperados = aulaAlumnosPayload.reduce(
+        (total, item) => total + item.n_esperados,
+        0
+      );
+
       await dispatch.examenModel.updateExamen({
         id: examenID!,
         convocatoria: editExamenValues.convocatoria as Convocatoria,
         fecha_examen: new Date(editExamenValues.fecha_examen),
-        aula: editExamenValues.aula,
-        n_esperados: editExamenValues.n_esperados
+        aula: aulaAlumnosPayload[0]?.aula || "",
+        n_esperados: nTotalEsperados,
+        aulaAlumnos: aulaAlumnosPayload,
       });
       await dispatch.examenModel.getExamenes(id!);
       handleCloseEdit();
@@ -271,7 +368,6 @@ export default function Parts() {
     appliedFilters.convocatoria ||
     appliedFilters.partes ||
     appliedFilters.fecha_examen ||
-    appliedFilters.aula ||
     appliedFilters.n_esperados
   );
 
@@ -286,9 +382,6 @@ export default function Parts() {
       return false;
     }
 
-    if (appliedFilters.aula && !examen.aula.toLowerCase().includes(appliedFilters.aula.toLowerCase())) {
-      return false;
-    }
 
     if (appliedFilters.partes && examen.partes !== appliedFilters.partes) {
       return false;
@@ -475,8 +568,8 @@ export default function Parts() {
                       <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Convocatoria</Td>
                       <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Partes</Td>
                       <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Duración </Td>
-                      <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Alumnos Esperados </Td>
-                      <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Aula </Td>
+                      <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Alumnos Esperados Totales</Td>
+                      <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Aula/s </Td>
                       <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"20%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Acciones </Td>
                     </Tr>
                   </Thead>
@@ -534,7 +627,11 @@ export default function Parts() {
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
                         >
-                          <Text fontSize="lg">{examen.aula}</Text>
+                          {examen.aulaAlumnos.map((item, index) => (
+                            <Text key={index} fontSize="lg">
+                              {item.aula}: {item.n_esperados} alumnos
+                            </Text>
+                          ))}
                         </Td>
                       
                       
@@ -640,10 +737,7 @@ export default function Parts() {
                       />
                     </FormControl>
                   </VStack>
-                  
                 </Flex>
-              
-                
               </ModalBody>
               <ModalFooter justifyContent={"center"}>
                 <Button 
@@ -708,7 +802,7 @@ export default function Parts() {
 
                   <FormControl isRequired>
                     <Flex justify={"space-between"} gap={4}>
-                      <Box w="48%">
+                      <Box w="100%">
                         <FormLabel fontWeight="semibold">Partes del examen</FormLabel>
                         <Select
                           id="partes" 
@@ -732,39 +826,81 @@ export default function Parts() {
                           <option value="10">10</option>
                         </Select>
                       </Box>
-                      
-                      <Box w="48%">
-                        <FormLabel fontWeight="semibold">Aula</FormLabel>
-                        <Input
-                          id="aula" 
-                          name="aula" 
-                          value={formValues.aula}
-                          onChange={handleFormChange}
-                          placeholder="Ej: Aula D03" 
-                          size="lg"      
-                          borderRadius="xl"    
-                          focusBorderColor="blue.500"
-                        />
-                      </Box>
                     </Flex>
                   </FormControl>
 
-                  <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
-                    <Input
-                      id="n_esperados" 
-                      name="n_esperados" 
-                      type="number"
-                      value={formValues.n_esperados || ""}
-                      onChange={handleFormChange}
-                      placeholder="Número de alumnos esperados" 
-                      size="lg"      
-                      borderRadius="xl"    
-                      focusBorderColor="blue.500"
-                      min="0"
-                    />
-                  </FormControl>
+                  <VStack w="100%" spacing={4} align="stretch">
+                    {aulasData.map((item, index) => (
+                      <FormControl key={`${item.aula}-${index}`}>
+                        <Flex justify={"space-between"} gap={4}>
+                          <Box w="50%">
+                            <FormLabel fontWeight="semibold">Aula</FormLabel>
+                            <Input
+                              value={item.aula}
+                              size="lg"
+                              borderRadius="xl"
+                              isReadOnly
+                              isDisabled
+                            />
+                          </Box>
 
+                          <Box w="50%">
+                            <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                            <Input
+                              value={item.n_esperados}
+                              size="lg"
+                              borderRadius="xl"
+                              isReadOnly
+                              isDisabled
+                            />
+                          </Box>
+                        </Flex>
+                      </FormControl>
+                    ))}
+
+                    <FormControl isRequired>
+                      <Flex justify={"space-between"} gap={4}>
+                        <Box w="50%">
+                          <FormLabel fontWeight="semibold">Aula</FormLabel>
+                          <Input
+                            id="aula" 
+                            name="aula" 
+                            value={formValues.aula}
+                            onChange={handleFormChange}
+                            placeholder="Ej: Aula D03" 
+                            size="lg"      
+                            borderRadius="xl"    
+                            focusBorderColor="blue.500"
+                          />
+                        </Box>
+
+                        <Box w="50%">
+                          <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                          <Input
+                            id="n_esperados" 
+                            name="n_esperados" 
+                            type="number"
+                            value={formValues.n_esperados || ""}
+                            onChange={handleFormChange}
+                            placeholder="Número de alumnos esperados" 
+                            size="lg"      
+                            borderRadius="xl"    
+                            focusBorderColor="blue.500"
+                            min="0"
+                          />
+                        </Box>
+                      </Flex>
+                    </FormControl>
+
+                    <Button
+                      size={"sm"}
+                      alignSelf="flex-start"
+                      onClick={agregarAula}
+                      isDisabled={!formValues.aula.trim()}
+                    >
+                      Añadir otra aula
+                    </Button>
+                  </VStack>
                   </VStack>
                 ) : (
                   <VStack spacing={5} py={4}>
@@ -861,7 +997,12 @@ export default function Parts() {
                     colorScheme='blue' 
                     size={"lg"}
                     onClick={handleNextStep}
-                    isDisabled={!formValues.convocatoria || !formValues.partes || !formValues.fecha_examen || !formValues.aula}
+                    isDisabled={
+                      !formValues.convocatoria ||
+                      !formValues.partes ||
+                      !formValues.fecha_examen ||
+                      (!formValues.aula.trim() && aulasData.length === 0)
+                    }
                   >
                     Siguiente
                   </Button>
@@ -917,7 +1058,7 @@ export default function Parts() {
 
                   <FormControl isRequired>
                     <Flex justify={"space-between"} gap={4}>
-                      <Box w="48%">
+                      <Box w="100%">
                         <FormLabel fontWeight="semibold">Fecha del Examen</FormLabel>
                         <Input
                           id="fecha_examen"
@@ -930,38 +1071,95 @@ export default function Parts() {
                           focusBorderColor="blue.500"
                         />
                       </Box>
-                      
-                      <Box w="48%">
-                        <FormLabel fontWeight="semibold">Aula</FormLabel>
-                        <Input
-                          id="aula"
-                          name="aula"
-                          value={editExamenValues.aula}
-                          onChange={handleEditExamenChange}
-                          placeholder="Ej: Aula D03"
-                          size="lg"
-                          borderRadius="xl"
-                          focusBorderColor="blue.500"
-                        />
-                      </Box>
                     </Flex>
                   </FormControl>
 
-                  <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
-                    <Input
-                      id="n_esperados"
-                      name="n_esperados"
-                      type="number"
-                      value={editExamenValues.n_esperados || ""}
-                      onChange={handleEditExamenChange}
-                      placeholder="Número de alumnos esperados"
-                      size="lg"
-                      borderRadius="xl"
-                      focusBorderColor="blue.500"
-                      min="0"
-                    />
-                  </FormControl>
+                  <VStack w="100%" spacing={4} align="stretch">
+                        {editAulasData.map((item, index) => (
+                          <FormControl key={`${item.aula}-${index}`}>
+                            <Flex justify={"space-between"} gap={4}>
+                              <Box w="50%">
+                                <FormLabel fontWeight="semibold">Aula</FormLabel>
+                                <Input
+                                  value={item.aula}
+                                  onChange={(e) => handleEditAulaChange(index, "aula", e.target.value)}
+                                  size="lg"
+                                  borderRadius="xl"
+                                  focusBorderColor="blue.500"
+                                />
+                              </Box>
+
+                              <Box w="50%">
+                                <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                                <Input
+                                  value={item.n_esperados}
+                                  onChange={(e) => handleEditAulaChange(index, "n_esperados", e.target.value)}
+                                  type="number"
+                                  size="lg"
+                                  borderRadius="xl"
+                                  focusBorderColor="blue.500"
+                                  min="0"
+                                />
+                              </Box>
+                            </Flex>
+                          </FormControl>
+                        ))}
+
+                        {showEditAulaForm && (
+                          <FormControl isRequired>
+                            <Flex justify={"space-between"} gap={4}>
+                              <Box w="50%">
+                                <FormLabel fontWeight="semibold">Aula</FormLabel>
+                                <Input
+                                  autoFocus
+                                  value={editAulaValues.aula}
+                                  onChange={(e) =>
+                                    setEditAulaValues((prev) => ({ ...prev, aula: e.target.value }))
+                                  }
+                                  placeholder="Ej: Aula D03" 
+                                  size="lg"      
+                                  borderRadius="xl"    
+                                  focusBorderColor="blue.500"
+                                />
+                              </Box>
+
+                              <Box w="50%">
+                                <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                                <Input
+                                  type="number"
+                                  value={editAulaValues.n_esperados || ""}
+                                  onChange={(e) =>
+                                    setEditAulaValues((prev) => ({
+                                      ...prev,
+                                      n_esperados: parseInt(e.target.value) || 0,
+                                    }))
+                                  }
+                                  placeholder="Número de alumnos esperados" 
+                                  size="lg"      
+                                  borderRadius="xl"    
+                                  focusBorderColor="blue.500"
+                                  min="0"
+                                />
+                              </Box>
+                            </Flex>
+                          </FormControl>
+                        )}
+
+                        <Button
+                          size={"sm"}
+                          alignSelf="flex-start"
+                          onClick={() => {
+                            if (!showEditAulaForm) {
+                              setShowEditAulaForm(true);
+                              return;
+                            }
+                            agregarAulaEdicion();
+                          }}
+                          isDisabled={showEditAulaForm && !editAulaValues.aula.trim()}
+                        >
+                          {showEditAulaForm ? "Guardar aula" : "Añadir otra aula"}
+                        </Button>
+                      </VStack>
                 </VStack>
               </ModalBody>
 
@@ -970,7 +1168,7 @@ export default function Parts() {
                   colorScheme="blue"
                   size="lg"
                   onClick={handleEditExamenSubmit}
-                  isDisabled={!editExamenValues.convocatoria || !editExamenValues.fecha_examen || !editExamenValues.aula}
+                  isDisabled={!editExamenValues.convocatoria || !editExamenValues.fecha_examen || editAulasData.length === 0}
                 >
                   Guardar cambios
                 </Button>
@@ -1023,7 +1221,7 @@ export default function Parts() {
 
                   <FormControl>
                     <Flex justify={"space-between"} gap={4}>
-                      <Box w="48%">
+                      <Box w="50%">
                         <FormLabel fontWeight="semibold">Partes del examen</FormLabel>
                         <Select
                           id="partes" 
@@ -1048,38 +1246,23 @@ export default function Parts() {
                         </Select>
                       </Box>
                       
-                      <Box w="48%">
-                        <FormLabel fontWeight="semibold">Aula</FormLabel>
+                      <Box w="50%">
+                        <FormLabel fontWeight="semibold">Nº Alumnos Esperados</FormLabel>
                         <Input
-                          id="aula" 
-                          name="aula" 
-                          value={filtersValues.aula}
+                          id="n_esperados" 
+                          name="n_esperados" 
+                          type="number"
+                          value={filtersValues.n_esperados || ""}
                           onChange={handleFiltersChange}
-                          placeholder="Ej: Aula D03" 
+                          placeholder="Nº alumnos esperados" 
                           size="lg"      
                           borderRadius="xl"    
                           focusBorderColor="blue.500"
+                          min="0"
                         />
                       </Box>
                     </Flex>
                   </FormControl>
-
-                  <FormControl>
-                    <FormLabel fontWeight="semibold">Número de Presentados</FormLabel>
-                    <Input
-                      id="n_esperados" 
-                      name="n_esperados" 
-                      type="number"
-                      value={filtersValues.n_esperados || ""}
-                      onChange={handleFiltersChange}
-                      placeholder="Número de alumnos presentados" 
-                      size="lg"      
-                      borderRadius="xl"    
-                      focusBorderColor="blue.500"
-                      min="0"
-                    />
-                  </FormControl>
-
                   </VStack>
                 </ModalBody>
 

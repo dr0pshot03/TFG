@@ -31,8 +31,9 @@ import { Convocatoria, CreateExamenInput, UpdateExamenInput } from "@/types/exam
 import { useNavigate } from "react-router-dom";
 import { FiMoreVertical } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
+import examenModel from "@/store/model/examen.model";
 
-export default function Parts() {
+export default function Subject() {
   const dispatch = useDispatch<IDispatch>();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -50,6 +51,11 @@ export default function Parts() {
 
   const [ presentados, setPresentados ] = useState("");
   const [ aprobados, setAprobados ] = useState("");
+  const [ aux, setAux ] = useState(0);
+  const [ mayorPresentados, setMayorPresentados ] = useState(false);
+  const [ mayorAprobados, setMayorAprobados ] = useState(false);
+  const [ mayorAprobadosPresentados, setMayorAprobadosPresentados ] = useState(false);
+
   const [editAulasData, setEditAulasData] = useState<{aula: string, n_esperados: number}[]>([]);
   const [editAulaValues, setEditAulaValues] = useState({ aula: "", n_esperados: 0 });
   const [showEditAulaForm, setShowEditAulaForm] = useState(false);
@@ -403,16 +409,40 @@ export default function Parts() {
 
   const handlePresentados = (event: React.ChangeEvent<HTMLInputElement>) => {
     const present = event.target.value;
-    if (/^\d*$/.test(present)) {
-      setPresentados(present);
+
+    if (present === "") {
+      setPresentados("");
+      setMayorPresentados(false);
+      return;
     }
+
+    if (!/^\d+$/.test(present)) return;
+
+    setPresentados(present); 
+    setMayorPresentados(Number(present) > aux);
   };
 
   const handleAprobados = (event: React.ChangeEvent<HTMLInputElement>) => {
     const aprob = event.target.value;
-    if (/^\d*$/.test(aprob)) {
-      setAprobados(aprob);
+
+    if (aprob === "") {
+      setAprobados("");
+      setMayorAprobados(false);
+      setMayorAprobadosPresentados(false);
+      return;
     }
+
+    if (!/^\d*$/.test(aprob)) return;
+
+    const aprobNum = Number(aprob);
+    const presentNum = Number(presentados);
+
+    const superaEsperados = aprobNum > aux;
+    const superaPresentados = aprobNum > presentNum;
+
+    setAprobados(aprob);
+    setMayorAprobados(superaEsperados);
+    setMayorAprobadosPresentados(!superaEsperados && superaPresentados);
   };
 
   const handleUpdatePresentados = async () => {
@@ -424,6 +454,7 @@ export default function Parts() {
     };
     await dispatch.examenModel.updateExamen(payload);
     await dispatch.examenModel.getExamenes(id!);
+    setAux(0);
     onClosePresentados();
   };
 
@@ -646,6 +677,7 @@ export default function Parts() {
                               bg="#000000"
                               onClick={() => {
                                 setExamenID(examen.id);
+                                setAux(examen.n_esperados);
                                 setPresentados((examen.n_present ?? 0) > 0 ? String(examen.n_present) : "");
                                 setAprobados((examen.n_aprobados ?? 0) > 0 ? String(examen.n_aprobados) : "");
                                 onOpenPresentados();
@@ -723,6 +755,9 @@ export default function Parts() {
                         borderRadius="xl"    
                         focusBorderColor="blue.500"
                       />
+                      {mayorPresentados ? (
+                        <Text color={"red"}> No puede haber mas alumnos presentados que esperados</Text>
+                      ) : (<></>)}
                     </FormControl>
                     <FormControl isRequired>
                       <FormLabel fontWeight="semibold">¿Cuántos alumnos han aprobado?</FormLabel>
@@ -735,6 +770,11 @@ export default function Parts() {
                         borderRadius="xl"    
                         focusBorderColor="blue.500"
                       />
+                      {mayorAprobados ? (
+                        <Text color="red">No puede haber más alumnos aprobados que esperados</Text>
+                      ) : mayorAprobadosPresentados ? (
+                        <Text color="red">No puede haber más alumnos aprobados que presentados</Text>
+                      ) : null}
                     </FormControl>
                   </VStack>
                 </Flex>
@@ -744,6 +784,7 @@ export default function Parts() {
                     colorScheme='blue' 
                     onClick={handleUpdatePresentados}
                     _hover={{bgcolor:"red"}}
+                    isDisabled={mayorAprobados || mayorPresentados || mayorAprobadosPresentados}
                   >
                     Añadir
                   </Button>

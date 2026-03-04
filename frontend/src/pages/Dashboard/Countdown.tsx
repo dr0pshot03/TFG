@@ -22,7 +22,9 @@ import {
   FormControl,
   FormLabel,
   Input,
-  ModalFooter
+  ModalFooter,
+  Grid, 
+  GridItem
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
@@ -152,8 +154,21 @@ export default function Countdown() {
     navigate(`/asignatura/${idAsign}`);
   }
 
-  // Cálculo del porcentaje para la barra (0 a 100)
   const progress = TOTAL_SECONDS_INITIAL === 0 ? 0 : (timeLeft / TOTAL_SECONDS_INITIAL) * 100;
+
+  const toSeconds = (p?: { duracion_h?: number; duracion_m?: number }) =>
+  ((p?.duracion_h ?? 0) * 3600) + ((p?.duracion_m ?? 0) * 60);
+
+  const siguientesPartes = partes.slice(contador + 1, contador + 5);
+
+  // Para "empieza en": tiempo actual + suma de partes intermedias
+  const getEmpiezaEn = (relativeIndex: number) => {
+    const intermedias = siguientesPartes
+      .slice(0, relativeIndex)
+      .reduce((acc, p) => acc + toSeconds(p), 0);
+
+    return timeLeft + intermedias;
+  };
 
   return (
     <Box bg="white" w="100%"> 
@@ -163,9 +178,15 @@ export default function Countdown() {
         <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver atrás</Text>
       </Link>
       
-      <Container maxW="full" >
-        
-        <VStack align="center" spacing={6} textAlign="center">
+      <Container maxW="100%" >
+        <Grid
+          templateColumns={{ base: "1vh", lg: "3fr 1fr" }}
+          gap={6}
+          alignItems="start"
+          >
+
+        <GridItem>
+          <VStack align="center" spacing={6} textAlign="center">
           <Box>
             <Heading>
                 {asignatura?.nombre || "Asignatura"}
@@ -261,7 +282,7 @@ export default function Countdown() {
               w="25vh"
               ml={"10"}
             >
-              Añadir más tiempo
+              Añadir más tiempo
             </Button>) : (<></>)
           }
 
@@ -278,6 +299,31 @@ export default function Countdown() {
             ) : (<></>)
           }
         </Flex>
+        </GridItem>
+        <GridItem>
+          <VStack align="stretch" spacing={4}>
+            <Heading size="md">Siguientes partes</Heading>
+
+            {siguientesPartes.length === 0 ? (
+              <Text color="gray.500">No hay más partes.</Text>
+            ) : (
+              siguientesPartes.map((p, i) => (
+                <Box key={p.id ?? `${p.nombre}-${i}`} p={4} borderWidth="1px" borderRadius="md">
+                  <Text fontWeight="bold" fontSize={"md"}>{p.nombre}</Text>
+                  <Text fontSize="md" color="gray.600">
+                    Duración: {formatTime(toSeconds(p))}
+                  </Text>
+                  <Text fontSize="md" color="gray.600">
+                    Empieza en: {formatTime(getEmpiezaEn(i))}
+                  </Text>
+                </Box>
+              ))
+            )}
+          </VStack>
+        </GridItem>
+
+        </Grid>
+        
       </Container>  
 
       <Modal isOpen={isOpenTime} onClose={onCloseTime} isCentered>

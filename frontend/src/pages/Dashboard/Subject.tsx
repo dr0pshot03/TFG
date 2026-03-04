@@ -405,6 +405,10 @@ export default function Subject() {
     }
 
     return true;
+  }).sort((a, b) => {
+    const fechaA = new Date(a.fecha_examen).getTime();
+    const fechaB = new Date(b.fecha_examen).getTime();
+    return fechaA - fechaB;
   });
 
   const handlePresentados = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -672,6 +676,7 @@ export default function Subject() {
                               <Button 
                               colorScheme="blue" 
                               size="sm"
+                              fontSize={"xs"}
                               w={"45%"} 
                               borderRadius="full" 
                               bg="#000000"

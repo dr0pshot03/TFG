@@ -290,7 +290,7 @@ export default function GlobalGraphics() {
       .map((year) => String(year));
   }, [allExamenes]);
 
-  // Función para exportar el pdf.
+  // Función para exportar el pdf
   const handleExportPdf = async () => {
     if (!chartRef.current) return;
     setIsExporting(true);
@@ -355,13 +355,10 @@ export default function GlobalGraphics() {
       </Link>
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full">
-        <VStack align="center" spacing={2} mb={6} textAlign="center">
+        <VStack align="center" spacing={2} mb={6} textAlign="center" marginBottom={"85"}>
           <Heading as="h1" size="lg">
             Gráfica histórica de los tiempos de los examenes
           </Heading>
-          <Text color="gray.600">
-            {selectedAsignaturaLabel}
-          </Text>
         </VStack>
 
         <Flex

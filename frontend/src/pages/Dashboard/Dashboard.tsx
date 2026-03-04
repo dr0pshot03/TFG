@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
 import { 
-  Box, Container, Flex, HStack, Icon, Text, Spacer, Heading, Button, VStack, SimpleGrid, useDisclosure, Modal,
+  Box, Container, Flex, Text, Heading, Button, VStack, useDisclosure, Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
@@ -12,7 +12,6 @@ import {
   FormLabel,
   Input,
   Textarea,
-  Image,
   Table,
   TableContainer,
   Thead,
@@ -30,6 +29,10 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { useAuth } from "@clerk/clerk-react";
 import { CreateAsignaturaInput } from "@/types/asignatura.type";
+import type { Examen } from "@/types/examen.type";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import api from "@/configs/axios";
 
 export default function Dashboard() {
   const dispatch = useDispatch<IDispatch>();
@@ -43,14 +46,20 @@ export default function Dashboard() {
 
   //const asignaturas = [];
   const asignaturas =  useSelector((state: IRootState) => state.asignaturaModel.asignaturas);
+
   //const user= useSelector((state: IRootState) => state.userModel.user);
   const NombreUsuario = user?.firstName || "Cargando...";
   const ApellidosUsuario = user?.lastName || "";
+
   const [ value, setValue ] = useState("");
   const [formValues, setFormValues] = useState({
     nombre: "",
     descripcion: ""
   });
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportExamenes, setExportExamenes] = useState<Examen[]>([]);
+  const [exportAsignaturaNombre, setExportAsignaturaNombre] = useState("");
+
   const [selectedAsignaturaId, setSelectedAsignaturaId] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -160,6 +169,84 @@ export default function Dashboard() {
     asignatura.nombre.toLowerCase().includes(value.toLowerCase())
   );
 
+  const handleExportPdf = async (asignaturaId: string, asignaturaNombre: string) => {
+    setIsExporting(true);
+    try {
+      const response = await api.get(`/api/examen/asignatura/${asignaturaId}`);
+      const examenesAsignatura: Examen[] = response.data ?? [];
+
+      if (examenesAsignatura.length === 0) {
+        console.error("No hay exámenes para exportar");
+        return;
+      }
+
+      setExportExamenes(examenesAsignatura);
+      setExportAsignaturaNombre(asignaturaNombre);
+
+      // Esperar a que React renderice la tabla en el DOM
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 300); // Un pequeño delay suele ser más fiable que requestAnimationFrame para estilos complejos
+      });
+
+      const tableElement = document.getElementById("tabla-asignatura-pdf");
+      if (!tableElement) return;
+
+      const canvas = await html2canvas(tableElement, {
+        scale: 3, // Subimos a 3 para máxima nitidez en textos pequeños
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        windowWidth: 1400, // Forzamos un ancho de ventana para que la tabla no se colapse
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "pt",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 40;
+      
+      // 1. Dibujar Título
+      pdf.setFontSize(22);
+      pdf.setTextColor(40);
+      const title = `Listado de Exámenes: ${asignaturaNombre}`;
+      const titleWidth = pdf.getTextWidth(title);
+      pdf.text(title, (pageWidth - titleWidth) / 2, margin + 20);
+
+      // 2. Cálculos de imagen
+      const startY = margin + 50; // Espacio después del título
+      const availableWidth = pageWidth - (margin * 2);
+      const availableHeight = pageHeight - startY - margin;
+
+      let finalImgWidth = availableWidth;
+      let finalImgHeight = (canvas.height * finalImgWidth) / canvas.width;
+
+      // Si la altura calculada supera el espacio disponible, escalamos por altura
+      if (finalImgHeight > availableHeight) {
+        const ratio = availableHeight / finalImgHeight;
+        finalImgWidth = finalImgWidth * ratio;
+        finalImgHeight = availableHeight;
+      }
+
+      // Centrado exacto en el área disponible
+      const xCentered = (pageWidth - finalImgWidth) / 2;
+      const yCentered = startY + (availableHeight - finalImgHeight) / 2;
+
+      pdf.addImage(imgData, "PNG", xCentered, yCentered, finalImgWidth, finalImgHeight);
+
+      const safeName = asignaturaNombre.replace(/[^a-zA-Z0-9-_]+/g, "_");
+      pdf.save(`Examenes_${safeName}.pdf`);
+
+    } catch (error) {
+      console.error("Error al exportar PDF", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
@@ -268,8 +355,8 @@ export default function Dashboard() {
                 <Table>
                   <Thead>
                     <Tr bg="shade.2" w="100%">
-                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"85%"} fontWeight={"bold"}> Nombre</Td>
-                      <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Acciones</Td>
+                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"75%"} fontWeight={"bold"}> Nombre</Td>
+                      <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"25%"} fontWeight={"bold"}> Acciones</Td>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -289,7 +376,7 @@ export default function Dashboard() {
                             <Button 
                               colorScheme="blue" 
                               size="sm"
-                              w={"45%"} 
+                              w={"33%"} 
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => handleOpenEdit(asignatura)}
@@ -301,14 +388,28 @@ export default function Dashboard() {
                             <Button 
                               colorScheme="blue" 
                               size="sm"
-                              w={"45%"} 
+                              w={"33%"} 
+                              borderRadius="full" 
+                              bg="#000000"
+                              onClick={() => handleExportPdf(asignatura.id, asignatura.nombre)}
+                              isLoading={isExporting}
+                              isDisabled={isExporting}
+                              _hover={{ bg:  "#aaaaaa"}}
+                            >
+                              Exportar
+                            </Button>
+
+                            <Button 
+                              colorScheme="blue" 
+                              size="sm"
+                              w={"33%"} 
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => navigate(`/asignatura/${asignatura.id}`)}
                               _hover={{ bg:  "#aaaaaa"}}
                             >
                               Acceder
-                            </Button>
+                            </Button>                            
                           </Flex>
                         </Td>
                       </Tr>
@@ -319,6 +420,96 @@ export default function Dashboard() {
             </VStack>
           )
         }
+
+        <VStack 
+          id="tabla-asignatura-pdf"
+          position="absolute"
+          left="-9999px"
+          top="0"
+          bg="white"
+          p={10}>
+
+          <TableContainer w={"100%"}>
+            <Table>
+              <Thead>
+                <Tr bg="shade.2" w="100%">
+                  <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Fecha Examen</Td>
+                  <Td color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Convocatoria</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Partes</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Duración</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Alumnos Esperados</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> ¿Finalizado?</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Alumnos Presentados</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Alumnos Aprobados</Td>
+                  <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Aula/s</Td>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {exportExamenes.map((examen, index) => (
+                  <Tr key={examen.id || index} bgColor={"#d9d9d9"} _hover={{ bg: "#e9e9e9" }}>
+                    <Td
+                      w="15%"
+                      p={2}
+                      borderRight="1px solid #edf2f7"
+                      textAlign="center"
+                    >
+                      <Text fontSize="lg">{new Date(examen.fecha_examen).toLocaleDateString('es-ES')}</Text>
+                    </Td>
+
+                    <Td 
+                      border="1px solid #E2E8F0" 
+                      p={4} 
+                      height="60px" // Altura fija ayuda a que el centrado sea uniforme
+                    >
+                      <Flex 
+                        align="center" 
+                        justify="center" 
+                        h="100%" 
+                        w="100%"
+                      >
+                        <Text textAlign="center" fontSize="lg" fontWeight="medium">
+                          {examen.convocatoria}
+                        </Text>
+                      </Flex>
+                    </Td>
+
+                    <Td  textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      <Text fontSize="lg">{examen.partes}</Text>
+                    </Td>
+
+                    <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      <Text fontSize="lg">{examen.duracion_h != 0 ? examen.duracion_h+"h" : null} {examen.duracion_m != 0 ? examen.duracion_m+"min" : null} </Text>
+                    </Td>
+
+                    <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      <Text fontSize="lg">{examen.n_esperados}</Text>
+                    </Td>
+
+                    <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      <Text fontSize="lg">{examen.finalizado ? "Sí" : "No"}</Text>
+                    </Td>
+
+                    <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      <Text fontSize="lg">{examen.n_present}</Text>
+                    </Td>
+
+                    <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      <Text fontSize="lg">{examen.n_aprobados}</Text>
+                    </Td>
+
+                    <Td w="15%" textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      {examen.aulaAlumnos.map((item, index) => (
+                        <Text key={index} fontSize="lg">
+                          {item.aula}: {item.n_esperados} alumnos
+                        </Text>
+                      ))}
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
+        </VStack>
 
         <Modal isOpen={isOpenEdit} onClose={handleCloseEdit} isCentered>
           <ModalOverlay />

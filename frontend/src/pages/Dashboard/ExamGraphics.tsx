@@ -27,7 +27,7 @@ import {
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 import { Link as RouterLink } from "react-router-dom";
 
@@ -104,7 +104,7 @@ export default function ExamGraphics() {
   const chartData = useMemo(() => {
     const grouped = new Map<
       string,
-      { label: string; minutos: number; year: number; order: number }
+      { label: string; minutos: number; presentados: number; year: number; order: number }
     >();
     const convocatoriaOrder = ["Febrero", "Junio", "Septiembre", "Diciembre"];
 
@@ -119,13 +119,19 @@ export default function ExamGraphics() {
       const current = grouped.get(key) ?? {
         label: key,
         minutos: 0,
+        presentados: 0,
         year: yearValue,
         order,
       };
 
       const minutos =
         Number(examen.duracion_h ?? 0) * 60 + Number(examen.duracion_m ?? 0);
-      grouped.set(key, { ...current, minutos: current.minutos + minutos });
+      const presentados = Number(examen.n_present ?? 0);
+      grouped.set(key, {
+        ...current,
+        minutos: current.minutos + minutos,
+        presentados: current.presentados + presentados,
+      });
     });
 
     return Array.from(grouped.values())
@@ -134,7 +140,7 @@ export default function ExamGraphics() {
         if (a.order !== b.order) return a.order - b.order;
         return a.label.localeCompare(b.label);
       })
-      .map(({ label, minutos }) => ({ label, minutos }));
+      .map(({ label, minutos, presentados }) => ({ label, minutos, presentados }));
   }, [filteredExamenes]);
 
   const yAxisTicks = useMemo(() => {
@@ -274,15 +280,29 @@ export default function ExamGraphics() {
           }}
         >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} barCategoryGap="40%" barGap={8}>
-                <XAxis dataKey="label" textAnchor="end" height={60}/>
+              <ComposedChart
+                data={chartData}
+                barCategoryGap="40%"
+                barGap={8}
+                margin={{ top: 20, right: 20, left: 10, bottom: 10 }}
+              >
+                <XAxis dataKey="label" textAnchor="end" height={60} padding={{ left: 12, right: 12 }} />
                 <YAxis
                   ticks={yAxisTicks}
                   domain={[0, yAxisTicks[yAxisTicks.length - 1] ?? 0]}
                   tickFormatter={(value: number) => `${(value / 60).toFixed(1)} h`}
                 />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
+                  tickFormatter={(value: number) => `${value}`}
+                />
                 <Tooltip
-                  formatter={(value?: number) => {
+                  formatter={(value?: number, name?: string) => {
+                    if (name === "presentados") {
+                      return [`${Number(value ?? 0)}`, "Presentados"];
+                    }
                     const minutes = Number(value ?? 0);
                     const hours = Math.floor(minutes / 60);
                     const mins = Math.round(minutes % 60);
@@ -290,7 +310,17 @@ export default function ExamGraphics() {
                   }}
                 />
                 <Bar dataKey="minutos" fill="#cfd4da" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Line
+                  type="linear"
+                  yAxisId="right"
+                  dataKey="presentados"
+                  stroke="black"
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                  dot={{ r: 6, fill: "black" }}
+                  activeDot={{ r: 10 }}
+                />
+              </ComposedChart>
             </ResponsiveContainer>
         </Box>
       </Container>  

@@ -42,6 +42,8 @@ export default function Countdown() {
   const partes = useSelector((state: IRootState) => state.parteExamenModel.partesExamenes);
 
   const { isOpen: isOpenTime, onOpen: onOpenTime, onClose: onCloseTime } = useDisclosure();
+  const { isOpen: isOpenFinish, onOpen: onOpenFinish, onClose: onCloseFinish } = useDisclosure();
+
   const [timeExtra, setTimeExtra] = useState(0);
 
   const [timeLeft, setTimeLeft] = useState(0);
@@ -151,6 +153,7 @@ export default function Countdown() {
   const handleFinish = async () => {
     if (!examen?.id || !idAsign) return;
     await dispatch.examenModel.updateEstadoExamen(examen.id);
+    onCloseFinish();
     navigate(`/asignatura/${idAsign}`);
   }
 
@@ -161,7 +164,6 @@ export default function Countdown() {
 
   const siguientesPartes = partes.slice(contador + 1, contador + 5);
 
-  // Para "empieza en": tiempo actual + suma de partes intermedias
   const getEmpiezaEn = (relativeIndex: number) => {
     const intermedias = siguientesPartes
       .slice(0, relativeIndex)
@@ -290,7 +292,7 @@ export default function Countdown() {
             (<Button 
               colorScheme="teal" 
               size="lg" 
-              onClick={handleFinish}
+              onClick={onOpenFinish}
               w="25vh"
               ml={"10"}
             >
@@ -321,10 +323,34 @@ export default function Countdown() {
             )}
           </VStack>
         </GridItem>
-
         </Grid>
-        
       </Container>  
+
+      <Modal isOpen={isOpenFinish} onClose={onCloseFinish} isCentered>
+          <ModalOverlay />
+            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
+              <ModalHeader textAlign={"center"}>¿Finzalizar examen?</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody >
+                <Flex justifyContent={"center"} mb={"3"}>
+                  <Button 
+                    colorScheme='blue' 
+                    onClick={onCloseFinish}
+                  >
+                    Cancelar
+                  </Button>
+
+                  <Button 
+                    colorScheme='red' 
+                    onClick={handleFinish}
+                    ml={3}
+                  >
+                    Finalizar
+                  </Button>
+                </Flex>  
+              </ModalBody>
+            </ModalContent>
+        </Modal>
 
       <Modal isOpen={isOpenTime} onClose={onCloseTime} isCentered>
           <ModalOverlay />

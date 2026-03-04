@@ -329,7 +329,7 @@ export default function Countdown() {
       <Modal isOpen={isOpenFinish} onClose={onCloseFinish} isCentered>
           <ModalOverlay />
             <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
-              <ModalHeader textAlign={"center"}>¿Finzalizar examen?</ModalHeader>
+              <ModalHeader textAlign={"center"}>¿Finalizar examen?</ModalHeader>
               <ModalCloseButton />
               <ModalBody >
                 <Flex justifyContent={"center"} mb={"3"}>

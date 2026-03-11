@@ -16,6 +16,9 @@ router.get("/parte/:idParte", /*requireAuth,*/partesExamenController.getParte);
 // Actualizar parte de un examen
 router.put("/:idParte", /*requireAuth,*/ partesExamenController.updateParte);
 
+// Actualizar el tiempo de una parte de un examen
+router.put("/:idParte/sumarTiempo", /*requireAuth,*/ partesExamenController.updateTiempoParte);
+
 // Mover hacia arriba de orden una parte de un examen
 router.put("/:idParte/moveUp", /*requireAuth,*/ partesExamenController.moveUpParte);
 

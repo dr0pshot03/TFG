@@ -74,6 +74,40 @@ export async function updateParte(id: string, data : Partial<parteExamen>){
     }
 }
 
+export async function updateTiempoParte(id: string, data : number){
+    try {
+        const tiemposActual = await prisma.partesExamen.findUnique({
+            where: { id : id}
+        });
+
+        if (!tiemposActual) {
+            throw new Error("Parte de examen no encontrada");
+        }
+
+        const totalMinActual = (tiemposActual.duracion_h * 60) + tiemposActual.duracion_m;
+        const totalMinNuevo = totalMinActual + Number(data);
+
+        if (totalMinNuevo < 0) {
+            throw new Error("La duración no puede ser negativa");
+        }
+
+        const duracion_h = Math.floor(totalMinNuevo / 60);
+        const duracion_m = totalMinNuevo % 60;
+
+        return await prisma.partesExamen.update({
+            where:{ id : id},
+            data: {
+                duracion_h,
+                duracion_m
+                
+            }
+        });
+    } catch (error) {
+        console.error("Error al actualizar la duracion de la parte del examen", error);
+        throw new Error("No se pudo actualizar la duracion de la parte del examen");
+    }
+}
+
 export async function moveUpParte(id: string){
     try {
         return await prisma.$transaction(async (tx) => {

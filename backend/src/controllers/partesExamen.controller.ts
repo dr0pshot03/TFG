@@ -48,6 +48,19 @@ export async function updateParte(req: Request, res: Response){
     }
 }
 
+export async function updateTiempoParte(req: Request, res: Response){
+    try{
+        const { idParte } = req.params;
+        const tiempoExtra = Number(req.body?.tiempoExtra ?? 0);
+        const parte = await partesExamenService.updateTiempoParte(idParte, tiempoExtra);
+        res.json(parte);
+    }catch(error)
+    {
+        console.error("Error al actualizar la duración de la parte del examen", error);
+        res.status(500).json({ error: "Error al actualizar la duración de la parte del examen" });
+    }
+}
+
 export async function moveUpParte(req: Request, res: Response){
     try{
         const {idParte} = req.params;

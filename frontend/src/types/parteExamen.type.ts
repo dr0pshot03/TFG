@@ -17,3 +17,8 @@ export interface CreateParteExamenInput extends Omit<parteExamen, 'id'> {}
 export interface UpdateParteExamenInput extends Partial<Omit<parteExamen, 'id'>> {
   id: string;
 }
+
+export interface AddMinutesParteExamenInput {
+  id: string;
+  tiempoExtra: number;
+}

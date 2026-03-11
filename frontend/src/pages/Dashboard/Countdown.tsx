@@ -43,8 +43,11 @@ export default function Countdown() {
 
   const { isOpen: isOpenTime, onOpen: onOpenTime, onClose: onCloseTime } = useDisclosure();
   const { isOpen: isOpenFinish, onOpen: onOpenFinish, onClose: onCloseFinish } = useDisclosure();
+  const { isOpen: isOpen25, onOpen: onOpen25, onClose: onClose25 } = useDisclosure();
 
   const [timeExtra, setTimeExtra] = useState(0);
+  const [hasExtra25, setHasExtra25] = useState(false);
+  const [carryExtraSeconds, setCarryExtraSeconds] = useState(0);
 
   const [timeLeft, setTimeLeft] = useState(0);
   const [isActive, setIsActive] = useState(false);
@@ -64,6 +67,13 @@ export default function Countdown() {
 
   // Convertimos todo a segundos para la lógica interna
   const TOTAL_SECONDS_INITIAL = (INPUT_HORAS * 3600) + (INPUT_MINUTOS * 60);
+  const EXTRA_25_SECONDS = hasExtra25 ? Math.floor(TOTAL_SECONDS_INITIAL * 0.25) : 0;
+  const EXTRA_TOTAL_SECONDS = EXTRA_25_SECONDS + carryExtraSeconds;
+  const TOTAL_SECONDS_WITH_25 = TOTAL_SECONDS_INITIAL + EXTRA_TOTAL_SECONDS;
+
+  useEffect(() => {
+    onOpen25();
+  }, [onOpen25]);
 
   useEffect(() => {
     if (idAsign) dispatch.asignaturaModel.getAsignatura(idAsign);
@@ -90,12 +100,15 @@ export default function Countdown() {
   };
 
   useEffect(() => {
-    setTimeLeft(TOTAL_SECONDS_INITIAL);
+    setTimeLeft(hasExtra25 ? TOTAL_SECONDS_WITH_25 : TOTAL_SECONDS_INITIAL);
     setIsActive(false);
-  }, [TOTAL_SECONDS_INITIAL, idExamen, contador]);
+  }, [TOTAL_SECONDS_INITIAL, TOTAL_SECONDS_WITH_25, hasExtra25, idExamen, contador]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
+    const baseTimeLeft = hasExtra25
+      ? Math.max(timeLeft - EXTRA_TOTAL_SECONDS, 0)
+      : timeLeft;
 
     // Se realiza la cuenta atrás
     if (isActive && timeLeft > 0) {
@@ -105,7 +118,7 @@ export default function Countdown() {
     } 
 
     // Si queda 10 segundos lanza el audio
-    if (isActive && timeLeft === 10) {
+    if (isActive && baseTimeLeft === 10) {
       const audio = audioFin.current;
       if (audio) {
         audio.currentTime = 0;
@@ -119,10 +132,12 @@ export default function Countdown() {
     return () => {
         if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, hasExtra25, EXTRA_TOTAL_SECONDS]);
 
   const handleStart = () => {
-    if (timeLeft === 0) setTimeLeft(TOTAL_SECONDS_INITIAL);
+    if (timeLeft === 0) {
+      setTimeLeft(hasExtra25 ? TOTAL_SECONDS_WITH_25 : TOTAL_SECONDS_INITIAL);
+    }
     setIsActive(true);
   };
 
@@ -132,15 +147,36 @@ export default function Countdown() {
   };
 
   const handleNext = () => {
+    const baseLeftNow = hasExtra25
+      ? Math.max(timeLeft - EXTRA_TOTAL_SECONDS, 0)
+      : timeLeft;
+    const remainingExtraNow = hasExtra25
+      ? Math.max(timeLeft - baseLeftNow, 0)
+      : 0;
+
+    if (hasExtra25 && baseLeftNow === 0) {
+      setCarryExtraSeconds(remainingExtraNow);
+    } else {
+      setCarryExtraSeconds(0);
+    }
+
+    setIsActive(false);
+    setIsPause(false);
     setContador((prev) => Math.min(prev + 1, totalPartes));
   };
 
   const handleBack = () => {
+    setCarryExtraSeconds(0);
     setContador((prev) => Math.min(prev - 1, totalPartes));
   };
 
-  const handleMoreTime = () => {
+  const handleMoreTime = async () => {
     setTimeLeft((prev) => prev + timeExtra * 60);
+    const payload = {
+      id: parteActual!.id,
+      tiempoExtra: timeExtra
+    }
+    await dispatch.parteExamenModel.sumarMinutosParteExamen(payload)
     setTimeExtra(0);
     onCloseTime();
   };
@@ -157,7 +193,8 @@ export default function Countdown() {
     navigate(`/asignatura/${idAsign}`);
   }
 
-  const progress = TOTAL_SECONDS_INITIAL === 0 ? 0 : (timeLeft / TOTAL_SECONDS_INITIAL) * 100;
+  const countdownColor = timeLeft < 300 ? "red.800" : "teal.600"; 
+  const countdownColor25 = timeLeft < 300 ? "red.500" : "teal.400";
 
   const toSeconds = (p?: { duracion_h?: number; duracion_m?: number }) =>
   ((p?.duracion_h ?? 0) * 3600) + ((p?.duracion_m ?? 0) * 60);
@@ -169,8 +206,32 @@ export default function Countdown() {
       .slice(0, relativeIndex)
       .reduce((acc, p) => acc + toSeconds(p), 0);
 
-    return timeLeft + intermedias;
+    const baseTimeLeft = hasExtra25
+      ? Math.max(timeLeft - EXTRA_TOTAL_SECONDS, 0)
+      : timeLeft;
+
+    return baseTimeLeft + intermedias;
   };
+
+  const handle25 = () => {
+    if (hasExtra25) {
+      onClose25();
+      return;
+    }
+    setHasExtra25(true);
+    setTimeLeft((prev) => prev + Math.floor(TOTAL_SECONDS_INITIAL * 0.25));
+    onClose25();
+  };
+
+  const progressWith25 = TOTAL_SECONDS_WITH_25 === 0
+    ? 0
+    : (timeLeft / TOTAL_SECONDS_WITH_25) * 100;
+
+  const timeLeftWithout25 = hasExtra25
+    ? Math.max(timeLeft - EXTRA_TOTAL_SECONDS, 0)
+    : timeLeft;
+
+  const progress = TOTAL_SECONDS_INITIAL === 0 ? 0 : (timeLeftWithout25 / TOTAL_SECONDS_INITIAL) * 100;
 
   return (
     <Box bg="white" w="100%"> 
@@ -206,22 +267,47 @@ export default function Countdown() {
         </VStack>
 
         <Flex justify={"center"}>
-          <CircularProgress 
-            value={progress} 
-            color={timeLeft < 300 ? "red.400" : "teal.400"} // Rojo si quedan menos de 5 min
-            size="50vh" 
-            thickness="8px" 
-            capIsRound
-            trackColor="gray.100"
-          >
-            <CircularProgressLabel 
-              fontSize="4xl" 
-              fontWeight="bold"
-              lineHeight="1"
+          <Box position="relative" w="50vh" h="50vh">
+            {hasExtra25 ? (
+              <CircularProgress
+                value={Math.max(0, Math.min(progressWith25, 100))}
+                color={countdownColor}
+                size="50vh"
+                thickness="8px"
+                capIsRound
+                trackColor="gray.100"
+                position="absolute"
+                top="0"
+                left="0"
+              />
+            ) : null}
+
+            <CircularProgress
+              value={Math.max(0, Math.min(progress, 100))}
+              color={countdownColor25}
+              size={hasExtra25 ? "44vh" : "50vh"}
+              thickness="8px"
+              capIsRound
+              trackColor="gray.100"
+              position={hasExtra25 ? "absolute" : "relative"}
+              top={hasExtra25 ? "3vh" : undefined}
+              left={hasExtra25 ? "3vh" : undefined}
             >
-              {formatTime(timeLeft)}
-            </CircularProgressLabel>
-          </CircularProgress>
+              <CircularProgressLabel>
+                <VStack spacing={1}>
+                  <Text fontSize="4xl" fontWeight="bold" lineHeight="1" textColor={countdownColor25}>
+  
+                    {formatTime(timeLeftWithout25)}
+                  </Text>
+                  {hasExtra25 ? (
+                    <Text fontSize="lg" fontWeight="semibold" lineHeight="1" textColor={countdownColor}>
+                      Con 25%: {formatTime(timeLeft)}
+                    </Text>
+                  ) : null}
+                </VStack>
+              </CircularProgressLabel>
+            </CircularProgress>
+          </Box>
         </Flex>
 
         <Flex justify={"center"} mt={"5"}>
@@ -263,12 +349,12 @@ export default function Countdown() {
             ) : (<></>)
           }
 
-          {(totalPartes !== contador) && (!isActive) ?
+          {(totalPartes !== contador) && (!isActive || timeLeftWithout25 === 0) ?
             (<Button 
               colorScheme="teal" 
               size="lg" 
               onClick={handleNext}
-              isDisabled={isActive && timeLeft > 0}
+              isDisabled={isActive && timeLeftWithout25 > 0}
               w="25vh"
               ml={"10"}
             >
@@ -350,7 +436,34 @@ export default function Countdown() {
                 </Flex>  
               </ModalBody>
             </ModalContent>
-        </Modal>
+      </Modal>
+
+      <Modal isOpen={isOpen25} onClose={onClose25} isCentered>
+          <ModalOverlay />
+            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
+              <ModalHeader textAlign={"center"}>¿Hay alumnos con el 25%?</ModalHeader>
+              <ModalBody >
+                <Flex justifyContent={"center"} mb={"3"}>
+                  <Button 
+                    colorScheme='blue' 
+                    onClick={handle25}
+                    width={"10vh"}
+                  >
+                    Sí
+                  </Button>
+
+                  <Button 
+                    colorScheme='blue' 
+                    onClick={onClose25}
+                    ml={3}
+                    width={"10vh"}
+                  >
+                    No
+                  </Button>
+                </Flex>  
+              </ModalBody>
+            </ModalContent>
+      </Modal>
 
       <Modal isOpen={isOpenTime} onClose={onCloseTime} isCentered>
           <ModalOverlay />

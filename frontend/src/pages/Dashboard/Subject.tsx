@@ -891,7 +891,7 @@ export default function Subject() {
                           </Box>
 
                           <Box w="50%">
-                            <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                            <FormLabel fontWeight="semibold">Nº de Alumnos Esperados</FormLabel>
                             <Input
                               value={item.n_esperados}
                               size="lg"
@@ -921,14 +921,14 @@ export default function Subject() {
                         </Box>
 
                         <Box w="50%">
-                          <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                          <FormLabel fontWeight="semibold">Nº de Alumnos Esperados</FormLabel>
                           <Input
                             id="n_esperados" 
                             name="n_esperados" 
                             type="number"
                             value={formValues.n_esperados || ""}
                             onChange={handleFormChange}
-                            placeholder="Número de alumnos esperados" 
+                            placeholder="Nº de alumnos esperados" 
                             size="lg"      
                             borderRadius="xl"    
                             focusBorderColor="blue.500"
@@ -1136,7 +1136,7 @@ export default function Subject() {
                               </Box>
 
                               <Box w="50%">
-                                <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                                <FormLabel fontWeight="semibold">Nº de Alumnos Esperados</FormLabel>
                                 <Input
                                   value={item.n_esperados}
                                   onChange={(e) => handleEditAulaChange(index, "n_esperados", e.target.value)}
@@ -1170,7 +1170,7 @@ export default function Subject() {
                               </Box>
 
                               <Box w="50%">
-                                <FormLabel fontWeight="semibold">Número de Alumnos Esperados</FormLabel>
+                                <FormLabel fontWeight="semibold">Nº de Alumnos Esperados</FormLabel>
                                 <Input
                                   type="number"
                                   value={editAulaValues.n_esperados || ""}
@@ -1180,7 +1180,7 @@ export default function Subject() {
                                       n_esperados: parseInt(e.target.value) || 0,
                                     }))
                                   }
-                                  placeholder="Número de alumnos esperados" 
+                                  placeholder="Nº de alumnos esperados" 
                                   size="lg"      
                                   borderRadius="xl"    
                                   focusBorderColor="blue.500"

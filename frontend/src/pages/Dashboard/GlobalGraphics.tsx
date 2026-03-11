@@ -33,7 +33,16 @@ import { Link as RouterLink } from "react-router-dom";
 
 import { useAuth } from "@clerk/clerk-react";
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -208,10 +217,14 @@ export default function GlobalGraphics() {
 
       const minutos =
         Number(examen.duracion_h ?? 0) * 60 + Number(examen.duracion_m ?? 0);
+      const presentados = Number(examen.n_present ?? 0);
       const currentValue = Number(current[examen.id_asign] ?? 0);
+      const presentadosKey = `presentados_${examen.id_asign}`;
+      const currentPresentadosValue = Number(current[presentadosKey] ?? 0);
       grouped.set(key, {
         ...current,
         [examen.id_asign]: currentValue + minutos,
+        [presentadosKey]: currentPresentadosValue + presentados,
       });
     });
 
@@ -409,18 +422,29 @@ export default function GlobalGraphics() {
           }}
         >
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
-              <BarChart data={chartData} barCategoryGap="40%" barGap={8}>
+              <ComposedChart data={chartData} barCategoryGap="40%" barGap={8}>
                 <XAxis dataKey="label" textAnchor="middle" height={60} />
                 <YAxis
                   ticks={yAxisTicks}
                   domain={[0, yAxisTicks[yAxisTicks.length - 1] ?? 0]}
                   tickFormatter={(value: number) => `${(value / 60).toFixed(1)} h`}
                 />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
+                  tickFormatter={(value: number) => `${value}`}
+                />
                 <Tooltip
-                  formatter={(value?: number, name?: string) => [
-                    formatMinutes(Number(value ?? 0)),
-                    name ?? "Duracion",
-                  ]}
+                  formatter={(value?: number, name?: string) => {
+                    if ((name ?? "").includes("Presentados")) {
+                      return [`${Number(value ?? 0)}`, "Presentados"];
+                    }
+                    return [
+                      formatMinutes(Number(value ?? 0)),
+                      name ?? "Duracion",
+                    ];
+                  }}
                 />
                 <Legend
                   layout="vertical"
@@ -435,7 +459,23 @@ export default function GlobalGraphics() {
                     fill={subjectColors[subject.id] ?? "#2f6fe4"}
                   />
                 ))}
-              </BarChart>
+                {subjectsForChart.map((subject) => (
+                  <Line
+                    key={`presentados_${subject.id}`}
+                    type="linear"
+                    yAxisId="right"
+                    dataKey={`presentados_${subject.id}`}
+                    name={`${subject.nombre} (Presentados)`}
+                    stroke={subjectColors[subject.id] ?? "#2f6fe4"}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={{ r: 4, fill: subjectColors[subject.id] ?? "#2f6fe4" }}
+                    activeDot={{ r: 7 }}
+                    legendType="none"
+                    connectNulls
+                  />
+                ))}
+              </ComposedChart>
             </ResponsiveContainer>
         </Box>
       </Container>  

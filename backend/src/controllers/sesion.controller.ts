@@ -18,7 +18,7 @@ export async function createSesion(req: Request, res: Response){
 export async function getAllSesiones(req: Request, res: Response){
     try{
         const id = req.params.idAsign;
-        const sesiones = await sesionService.getAllExamenes(id);
+        const sesiones = await sesionService.getAllSesiones(id);
         res.json(sesiones);
     }catch(error)
     {

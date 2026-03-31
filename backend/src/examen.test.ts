@@ -26,7 +26,6 @@ describe("Test de /api/examen", () => {
       partes: 2,
       convocatoria: "Junio",
       fecha_examen: new Date().toISOString(),
-      n_esperados: 40,
       duracion_h: 2,
       duracion_m: 30,
       aulaAlumnos: [
@@ -58,12 +57,11 @@ describe("Test de /api/examen", () => {
 
   test("PATCH examen correcta, devuelve 200", async () => {
     const res = await request(app).patch(`/api/examen/${examenId}`).send({
-      n_esperados: 45,
       aulaAlumnos: [{ aula: "A-03", n_esperados: 45 }],
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.n_esperados).toBe(45);
+    expect(res.body.aulaAlumnos[0].aula).toBe("A-03");
   });
 
   test("DELETE examen correcta, devuelve 200", async () => {

@@ -78,7 +78,7 @@ export async function deleteSesion(id: string){
             where:{ id : id}
         });
     } catch (error) {
-        console.error("Error al obtener la sesion", error);
+        console.error("Error al eliminar la sesion", error);
         throw new Error("No se pudo eliminar la sesion");
     }
 }

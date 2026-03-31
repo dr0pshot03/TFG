@@ -3,7 +3,7 @@ import * as historicoController from "../controllers/historico.controller";
 
 const router = Router();
 
-// Crea una sesion
+// Crea un historico
 router.post("/", historicoController.createHistorico);
 
 // Obtener el historico

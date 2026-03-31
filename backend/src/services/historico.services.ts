@@ -71,7 +71,7 @@ export async function deleteHistorico(id: string){
             where:{ id : id}
         });
     } catch (error) {
-        console.error("Error al obtener el historico", error);
+        console.error("Error al eliminar el historico", error);
         throw new Error("No se pudo eliminar el historico");
     }
 }

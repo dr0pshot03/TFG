@@ -22,7 +22,7 @@ export async function getHistorico(req: Request, res: Response){
         res.json(sesion);
     }catch(error)
     {
-        console.error("Error al obtener la historico", error);
+        console.error("Error al obtener el historico", error);
         res.status(500).json({ error: "Error al obtener el historico" });
     }
 }
@@ -30,7 +30,7 @@ export async function getHistorico(req: Request, res: Response){
 export async function updateHistorico(req: Request, res: Response){
     try{
         const id = req.params.id;
-        const sesion = await historicoService.updateSesion(id, req.body);
+        const sesion = await historicoService.updateHistorico(id, req.body);
         res.json(sesion);
     }catch(error)
     {

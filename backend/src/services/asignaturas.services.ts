@@ -1,4 +1,4 @@
-import prisma from "./prisma.ts"
+import prisma from "./prisma"
 
 export interface asignatura{
     nombre: string;
@@ -8,13 +8,23 @@ export interface asignatura{
 
 export async function createAsignatura(data: asignatura) {
     try{
-        return await prisma.asignatura.create({
-            data : {
-                nombre : data.nombre,
-                descripcion: data.descripcion || "",
-                user_id: data.user_id
-            }
-        })
+        return await prisma.$transaction(async (tx) => {
+            await tx.usuario.upsert({
+                where: { clerkId: data.user_id },
+                update: {},
+                create: {
+                    clerkId: data.user_id,
+                },
+            });
+
+            return await tx.asignatura.create({
+                data : {
+                    nombre : data.nombre,
+                    descripcion: data.descripcion || "",
+                    user_id: data.user_id
+                }
+            });
+        });
     }catch(error)
     {
         console.error("Error al crear la asignatura", error);

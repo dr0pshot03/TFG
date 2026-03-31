@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as examenController from "../controllers/examen.controller.ts";
+import * as examenController from "../controllers/examen.controller";
 import { requireAuth } from "@clerk/express";
 
 const router = Router();
@@ -7,10 +7,10 @@ const router = Router();
 // Crea una examen
 router.post("/", /*requireAuth,*/  examenController.createExamen);
 
-// Obtener todas las examenes
+// Obtener todas los examenes
 router.get("/asignatura/:idAsign", /*requireAuth,*/  examenController.getAllExamenes);
 
-// Obtener una examen
+// Obtener un examen
 router.get("/:id", /*requireAuth,*/  examenController.getExamen);
 
 // Actualizar convocatoria examen

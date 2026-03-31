@@ -1,5 +1,16 @@
 import { clerkClient } from "@clerk/express";
-import prisma from "./prisma.ts";
+import prisma from "./prisma";
+
+interface ClerkWebhookUserPayload {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  primary_email_address_id?: string | null;
+  email_addresses?: Array<{
+    id?: string;
+    email_address?: string;
+  }>;
+}
 
 export interface usuario{
     clerkId: string;
@@ -65,4 +76,34 @@ export async function deleteUser(id: string) {
     console.error("Error eliminando usuario:", error);
     throw new Error("Error al eliminar usuario");
   }
+}
+
+export async function upsertUserFromClerkWebhook(data: ClerkWebhookUserPayload) {
+  const primaryEmail = data.email_addresses?.find(
+    (emailAddress) => emailAddress.id === data.primary_email_address_id,
+  )?.email_address;
+
+  const fallbackEmail = data.email_addresses?.[0]?.email_address;
+  const email = primaryEmail ?? fallbackEmail ?? null;
+
+  return await prisma.usuario.upsert({
+    where: { clerkId: data.id },
+    update: {
+      nombre: data.first_name ?? null,
+      apellidos: data.last_name ?? null,
+      email,
+    },
+    create: {
+      clerkId: data.id,
+      nombre: data.first_name ?? null,
+      apellidos: data.last_name ?? null,
+      email,
+    },
+  });
+}
+
+export async function deleteUserByClerkId(clerkId: string) {
+  return await prisma.usuario.deleteMany({
+    where: { clerkId },
+  });
 }

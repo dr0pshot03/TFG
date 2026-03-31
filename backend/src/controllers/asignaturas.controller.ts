@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as asignaturaService from "../services/asignaturas.services.ts";
+import * as asignaturaService from "../services/asignaturas.services";
 
 export async function createAsignatura(req: Request, res: Response){
     try{
@@ -7,7 +7,7 @@ export async function createAsignatura(req: Request, res: Response){
             ...req.body,
         };
         const asignatura = await asignaturaService.createAsignatura(data);
-        res.status(201).json(asignatura);
+        res.status(200).json({asignatura,});
     }catch(error)
     {
         console.error("Error al crear la asignatura", error);

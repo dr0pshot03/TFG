@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Si existe la variable de entorno (Vercel), usa esa. Si no, usa localhost.
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// Si no hay variable de entorno, usamos misma origin y Nginx hace proxy de /api.
+const baseURL = import.meta.env.VITE_API_URL || "/";
 
 const api = axios.create({
   baseURL: baseURL,

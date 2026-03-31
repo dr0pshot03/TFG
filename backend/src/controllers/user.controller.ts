@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as userService from "../services/user.service.ts";
+import * as userService from "../services/user.service";
 
 interface ClerkWebhookEvent {
     type: string;

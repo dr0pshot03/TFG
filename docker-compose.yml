@@ -1,0 +1,38 @@
+services:
+  # Tu base de datos actual
+  db:
+    image: postgres:13-alpine
+    container_name: timeexam-db
+    ports:
+      - "5433:5432" # Accesible desde tu PC en el puerto 5433
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=timeexam
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Servicio del Backend
+  backend:
+    build: ./backend
+    container_name: timeexam-backend
+    command: sh -c "until npx prisma migrate deploy; do echo 'Esperando a la base de datos...'; sleep 2; done; npm start"
+    ports:
+      - "3000:3000"
+    environment:
+      # IMPORTANTE: Aquí usas "db" como host en lugar de "localhost"
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/timeexam?schema=public
+    depends_on:
+      - db
+
+  # Servicio del Frontend
+  frontend:
+    build: ./frontend
+    container_name: timeexam-frontend
+    ports:
+      - "5173:80" # Nginx escucha en 80 dentro del contenedor
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

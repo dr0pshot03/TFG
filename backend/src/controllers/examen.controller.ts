@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as examenService from "../services/examen.services.ts";
+import * as examenService from "../services/examen.services";
 
 export async function createExamen(req: Request, res: Response){
     try{

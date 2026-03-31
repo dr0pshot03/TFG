@@ -1,4 +1,4 @@
-import prisma from "./prisma.ts"
+import prisma from "./prisma"
 
 export const Convocatoria = {
     Febrero: "Febrero",
@@ -15,9 +15,6 @@ export interface examen {
     partes: number;
     convocatoria: Convocatoria;
     fecha_examen: Date;
-    n_present?: number;
-    n_esperados: number;
-    n_aprobados?: number;
     finalizado?: boolean;
     duracion_h: number;
     duracion_m: number;
@@ -37,7 +34,6 @@ export async function createExamen(data: examen) {
                 fecha_examen: data.fecha_examen,
                 duracion_h: data.duracion_h,
                 duracion_m: data.duracion_m,
-                n_esperados: data.n_esperados,
                 
                 aulaAlumnos: {
                     create: data.aulaAlumnos.map(par => ({
@@ -84,8 +80,7 @@ export async function getExamen(id: string){
 export async function updateExamen(id: string, body: any) {
     try {
         const allowedFields = [
-            "convocatoria", "fecha_examen", "n_present", 
-            "n_aprobados", "n_esperados", "finalizado", "partes", "aulaAlumnos"
+            "convocatoria", "fecha_examen", "finalizado", "partes", "aulaAlumnos"
         ];
 
         const data: Record<string, any> = {};

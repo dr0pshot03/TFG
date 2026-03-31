@@ -24,6 +24,7 @@ model Usuario {
   updated_at   DateTime @updatedAt
 
   asignaturas Asignatura[]
+  sesion Sesion[]
 }
 
 model Asignatura{
@@ -37,6 +38,19 @@ model Asignatura{
   // relación uno-a-muchos con partesExamen
   examenes Examen[]
   user Usuario @relation(fields: [user_id], references: [clerkId], onDelete: Cascade)
+  historico Historico[]
+}
+
+model Historico{
+  id String @id @default(uuid()) @db.Uuid
+  id_asignatura String @db.Uuid
+  curso String
+  n_matriculados Int
+  n_presentados Int @default(0)
+  porcentaje_aprobados Int
+  tipo_convocatoria String
+
+  asignatura Asignatura @relation(fields: [id_asignatura], references: [id], onDelete: Cascade)
 }
 
 enum Convocatoria{
@@ -52,9 +66,6 @@ model Examen {
   partes Int
   convocatoria Convocatoria 
   fecha_examen DateTime
-  n_present Int @default(0)
-  n_esperados Int 
-  n_aprobados Int @default(0)
   duracion_h Int
   duracion_m  Int
 
@@ -69,6 +80,8 @@ model Examen {
   asignatura Asignatura @relation(fields: [id_asign], references: [id], onDelete: Cascade)
   // Aulas - alumnos esperados
   aulaAlumnos AulaAlumnos[]
+
+  sesion Sesion[]
 }
 
 model AulaAlumnos {
@@ -96,4 +109,39 @@ model partesExamen{
 
   // FK hacia examen
   examen Examen @relation(fields: [id_examen], references: [id], onDelete: Cascade)
+}
+
+model Sesion{
+  id String @id @default(uuid()) @db.Uuid
+  id_examen String @db.Uuid
+  id_usuario String 
+  fecha DateTime
+
+  n_present Int @default(0)
+  n_esperados Int 
+  n_aprobados Int @default(0)
+
+  examen Examen @relation(fields: [id_examen], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [clerkId], onDelete: Cascade)
+  prediccion Prediccion[]
+  evento Evento[]
+}
+
+model Prediccion{
+  id String @id @default(uuid()) @db.Uuid
+  id_sesion String @db.Uuid
+  asistencia_estimada Int
+  aulas_necesarias Int
+  nivel_confianza Decimal
+
+  sesion Sesion @relation(fields: [id_sesion], references: [id], onDelete: Cascade)
+}
+
+model Evento{
+  id String @id @default(uuid()) @db.Uuid
+  id_sesion String @db.Uuid
+  timestamp DateTime
+  tipo_evento String
+  
+  sesion Sesion @relation(fields: [id_sesion], references: [id], onDelete: Cascade)
 }

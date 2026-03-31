@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as partesExamenService from "../services/partesExamen.services.ts";
+import * as partesExamenService from "../services/partesExamen.services.js";
 
 export async function createParte(req: Request, res: Response){
     try{

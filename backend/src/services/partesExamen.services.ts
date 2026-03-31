@@ -1,4 +1,4 @@
-import prisma from "./prisma.ts"
+import prisma from "./prisma.js"
 
 export interface parteExamen{
     id: string;

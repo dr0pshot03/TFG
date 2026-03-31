@@ -1,4 +1,4 @@
-import prisma from "./prisma.ts"
+import prisma from "./prisma.js"
 
 export const Convocatoria = {
     Febrero: "Febrero",

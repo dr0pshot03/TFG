@@ -52,6 +52,17 @@ export async function getSesionbyUser(userId: string){
     }
 }
 
+export async function getSesionbyId(id: string){
+    try {
+        return await prisma.sesion.findUnique({
+            where:{ id : id},
+        });
+    } catch (error) {
+        console.error("Error al obtener la sesión por id", error);
+        throw new Error("No se pudo obtener la sesion por id");
+    }
+}
+
 export async function updateSesion(id: string, data: any) {
     try {
         const {

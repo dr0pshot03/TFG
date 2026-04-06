@@ -6,11 +6,14 @@ const router = Router();
 // Crea el historico
 router.post("/", sesionController.createSesion);
 
+// Obtener el historico por id
+router.get("/:id", sesionController.getSesionbyId);
+
 // Obtener el historico por examen
 router.get("/examen/:idExamen", sesionController.getSesionbyExamen);
 
 // Obtener el historico por usuario
-router.get("/usuario/:idUser", sesionController.getSesionbyUsuario);
+router.get("/usuario/:idUser", sesionController.getSesionbyUser);
 
 // Actualizar historico
 router.put("/:id", sesionController.updateSesion);

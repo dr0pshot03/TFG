@@ -116,7 +116,7 @@ model Sesion{
   id String @id @default(uuid()) @db.Uuid
   id_examen String @db.Uuid
   id_usuario String 
-  fecha DateTime
+  fecha DateTime @default(now())
   estado String
   n_present Int @default(0)
   n_esperados Int @default(0)

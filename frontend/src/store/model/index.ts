@@ -5,6 +5,8 @@ import asignaturaModel from "./asignatura.model.ts";
 import examenModel from "./examen.model.ts";
 import parteExamenModel from "./partesExamen.model.ts";
 import userModel from "./user.model.ts";
+import sesionModel from "./sesion.model.ts";
+import historicoModel from "./historico.model.ts";
 
 export interface IRootModel extends Models<IRootModel> {
   asignaturaModel: typeof asignaturaModel;
@@ -12,6 +14,8 @@ export interface IRootModel extends Models<IRootModel> {
   parteExamenModel: typeof parteExamenModel;
   toastModel: typeof toastModel;
   userModel: typeof userModel;
+  sesionModel: typeof sesionModel;
+  historicoModel: typeof historicoModel;
 }
 
 export const models: IRootModel = {

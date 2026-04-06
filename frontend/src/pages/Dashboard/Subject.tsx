@@ -32,10 +32,13 @@ import { useNavigate } from "react-router-dom";
 import { FiMoreVertical } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
 import examenModel from "@/store/model/examen.model";
+import { CreateSesionInput } from "@/types/sesion.type";
+import { useAuth } from "@clerk/clerk-react";
 
 export default function Subject() {
   const dispatch = useDispatch<IDispatch>();
   const { id } = useParams<{ id: string }>();
+  const { userId } = useAuth();
   const navigate = useNavigate();
   
   const { isOpen: isOpenAdd, onOpen: onOpenAdd, onClose: onCloseAdd } = useDisclosure();
@@ -152,7 +155,6 @@ export default function Subject() {
       duracion_m: duracion_total_m,
       fecha_examen: new Date(formValues.fecha_examen),
       aula: aulaAlumnos[0]?.aula || "",
-      n_esperados: n_total_esperados,
       anno: new Date().getFullYear(),
       aulaAlumnos: aulaAlumnos.map(item => ({
         aula: item.aula,
@@ -162,6 +164,18 @@ export default function Subject() {
 
   try {
     const nuevoExamen = await dispatch.examenModel.createExamen(payload);
+
+    const payload2 = {
+      id_examen: nuevoExamen,
+      id_usuario: userId,
+      estado: "Sin Realizar",
+      n_present: n_total_esperados,
+      n_esperados: 0,
+      n_aprobados: 0,
+    } as CreateSesionInput;
+
+    await dispatch.sesionModel.createSesion(payload2);
+
     if (nuevoExamen) {
       // Crear las partes del examen con sus duraciones específicas
       for(let i = 0; i < partesData.length; i++) {
@@ -1347,6 +1361,14 @@ export default function Subject() {
                     mr={3}
                   >
                     Editar examen
+                  </Button>
+
+                   <Button 
+                    colorScheme='blue' 
+                    onClick={() => navigate(`/historico/${examenID}`)}
+                    mr={3}
+                  >
+                    Ver logs examen
                   </Button>
                 </Flex>
               </ModalBody>

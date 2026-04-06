@@ -10,6 +10,8 @@ import partesExamenRoutes from "./routes/partesExamen.routes";
 import usuarioRoutes from "./routes/user.routes";
 import historicoRoutes from "./routes/historico.routes"
 import sesionRoutes from "./routes/sesion.routes"
+import prediccionRoutes from "./routes/prediccion.routes"
+import eventoRoutes from "./routes/evento.routes"
 
 const prisma = new PrismaClient();
 
@@ -34,6 +36,8 @@ app.use("/api/examen", examenRoutes);
 app.use("/api/partesExamen", partesExamenRoutes);
 app.use("/api/sesion", sesionRoutes);
 app.use("/api/historico", historicoRoutes);
+app.use("/api/evento", eventoRoutes);
+app.use("/api/prediccion", prediccionRoutes);
 
 // Global error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

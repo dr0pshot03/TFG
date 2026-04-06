@@ -67,7 +67,7 @@ const userModel = createModel<IRootModel>()({
       dispatch.userModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .post(`/api/usuario/`, payload)
+        .post(`/usuario/`, payload)
         .then (() => {
           state.toastModel.toast &&
             state.toastModel.toast({
@@ -98,7 +98,7 @@ const userModel = createModel<IRootModel>()({
       dispatch.userModel.addValue({ key:"loading", value: true });
 
       await api
-        .get(`/api/usuario/${id}`)
+        .get(`/usuario/${id}`)
         .then((res) => {
           dispatch.userModel.addValue({ key: "user", value: res.data });
         })
@@ -119,7 +119,7 @@ const userModel = createModel<IRootModel>()({
       dispatch.userModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/usuario/${payload.clerkId}`, payload)
+        .put(`/usuario/${payload.clerkId}`, payload)
         .then ((res) => {
           dispatch.examenModel.addValue({ key: "selectedExamen", value: res.data })
           state.toastModel.toast &&

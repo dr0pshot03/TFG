@@ -172,7 +172,7 @@ export default function Dashboard() {
   const handleExportPdf = async (asignaturaId: string, asignaturaNombre: string) => {
     setIsExporting(true);
     try {
-      const response = await api.get(`/api/examen/asignatura/${asignaturaId}`);
+      const response = await api.get(`/examen/asignatura/${asignaturaId}`);
       const examenesAsignatura: Examen[] = response.data ?? [];
 
       if (examenesAsignatura.length === 0) {

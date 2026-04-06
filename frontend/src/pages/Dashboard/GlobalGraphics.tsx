@@ -83,7 +83,7 @@ export default function GlobalGraphics() {
       try {
         const responses = await Promise.all(
           asignaturas.map((asignatura) =>
-            api.get(`/api/examen/asignatura/${asignatura.id}`)
+            api.get(`/examen/asignatura/${asignatura.id}`)
           )
         );
         const merged = responses.flatMap((response) => response.data ?? []);

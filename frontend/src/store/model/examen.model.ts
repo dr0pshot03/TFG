@@ -44,7 +44,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key:"loading", value: true });
 
       await api
-        .get(`/api/examen/${id}`)
+        .get(`/examen/${id}`)
         .then((res) => {
           dispatch.examenModel.addValue({ key: "selectedExamen", value: res.data });
         })
@@ -65,7 +65,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key: "loading", value: true });
 
       await api
-        .get(`/api/examen/asignatura/${idAsign}`)
+        .get(`/examen/asignatura/${idAsign}`)
         .then ((res) => {
           const currentExamenes = state.examenModel.examenes;
           const isSame = isEqual(currentExamenes, res.data);
@@ -90,7 +90,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .post(`/api/examen/`, payload)
+        .post(`/examen/`, payload)
         .then ((response) => {
           state.toastModel.toast &&
             state.toastModel.toast({
@@ -121,7 +121,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .patch(`/api/examen/convocatoria/${payload.id}`, { status: payload.convocatoria })
+        .patch(`/examen/convocatoria/${payload.id}`, { status: payload.convocatoria })
         .then (() => {
           state.toastModel.toast &&
             state.toastModel.toast({
@@ -153,7 +153,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .patch(`/api/examen/${payload.id}`, payload)
+        .patch(`/examen/${payload.id}`, payload)
         .then ((res) => {
           dispatch.examenModel.addValue({ key: "selectedExamen", value: res.data })
           state.toastModel.toast &&
@@ -185,7 +185,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/examen/tiempo/${payload.id}`, payload)
+        .put(`/examen/tiempo/${payload.id}`, payload)
         .then ((res) => {
           dispatch.examenModel.addValue({ key: "selectedExamen", value: res.data })
           state.toastModel.toast &&
@@ -217,7 +217,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/examen/finalizado/${id}`,)
+        .put(`/examen/finalizado/${id}`,)
         .then ((res) => {
           dispatch.examenModel.addValue({ key: "selectedExamen", value: res.data })
           state.toastModel.toast &&
@@ -249,7 +249,7 @@ const examenModel = createModel<IRootModel>() ({
       dispatch.examenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .delete(`/api/examen/${id}`)
+        .delete(`/examen/${id}`)
         .then (() => {
           state.toastModel.toast &&
             state.toastModel.toast({

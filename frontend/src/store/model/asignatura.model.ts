@@ -44,7 +44,7 @@ const asignaturaModel = createModel<IRootModel>() ({
       dispatch.asignaturaModel.addValue({ key:"loading", value: true });
 
       await api
-        .get(`/api/asignaturas/${id}`)
+        .get(`/asignaturas/${id}`)
         .then((res) => {
           dispatch.asignaturaModel.addValue({ key: "selectedAsignatura", value: res.data });
         })
@@ -65,7 +65,7 @@ const asignaturaModel = createModel<IRootModel>() ({
       dispatch.asignaturaModel.addValue({ key: "loading", value: true });
 
       await api
-        .get(`/api/asignaturas/usuario/${userId}`)
+        .get(`/asignaturas/usuario/${userId}`)
         .then ((res) => {
           const currentAsignaturas = state.asignaturaModel.asignaturas;
           const isSame = isEqual(currentAsignaturas, res.data);
@@ -90,7 +90,7 @@ const asignaturaModel = createModel<IRootModel>() ({
       dispatch.asignaturaModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .post(`/api/asignaturas/`, payload)
+        .post(`/asignaturas/`, payload)
         .then (() => {
           state.toastModel.toast &&
             state.toastModel.toast({
@@ -121,7 +121,7 @@ const asignaturaModel = createModel<IRootModel>() ({
       dispatch.asignaturaModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/asignaturas/${payload.id}`, payload)
+        .put(`/asignaturas/${payload.id}`, payload)
         .then ((res) => {
           dispatch.asignaturaModel.addValue({ key: "selectedAsignatura", value: res.data })
           state.toastModel.toast &&
@@ -153,7 +153,7 @@ const asignaturaModel = createModel<IRootModel>() ({
       dispatch.asignaturaModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .delete(`/api/asignaturas/${id}`)
+        .delete(`/asignaturas/${id}`)
         .then (() => {
           state.toastModel.toast &&
             state.toastModel.toast({

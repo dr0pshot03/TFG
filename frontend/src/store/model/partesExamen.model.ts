@@ -44,7 +44,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key:"loading", value: true });
 
       await api
-        .get(`/api/partesExamen/parte/${id}`)
+        .get(`/partesExamen/parte/${id}`)
         .then((res) => {
           dispatch.parteExamenModel.addValue({ key: "selectedParteExamen", value: res.data });
         })
@@ -65,7 +65,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       await api
-        .get(`/api/partesExamen/${idExamen}`)
+        .get(`/partesExamen/${idExamen}`)
         .then ((res) => {
           const currentPartesExamenes = state.parteExamenModel.examenes;
           const isSame = isEqual(currentPartesExamenes, res.data);
@@ -90,7 +90,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .post(`/api/partesExamen/`, payload)
+        .post(`/partesExamen/`, payload)
         .then (() => {
           state.toastModel.toast &&
             state.toastModel.toast({
@@ -121,7 +121,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/partesExamen/${payload.id}`, payload)
+        .put(`/partesExamen/${payload.id}`, payload)
         .then ((res) => {
           dispatch.parteExamenModel.addValue({ key: "selectedParteExamen", value: res.data })
           state.toastModel.toast &&
@@ -153,7 +153,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/partesExamen/${payload.id}/moveUp`)
+        .put(`/partesExamen/${payload.id}/moveUp`)
         .then ((res) => {
           dispatch.parteExamenModel.addValue({ key: "selectedParteExamen", value: res.data })
           state.toastModel.toast &&
@@ -185,7 +185,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/partesExamen/${payload.id}/sumarTiempo`, { tiempoExtra: payload.tiempoExtra })
+        .put(`/partesExamen/${payload.id}/sumarTiempo`, { tiempoExtra: payload.tiempoExtra })
         .then ((res) => {
           dispatch.parteExamenModel.addValue({ key: "selectedParteExamen", value: res.data })
           state.toastModel.toast &&
@@ -217,7 +217,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .put(`/api/partesExamen/${payload.id}/moveDown`)
+        .put(`/partesExamen/${payload.id}/moveDown`)
         .then ((res) => {
           dispatch.parteExamenModel.addValue({ key: "selectedParteExamen", value: res.data })
           state.toastModel.toast &&
@@ -249,7 +249,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       dispatch.parteExamenModel.addValue({ key: "loading", value: true });
 
       const res = await api
-        .delete(`/api/partesExamen/${id}`)
+        .delete(`/partesExamen/${id}`)
         .then (() => {
           state.toastModel.toast &&
             state.toastModel.toast({

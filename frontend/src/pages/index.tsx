@@ -6,6 +6,7 @@ import Parts from "./Dashboard/ExamParts";
 import ExamGraphics from "./Dashboard/ExamGraphics";
 import GlobalGraphics from "./Dashboard/GlobalGraphics";
 import Countdown from "./Dashboard/Countdown";
+import Logs from "./Dashboard/Logs";
 import Login from "./Auth/Login";
 import { ProtectedRoute } from "@/components/ProtectedRoute"; // Evita que un usuario no logueado pueda acceder a la ruta
 import { PublicRoute } from "@/components/PublicRoute"; // Al igual que el anterior, funciona a la inversa, un usuario logueado no podrá acceder a /login.
@@ -19,7 +20,8 @@ export default function AppRoutes() {
       <Route path="/asignatura/:idAsign/examen/:id" element={<ProtectedRoute><Parts /></ProtectedRoute>} />
       <Route path="/asignatura/:idAsign/grafica/" element={<ProtectedRoute><ExamGraphics /></ProtectedRoute>} />
       <Route path="/grafica/" element={<ProtectedRoute><GlobalGraphics /></ProtectedRoute>} />
-      <Route path="/asignatura/:idAsign/examen/:idExamen/cuentaatras" element={<ProtectedRoute><Countdown /></ProtectedRoute>} />
+      <Route path="/asignatura/:idAsign/examen/:idExamen/cuentaatras/:idSesion" element={<ProtectedRoute><Countdown /></ProtectedRoute>} />
+      <Route path="/historico/:idExamen" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>}/>
     </Routes>
   );

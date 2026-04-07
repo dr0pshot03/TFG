@@ -37,6 +37,7 @@ export async function getAllEvento(idSesion: string){
     try {
         return await prisma.evento.findMany({
             where:{ id_sesion : idSesion},
+            orderBy: { timestamp: "asc" },
         });
     } catch (error) {
         console.error("Error al obtener los eventos", error);

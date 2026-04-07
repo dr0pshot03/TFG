@@ -36,6 +36,7 @@ export default function Countdown() {
   const navigate = useNavigate();
   const { idAsign } = useParams<{ idAsign: string }>();
   const { idExamen } = useParams<{ idExamen: string }>();
+  const { idSesion } = useParams<{ idSesion: string }>();
 
   const asignatura = useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examen = useSelector((state: IRootState) => state.examenModel.selectedExamen);
@@ -105,7 +106,7 @@ export default function Countdown() {
   }, [TOTAL_SECONDS_INITIAL, TOTAL_SECONDS_WITH_25, hasExtra25, idExamen, contador]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     const baseTimeLeft = hasExtra25
       ? Math.max(timeLeft - EXTRA_TOTAL_SECONDS, 0)
       : timeLeft;
@@ -134,19 +135,32 @@ export default function Countdown() {
     };
   }, [isActive, timeLeft, hasExtra25, EXTRA_TOTAL_SECONDS]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (timeLeft === 0) {
       setTimeLeft(hasExtra25 ? TOTAL_SECONDS_WITH_25 : TOTAL_SECONDS_INITIAL);
     }
     setIsActive(true);
+    const payload = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "Comenzar examen"
+    }
+    await dispatch.eventoModel.createEvento(payload)
   };
 
-  const handlePause = () => {
+  const handlePause = async () => {
     setIsActive(false);
     setIsPause(true);
+
+    const payload = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "Pausa del examen"
+    }
+    await dispatch.eventoModel.createEvento(payload)
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const baseLeftNow = hasExtra25
       ? Math.max(timeLeft - EXTRA_TOTAL_SECONDS, 0)
       : timeLeft;
@@ -163,11 +177,25 @@ export default function Countdown() {
     setIsActive(false);
     setIsPause(false);
     setContador((prev) => Math.min(prev + 1, totalPartes));
+
+    const payload = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "Siguiente parte"
+    }
+    await dispatch.eventoModel.createEvento(payload)
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     setCarryExtraSeconds(0);
     setContador((prev) => Math.min(prev - 1, totalPartes));
+
+    const payload = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "Parte anterior"
+    }
+    await dispatch.eventoModel.createEvento(payload)
   };
 
   const handleMoreTime = async () => {
@@ -179,6 +207,13 @@ export default function Countdown() {
     await dispatch.parteExamenModel.sumarMinutosParteExamen(payload)
     setTimeExtra(0);
     onCloseTime();
+
+    const payload2 = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "Añadir más tiempo extra"
+    }
+    await dispatch.eventoModel.createEvento(payload2)
   };
 
   const handleTimeExtraChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,6 +225,12 @@ export default function Countdown() {
     if (!examen?.id || !idAsign) return;
     await dispatch.examenModel.updateEstadoExamen(examen.id);
     onCloseFinish();
+    const payload = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "Examen finalizado"
+    }
+    await dispatch.eventoModel.createEvento(payload)
     navigate(`/asignatura/${idAsign}`);
   }
 
@@ -200,6 +241,7 @@ export default function Countdown() {
   ((p?.duracion_h ?? 0) * 3600) + ((p?.duracion_m ?? 0) * 60);
 
   const siguientesPartes = partes.slice(contador + 1, contador + 5);
+  const hasMultiplePartes = partes.length > 1;
 
   const getEmpiezaEn = (relativeIndex: number) => {
     const intermedias = siguientesPartes
@@ -213,13 +255,29 @@ export default function Countdown() {
     return baseTimeLeft + intermedias;
   };
 
-  const handle25 = () => {
+  const handle25 = async () => {
     if (hasExtra25) {
       onClose25();
       return;
     }
     setHasExtra25(true);
     setTimeLeft((prev) => prev + Math.floor(TOTAL_SECONDS_INITIAL * 0.25));
+    const payload = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "Sí 25% tiempo extra"
+    }
+    await dispatch.eventoModel.createEvento(payload)
+    onClose25();
+  };
+
+  const no25 = async () => {
+    const payload = {
+      id_sesion: idSesion!,
+      timestamp: new Date(),
+      tipo_evento: "No 25% tiempo extra"
+    }
+    await dispatch.eventoModel.createEvento(payload)
     onClose25();
   };
 
@@ -243,7 +301,7 @@ export default function Countdown() {
       
       <Container maxW="100%" >
         <Grid
-          templateColumns={{ base: "1vh", lg: "3fr 1fr" }}
+          templateColumns={hasMultiplePartes ? { base: "1vh", lg: "3fr 1fr" } : { base: "1fr", lg: "1fr" }}
           gap={6}
           alignItems="start"
           >
@@ -388,27 +446,29 @@ export default function Countdown() {
           }
         </Flex>
         </GridItem>
-        <GridItem>
-          <VStack align="stretch" spacing={4}>
-            <Heading size="md">Siguientes partes</Heading>
+        {hasMultiplePartes ? (
+          <GridItem>
+            <VStack align="stretch" spacing={4}>
+              <Heading size="md">Siguientes partes</Heading>
 
-            {siguientesPartes.length === 0 ? (
-              <Text color="gray.500">No hay más partes.</Text>
-            ) : (
-              siguientesPartes.map((p, i) => (
-                <Box key={p.id ?? `${p.nombre}-${i}`} p={4} borderWidth="1px" borderRadius="md">
-                  <Text fontWeight="bold" fontSize={"md"}>{p.nombre}</Text>
-                  <Text fontSize="md" color="gray.600">
-                    Duración: {formatTime(toSeconds(p))}
-                  </Text>
-                  <Text fontSize="md" color="gray.600">
-                    Empieza en: {formatTime(getEmpiezaEn(i))}
-                  </Text>
-                </Box>
-              ))
-            )}
-          </VStack>
-        </GridItem>
+              {siguientesPartes.length === 0 ? (
+                <Text color="gray.500">No hay más partes.</Text>
+              ) : (
+                siguientesPartes.map((p, i) => (
+                  <Box key={p.id ?? `${p.nombre}-${i}`} p={4} borderWidth="1px" borderRadius="md">
+                    <Text fontWeight="bold" fontSize={"md"}>{p.nombre}</Text>
+                    <Text fontSize="md" color="gray.600">
+                      Duración: {formatTime(toSeconds(p))}
+                    </Text>
+                    <Text fontSize="md" color="gray.600">
+                      Empieza en: {formatTime(getEmpiezaEn(i))}
+                    </Text>
+                  </Box>
+                ))
+              )}
+            </VStack>
+          </GridItem>
+        ) : null}
         </Grid>
       </Container>  
 
@@ -454,7 +514,7 @@ export default function Countdown() {
 
                   <Button 
                     colorScheme='blue' 
-                    onClick={onClose25}
+                    onClick={no25}
                     ml={3}
                     width={"10vh"}
                   >

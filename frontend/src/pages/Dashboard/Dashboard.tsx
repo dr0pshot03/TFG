@@ -64,8 +64,6 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
 
-  console.log(user);
-
   useEffect(() => {
     if (userId) {
       dispatch.userModel.getUser(userId);
@@ -482,7 +480,7 @@ export default function Dashboard() {
                     </Td>
 
                     <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
-                      <Text fontSize="lg">{examen.n_esperados}</Text>
+                      <Text fontSize="lg">{examen.sesion?.[0]?.n_esperados}</Text>
                     </Td>
 
                     <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
@@ -490,11 +488,11 @@ export default function Dashboard() {
                     </Td>
 
                     <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
-                      <Text fontSize="lg">{examen.n_present}</Text>
+                      <Text fontSize="lg">{examen.sesion?.[0]?.n_present ?? 0}</Text>
                     </Td>
 
                     <Td textAlign="center" p={2} borderRight="1px solid #edf2f7">
-                      <Text fontSize="lg">{examen.n_aprobados}</Text>
+                      <Text fontSize="lg">{examen.sesion?.[0]?.n_aprobados ?? 0}</Text>
                     </Td>
 
                     <Td w="15%" textAlign="center" p={2} borderRight="1px solid #edf2f7">

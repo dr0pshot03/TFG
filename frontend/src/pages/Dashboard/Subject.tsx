@@ -27,12 +27,11 @@ import {
 import { InlineIcon } from "@iconify/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
-import { Convocatoria, CreateExamenInput, UpdateExamenInput } from "@/types/examen.type";
+import { Convocatoria, CreateExamenInput, Tipo_Convocatoria } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
 import { FiMoreVertical } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
-import examenModel from "@/store/model/examen.model";
-import { CreateSesionInput } from "@/types/sesion.type";
+import { CreateSesionInput, UpdateSesionInput } from "@/types/sesion.type";
 import { useAuth } from "@clerk/clerk-react";
 
 export default function Subject() {
@@ -48,6 +47,7 @@ export default function Subject() {
   
   const { isOpen: isOpenPresentados, onOpen: onOpenPresentados, onClose: onClosePresentados } = useDisclosure();
   const [examenID, setExamenID] = useState("");
+  const [selectedSesionId, setSelectedSesionId] = useState<string | null>(null);
 
   const asignatura =  useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examenes =  useSelector((state: IRootState) => state.examenModel.examenes);
@@ -70,28 +70,32 @@ export default function Subject() {
     partes: 0,
     fecha_examen: "",
     aula: "",
-    n_esperados: 0
+    n_esperados: 0,
+    tipoConvocatoria: ""
   });
 
   const [filtersValues, setFiltersValues] = useState({
     convocatoria: "",
     partes: 0,
     fecha_examen: "",
-    n_esperados: 0
+    n_esperados: 0,
+    tipoConvocatoria: ""
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
     convocatoria: "",
     partes: 0,
     fecha_examen: "",
-    n_esperados: 0
+    n_esperados: 0,
+    tipoConvocatoria: ""
   });
   
   const [editExamenValues, setEditExamenValues] = useState({
     convocatoria: "",
     fecha_examen: "",
     aula: "",
-    n_esperados: 0
+    n_esperados: 0,
+    tipoConvocatoria: ""
   });
   
   const [partesData, setPartesData] = useState<Array<{
@@ -154,11 +158,12 @@ export default function Subject() {
       duracion_h: duracion_total_h,
       duracion_m: duracion_total_m,
       fecha_examen: new Date(formValues.fecha_examen),
+      tipo_convocatoria: formValues.tipoConvocatoria,
       aula: aulaAlumnos[0]?.aula || "",
       anno: new Date().getFullYear(),
       aulaAlumnos: aulaAlumnos.map(item => ({
         aula: item.aula,
-        n_esperados: Number(item.n_esperados) 
+        n_esperados: Number(item.n_esperados)
       }))
     } as CreateExamenInput; 
 
@@ -166,11 +171,12 @@ export default function Subject() {
     const nuevoExamen = await dispatch.examenModel.createExamen(payload);
 
     const payload2 = {
-      id_examen: nuevoExamen,
+      id_examen: nuevoExamen.id,
       id_usuario: userId,
+      fecha: new Date(),
       estado: "Sin Realizar",
-      n_present: n_total_esperados,
-      n_esperados: 0,
+      n_present: 0,
+      n_esperados: n_total_esperados,
       n_aprobados: 0,
     } as CreateSesionInput;
 
@@ -190,7 +196,7 @@ export default function Subject() {
     }
     
     await dispatch.examenModel.getExamenes(id!);
-    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
+    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0, tipoConvocatoria: "" });
     setAulasData([]);
     setPartesData([]);
     handleCloseAdd();
@@ -267,7 +273,7 @@ export default function Subject() {
   };
 
   const handleCloseAdd = () => {
-    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
+    setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0, tipoConvocatoria: "" });
     setAulasData([]);
     setPartesData([]);
     setCurrentStep(0);
@@ -283,7 +289,7 @@ export default function Subject() {
   };
   
   const handleCloseEdit = () => {
-    setEditExamenValues({ convocatoria: "", fecha_examen: "", aula: "", n_esperados: 0 });
+    setEditExamenValues({ convocatoria: "", fecha_examen: "", aula: "", n_esperados: 0, tipoConvocatoria: "" });
     setEditAulasData([]);
     setEditAulaValues({ aula: "", n_esperados: 0 });
     setShowEditAulaForm(false);
@@ -295,13 +301,15 @@ export default function Subject() {
     if (!selected) {
       return;
     }
+    const selectedSesion = selected.sesion?.[0];
     setEditExamenValues({
       convocatoria: selected.convocatoria,
       fecha_examen: selected.fecha_examen
         ? new Date(selected.fecha_examen).toISOString().slice(0, 10)
         : "",
       aula: selected.aula || "",
-      n_esperados: selected.n_esperados || 0
+      n_esperados: selectedSesion?.n_esperados ?? 0,
+      tipoConvocatoria: selected.tipo_convocatoria || ""
     });
 
     const aulasIniciales = selected.aulaAlumnos?.length
@@ -309,11 +317,12 @@ export default function Subject() {
           aula: item.aula,
           n_esperados: Number(item.n_esperados) || 0,
         }))
-      : [{ aula: selected.aula || "", n_esperados: selected.n_esperados || 0 }];
+      : [{ aula: selected.aula || "", n_esperados: selectedSesion?.n_esperados ?? 0 }];
 
     setEditAulasData(aulasIniciales);
     setEditAulaValues({ aula: "", n_esperados: 0 });
     setShowEditAulaForm(false);
+    setSelectedSesionId(selectedSesion?.id ?? null);
     onCloseOptions();
     onOpenEdit();
   };
@@ -343,10 +352,18 @@ export default function Subject() {
         id: examenID!,
         convocatoria: editExamenValues.convocatoria as Convocatoria,
         fecha_examen: new Date(editExamenValues.fecha_examen),
+        tipo_convocatoria: editExamenValues.tipoConvocatoria as Tipo_Convocatoria,
         aula: aulaAlumnosPayload[0]?.aula || "",
-        n_esperados: nTotalEsperados,
         aulaAlumnos: aulaAlumnosPayload,
       });
+
+      if (selectedSesionId) {
+        await dispatch.sesionModel.updateHistorico({
+          id: selectedSesionId,
+          n_esperados: nTotalEsperados,
+        });
+      }
+
       await dispatch.examenModel.getExamenes(id!);
       handleCloseEdit();
     } catch (e) {
@@ -375,8 +392,8 @@ export default function Subject() {
   };
 
   const handleClearFilters = () => {
-    setFiltersValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
-    setAppliedFilters({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0 });
+    setFiltersValues({ convocatoria: "", partes: 0, fecha_examen: "", n_esperados: 0, tipoConvocatoria: "" });
+    setAppliedFilters({ convocatoria: "", partes: 0, fecha_examen: "", n_esperados: 0, tipoConvocatoria: "" });
   };
 
   const handleApplyFilters = () => {
@@ -388,13 +405,19 @@ export default function Subject() {
     appliedFilters.convocatoria ||
     appliedFilters.partes ||
     appliedFilters.fecha_examen ||
-    appliedFilters.n_esperados
+    appliedFilters.n_esperados ||
+    appliedFilters.tipoConvocatoria
   );
 
   const normalizedSearch = value.trim().toLowerCase();
 
   const filteredExamenes = examenes.filter((examen) => {
     if (normalizedSearch && !examen.convocatoria.toLowerCase().includes(normalizedSearch)) {
+      return false;
+    }
+
+    const totalEsperados = Number(examen.sesion?.[0]?.n_esperados ?? 0);
+    if ((appliedFilters.n_esperados ?? 0) && totalEsperados < appliedFilters.n_esperados) {
       return false;
     }
 
@@ -407,7 +430,7 @@ export default function Subject() {
       return false;
     }
 
-    if (appliedFilters.n_esperados && examen.n_esperados < appliedFilters.n_esperados) {
+    if (appliedFilters.tipoConvocatoria && examen.tipo_convocatoria !== appliedFilters.tipoConvocatoria) {
       return false;
     }
 
@@ -465,12 +488,13 @@ export default function Subject() {
 
   const handleUpdatePresentados = async () => {
     if (!examenID) return;
-    const payload: UpdateExamenInput = {
-      id: examenID,
+    if (!selectedSesionId) return;
+    const payload: UpdateSesionInput = {
+      id: selectedSesionId,
       n_present: presentados === "" ? 0 : Number(presentados),
       n_aprobados: aprobados === "" ? 0 : Number(aprobados),
     };
-    await dispatch.examenModel.updateExamen(payload);
+    await dispatch.sesionModel.updateHistorico(payload);
     await dispatch.examenModel.getExamenes(id!);
     setAux(0);
     onClosePresentados();
@@ -615,6 +639,7 @@ export default function Subject() {
                     <Tr bg="shade.2" w="100%">
                       <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Fecha de Examen</Td>
                       <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Convocatoria</Td>
+                      <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Tipo de Convocatoria</Td>
                       <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Partes</Td>
                       <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Duración </Td>
                       <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Alumnos Esperados Totales</Td>
@@ -644,6 +669,15 @@ export default function Subject() {
                         </Td>
 
                         <Td
+                          p={2}       
+                          textAlign="center"
+                          borderRight="1px solid #aaaaaa"
+                          borderBottom="1px solid #aaaaaa"
+                        >
+                          <Text fontSize="lg">{examen.tipo_convocatoria}</Text>
+                        </Td>
+
+                        <Td
                           p={2}
                           textAlign="center"
                           borderRight="1px solid #aaaaaa"
@@ -667,7 +701,7 @@ export default function Subject() {
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
                         >
-                          <Text fontSize="lg">{examen.n_esperados}</Text>
+                          <Text fontSize="lg">{examen.sesion?.[0]?.n_esperados ?? 0}</Text>
                         </Td>
 
                         <Td
@@ -696,9 +730,10 @@ export default function Subject() {
                               bg="#000000"
                               onClick={() => {
                                 setExamenID(examen.id);
-                                setAux(examen.n_esperados);
-                                setPresentados((examen.n_present ?? 0) > 0 ? String(examen.n_present) : "");
-                                setAprobados((examen.n_aprobados ?? 0) > 0 ? String(examen.n_aprobados) : "");
+                                setSelectedSesionId(examen.sesion?.[0]?.id ?? null);
+                                setAux(examen.sesion?.[0]?.n_esperados ?? 0);
+                                setPresentados((examen.sesion?.[0]?.n_present ?? 0) > 0 ? String(examen.sesion?.[0]?.n_present) : "");
+                                setAprobados((examen.sesion?.[0]?.n_aprobados ?? 0) > 0 ? String(examen.sesion?.[0]?.n_aprobados) : "");
                                 onOpenPresentados();
                               }}
                               _hover={{ bg:  "#2e2e2e"}}
@@ -711,7 +746,7 @@ export default function Subject() {
                               w={"45%"} 
                               borderRadius="full" 
                               bg="#000000"
-                              onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}/cuentaatras`)}
+                              onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}/cuentaatras/${examen.sesion?.[0].id}`)}
                               _hover={{ bg:  "#2e2e2e"}}
                             >
                               Comenzar
@@ -862,8 +897,8 @@ export default function Subject() {
 
                   <FormControl isRequired>
                     <Flex justify={"space-between"} gap={4}>
-                      <Box w="100%">
-                        <FormLabel fontWeight="semibold">Partes del examen</FormLabel>
+                      <Box w="50%">
+                        <FormLabel fontWeight="semibold">Partes del Examen</FormLabel>
                         <Select
                           id="partes" 
                           name="partes" 
@@ -884,6 +919,22 @@ export default function Subject() {
                           <option value="8">8</option>
                           <option value="9">9</option>
                           <option value="10">10</option>
+                        </Select>
+                      </Box>
+                      <Box w="50%">
+                        <FormLabel fontWeight="semibold">Tipo de Convocatoria</FormLabel>
+                        <Select
+                          id="tipoConvocatoria" 
+                          name="tipoConvocatoria" 
+                          value={formValues.tipoConvocatoria}
+                          onChange={handleFormChange}
+                          placeholder="Elige el tipo de convocatoria" 
+                          size="lg"      
+                          borderRadius="xl"    
+                          focusBorderColor="blue.500"
+                        >
+                          <option value="Ordinaria">Ordinaria</option>
+                          <option value="Extraordinaria">Extraordinaria</option>
                         </Select>
                       </Box>
                     </Flex>
@@ -1060,6 +1111,7 @@ export default function Subject() {
                     isDisabled={
                       !formValues.convocatoria ||
                       !formValues.partes ||
+                      !formValues.tipoConvocatoria ||
                       !formValues.fecha_examen ||
                       (!formValues.aula.trim() && aulasData.length === 0)
                     }
@@ -1118,7 +1170,7 @@ export default function Subject() {
 
                   <FormControl isRequired>
                     <Flex justify={"space-between"} gap={4}>
-                      <Box w="100%">
+                      <Box w="50%">
                         <FormLabel fontWeight="semibold">Fecha del Examen</FormLabel>
                         <Input
                           id="fecha_examen"
@@ -1130,6 +1182,22 @@ export default function Subject() {
                           borderRadius="xl"
                           focusBorderColor="blue.500"
                         />
+                      </Box>
+                      <Box w="50%">
+                        <FormLabel fontWeight="semibold">Tipo de Convocatoria</FormLabel>
+                        <Select
+                          id="tipoConvocatoria" 
+                          name="tipoConvocatoria" 
+                          value={editExamenValues.tipoConvocatoria}
+                          onChange={handleEditExamenChange}
+                          placeholder="Elige el tipo de convocatoria" 
+                          size="lg"      
+                          borderRadius="xl"    
+                          focusBorderColor="blue.500"
+                        >
+                          <option value="Ordinaria">Ordinaria</option>
+                          <option value="Extraordinaria">Extraordinaria</option>
+                        </Select>
                       </Box>
                     </Flex>
                   </FormControl>
@@ -1228,7 +1296,7 @@ export default function Subject() {
                   colorScheme="blue"
                   size="lg"
                   onClick={handleEditExamenSubmit}
-                  isDisabled={!editExamenValues.convocatoria || !editExamenValues.fecha_examen || editAulasData.length === 0}
+                  isDisabled={!editExamenValues.convocatoria || !editExamenValues.fecha_examen || !editExamenValues.tipoConvocatoria || editAulasData.length === 0}
                 >
                   Guardar cambios
                 </Button>
@@ -1323,6 +1391,26 @@ export default function Subject() {
                       </Box>
                     </Flex>
                   </FormControl>
+                  <FormControl isRequired>
+                    <Flex justify={"space-between"} gap={4}>
+                      <Box w="100%">
+                        <FormLabel fontWeight="semibold">Tipo de Convocatoria</FormLabel>
+                        <Select
+                          id="tipoConvocatoria" 
+                          name="tipoConvocatoria" 
+                          value={filtersValues.tipoConvocatoria}
+                          onChange={handleFiltersChange}
+                          placeholder="Elige el tipo de convocatoria" 
+                          size="lg"      
+                          borderRadius="xl"    
+                          focusBorderColor="blue.500"
+                        >
+                          <option value="Ordinaria">Ordinaria</option>
+                          <option value="Extraordinaria">Extraordinaria</option>
+                        </Select>
+                      </Box>
+                    </Flex>
+                  </FormControl>
                   </VStack>
                 </ModalBody>
 
@@ -1362,11 +1450,12 @@ export default function Subject() {
                   >
                     Editar examen
                   </Button>
-
+                  
                    <Button 
                     colorScheme='blue' 
                     onClick={() => navigate(`/historico/${examenID}`)}
                     mr={3}
+                    isDisabled={!examenes.find((ex) => ex.id === examenID)?.finalizado}
                   >
                     Ver logs examen
                   </Button>

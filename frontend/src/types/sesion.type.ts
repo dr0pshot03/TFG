@@ -9,7 +9,7 @@ export interface sesion {
     n_aprobados?: number;
 }
 
-export interface CreateSesionInput extends Omit<sesion, 'id, fecha'> {}
+export interface CreateSesionInput extends Omit<sesion, 'id'> {}
 export interface UpdateSesionInput extends Partial<Omit<sesion, 'id'>> {
   id: string;
 }

@@ -61,6 +61,11 @@ enum Convocatoria{
   Diciembre
 }
 
+enum Tipo_Convocatoria{
+  Ordinaria
+  Extraordinaria
+}
+
 model Examen {
   id String @id @default(uuid()) @db.Uuid
   id_asign String @db.Uuid
@@ -71,6 +76,7 @@ model Examen {
   duracion_m  Int
 
   finalizado Boolean @default(false)
+  tipo_convocatoria Tipo_Convocatoria @default(Ordinaria)
   
   created_at  DateTime @default(now())
   updated_at DateTime @updatedAt

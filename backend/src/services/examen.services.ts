@@ -7,7 +7,14 @@ export const Convocatoria = {
     Diciembre: "Diciembre",
 } as const;
 
+export const Tipo_Convocatoria = {
+    Ordinaria: "Ordinaria",
+    Extraordinaria: "Extraordinaria"
+} as const;
+
 export type Convocatoria = typeof Convocatoria[keyof typeof Convocatoria];
+
+export type Tipo_Convocatoria = typeof Tipo_Convocatoria[keyof typeof Tipo_Convocatoria];
 
 export interface examen {
     id: string;
@@ -15,12 +22,12 @@ export interface examen {
     partes: number;
     convocatoria: Convocatoria;
     fecha_examen: Date;
-    n_present?: number;
     n_esperados: number;
     n_aprobados?: number;
     finalizado?: boolean;
     duracion_h: number;
     duracion_m: number;
+    tipo_convocatoria: Tipo_Convocatoria,
     aulaAlumnos: {
         aula: string;
         n_esperados: number;
@@ -38,6 +45,7 @@ export async function createExamen(data: examen) {
                 duracion_h: data.duracion_h,
                 duracion_m: data.duracion_m,
                 n_esperados: data.n_esperados,
+                tipo_convocatoria: data.tipo_convocatoria,
                 
                 aulaAlumnos: {
                     create: data.aulaAlumnos.map(par => ({
@@ -58,7 +66,13 @@ export async function getAllExamenes(asignId: string){
         return await prisma.examen.findMany({
             where:{ id_asign : asignId},
             include: {
-                aulaAlumnos: true
+                aulaAlumnos: true,
+                sesion: {
+                    orderBy: {
+                        fecha: "desc"
+                    },
+                    take: 1
+                }
             }
         });
     } catch (error) {
@@ -72,7 +86,13 @@ export async function getExamen(id: string){
         return await prisma.examen.findUnique({
             where:{ id : id},
             include: {
-                aulaAlumnos: true // Esto trae la lista de pares aula/alumnos
+                aulaAlumnos: true, // Esto trae la lista de pares aula/alumnos
+                sesion: {
+                    orderBy: {
+                        fecha: "desc"
+                    },
+                    take: 1
+                }
             }
         });
     } catch (error) {
@@ -84,8 +104,8 @@ export async function getExamen(id: string){
 export async function updateExamen(id: string, body: any) {
     try {
         const allowedFields = [
-            "convocatoria", "fecha_examen", "n_present", 
-            "n_aprobados", "n_esperados", "finalizado", "partes", "aulaAlumnos"
+            "convocatoria", "fecha_examen", 
+            "n_aprobados", "n_esperados", "finalizado", "partes", "aulaAlumnos", "tipo_convocatoria"
         ];
 
         const data: Record<string, any> = {};

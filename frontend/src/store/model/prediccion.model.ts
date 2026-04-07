@@ -178,4 +178,4 @@ const prediccionModel = createModel<IRootModel>() ({
   }),
 });
 
-export default UpdatePrediccionInputModel;
+export default prediccionModel;

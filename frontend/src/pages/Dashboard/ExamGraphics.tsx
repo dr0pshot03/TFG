@@ -126,7 +126,7 @@ export default function ExamGraphics() {
 
       const minutos =
         Number(examen.duracion_h ?? 0) * 60 + Number(examen.duracion_m ?? 0);
-      const presentados = Number(examen.n_present ?? 0);
+      const presentados = Number(examen.sesion?.[0]?.n_present ?? 0);
       grouped.set(key, {
         ...current,
         minutos: current.minutos + minutos,

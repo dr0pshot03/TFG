@@ -73,8 +73,7 @@ export default function Parts() {
       partes: [],
       convocatoria: "",
       fecha_examen: new Date(),
-      aula: "",
-      n_present: 0
+      aula: ""
     }; 
 
   try {

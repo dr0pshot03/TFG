@@ -9,6 +9,10 @@ import clerkWebhookRoutes from "./routes/clerkWebhook.routes.js"
 import examenRoutes from "./routes/examen.routes.js"
 import partesExamenRoutes from "./routes/partesExamen.routes.js"
 import usuarioRoutes from "./routes/user.routes.js"
+import historicoRoutes from "./routes/historico.routes"
+import sesionRoutes from "./routes/sesion.routes"
+import prediccionRoutes from "./routes/prediccion.routes"
+import eventoRoutes from "./routes/evento.routes"
 
 dotenv.config();
 
@@ -33,6 +37,10 @@ app.use("/api/usuario", usuarioRoutes);
 app.use("/api/asignaturas", asignaturasRoutes);
 app.use("/api/examen", examenRoutes);
 app.use("/api/partesExamen", partesExamenRoutes);
+app.use("/api/sesion", sesionRoutes);
+app.use("/api/historico", historicoRoutes);
+app.use("/api/evento", eventoRoutes);
+app.use("/api/prediccion", prediccionRoutes);
 
 
 // Global error handler

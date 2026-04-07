@@ -1,9 +1,8 @@
 import { createModel } from '@rematch/core';
 import api from '@/configs/axios';
-import { evento, CreateEventoInput, UpdateEventoInput } from '@/types/evento.type';
+import { evento, CreateEventoInput } from '@/types/evento.type';
 
 import { IRootModel } from '.';
-import isEqual from 'lodash.isequal';
 
 type IInitialState = {
   loading: boolean;
@@ -67,7 +66,7 @@ const eventoModel = createModel<IRootModel>() ({
       await api
         .get(`/evento/sesion/${idSesion}`)
         .then((res) => {
-          dispatch.eventoModel.addValue({ key: "selectedEvento", value: res.data });
+          dispatch.eventoModel.addValue({ key: "evento", value: res.data });
         })
         .catch((error) => {
           state.toastModel.toast &&

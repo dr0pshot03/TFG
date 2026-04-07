@@ -8,7 +8,7 @@ const router = Router();
 router.post("/", eventoController.createEvento);
 
 // Obtener todas los eventos
-router.get("/evento/:idSesion", eventoController.getAllEventos);
+router.get("/sesion/:idSesion", eventoController.getAllEventos);
 
 // Obtener una evento
 router.get("/:id", eventoController.getEvento);

@@ -18,7 +18,7 @@ export async function createEvento(req: Request, res: Response){
 export async function getAllEventos(req: Request, res: Response){
     try{
         const idSesion = req.params.idSesion;
-        const evento = await eventoService.getHistorico(idSesion);
+        const evento = await eventoService.getAllEvento(idSesion);
         res.json(evento);
     }catch(error)
     {

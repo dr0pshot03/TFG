@@ -1,5 +1,5 @@
 import { clerkClient } from "@clerk/express";
-import prisma from "./prisma.ts";
+import prisma from "./prisma.js";
 
 export interface usuario{
     clerkId: string;

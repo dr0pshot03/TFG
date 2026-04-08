@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as asignaturaService from "../services/asignaturas.services.ts";
+import * as asignaturaService from "../services/asignaturas.services.js";
 
 export async function createAsignatura(req: Request, res: Response){
     try{

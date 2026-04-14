@@ -27,6 +27,18 @@ export async function getHistorico(req: Request, res: Response){
     }
 }
 
+export async function searchHistoricoProfesor(req: Request, res: Response){
+    try{
+        const query = String(req.query.query ?? "");
+        const historico = await historicoService.searchHistoricoProfesor(query);
+        res.json(historico);
+    }catch(error)
+    {
+        console.error("Error al buscar historico por profesor", error);
+        res.status(500).json({ error: "Error al buscar historico por profesor" });
+    }
+}
+
 export async function getOneHistorico(req: Request, res: Response){
     try{
         const id = req.params.id;

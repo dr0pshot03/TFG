@@ -61,6 +61,38 @@ export async function getHistorico(asignId: string){
     }
 }
 
+export async function searchHistoricoProfesor(query: string){
+    try {
+        const normalizedQuery = query.trim();
+        if (!normalizedQuery) return [];
+
+        return await prisma.historico.findMany({
+            where: {
+                OR: [
+                    { nombre_p: { contains: normalizedQuery, mode: "insensitive" } },
+                    { apellidos_p: { contains: normalizedQuery, mode: "insensitive" } },
+                    {
+                        AND: normalizedQuery.split(/\s+/).filter(Boolean).map((token) => ({
+                            OR: [
+                                { nombre_p: { contains: token, mode: "insensitive" } },
+                                { apellidos_p: { contains: token, mode: "insensitive" } },
+                            ],
+                        })),
+                    },
+                ],
+            },
+            orderBy: [
+                { apellidos_p: "asc" },
+                { nombre_p: "asc" },
+                { curso: "desc" },
+            ],
+        });
+    } catch (error) {
+        console.error("Error al buscar historico por profesor", error);
+        throw new Error("No se pudo buscar historico por profesor");
+    }
+}
+
 export async function getOneHistorico(id: string){
     try {
         return await prisma.historico.findUnique({

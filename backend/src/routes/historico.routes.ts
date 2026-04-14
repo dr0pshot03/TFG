@@ -6,6 +6,9 @@ const router = Router();
 // Crea el historico
 router.post("/", historicoController.createHistorico);
 
+// Buscar histórico por profesor (nombre/apellidos)
+router.get("/buscar/profesor", historicoController.searchHistoricoProfesor);
+
 // Obtener el historico
 router.get("/:idAsign", historicoController.getHistorico);
 

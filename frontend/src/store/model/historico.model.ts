@@ -3,7 +3,6 @@ import api from '@/configs/axios';
 import { historico, CreateHistoricoInput, UpdateHistoricoInput } from '@/types/historico.type';
 
 import { IRootModel } from '.';
-import isEqual from 'lodash.isequal';
 
 type IInitialState = {
   loading: boolean;
@@ -85,6 +84,33 @@ const historicoModel = createModel<IRootModel>() ({
           return null;
         })
       dispatch.historicoModel.addValue({ key:"loading", value: false })
+      return res;
+    },
+
+    async searchHistoricoProfesor(query: string, state) {
+      dispatch.historicoModel.addValue({ key: "loading", value: true });
+
+      const res = await api
+        .get(`/historico/buscar/profesor`, {
+          params: { query },
+        })
+        .then((res) => {
+          dispatch.historicoModel.addValue({ key: "historico", value: res.data });
+          return res.data;
+        })
+        .catch((error) => {
+          state.toastModel.toast &&
+            state.toastModel.toast({
+              status: "error",
+              title: error.message,
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          return [];
+        });
+
+      dispatch.historicoModel.addValue({ key: "loading", value: false });
       return res;
     },
 

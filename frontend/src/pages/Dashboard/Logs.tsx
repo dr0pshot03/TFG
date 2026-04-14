@@ -93,8 +93,8 @@ export default function Logs() {
               <Table>
                 <Thead>
                   <Tr bg="shade.2" w="100%">
-                    <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Tipo Evento</Td>
-                    <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"20%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Hora </Td>
+                    <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"50%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Tipo Evento</Td>
+                    <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"50%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Hora </Td>
                   </Tr>
                 </Thead>
                 <Tbody>

@@ -17,8 +17,8 @@ export async function createHistorico(req: Request, res: Response){
 
 export async function getHistorico(req: Request, res: Response){
     try{
-        const id = req.params.idAsign;
-        const historico = await historicoService.getHistorico(id);
+        const idAsign = req.params.idAsign;
+        const historico = await historicoService.getHistorico(idAsign);
         res.json(historico);
     }catch(error)
     {

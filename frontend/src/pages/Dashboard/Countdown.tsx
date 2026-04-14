@@ -28,6 +28,7 @@ import {
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
+import { useUser } from "@clerk/clerk-react";
 
 import { Link as RouterLink } from "react-router-dom";
 
@@ -37,10 +38,12 @@ export default function Countdown() {
   const { idAsign } = useParams<{ idAsign: string }>();
   const { idExamen } = useParams<{ idExamen: string }>();
   const { idSesion } = useParams<{ idSesion: string }>();
+  const { user } = useUser();
 
   const asignatura = useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examen = useSelector((state: IRootState) => state.examenModel.selectedExamen);
   const partes = useSelector((state: IRootState) => state.parteExamenModel.partesExamenes);
+  const sesion = useSelector((state: IRootState) => state.sesionModel.selectedSesion);
 
   const { isOpen: isOpenTime, onOpen: onOpenTime, onClose: onCloseTime } = useDisclosure();
   const { isOpen: isOpenFinish, onOpen: onOpenFinish, onClose: onCloseFinish } = useDisclosure();
@@ -62,9 +65,25 @@ export default function Countdown() {
   const INPUT_HORAS = parteActual?.duracion_h ?? 0; 
   const INPUT_MINUTOS = parteActual?.duracion_m ?? 0;
 
+  const getCursoFromFechaExamen = (fecha?: string | Date) => {
+    if (!fecha) return "";
+
+    const parsedDate = new Date(fecha);
+    if (Number.isNaN(parsedDate.getTime())) return "";
+
+    // Curso académico: de octubre a septiembre
+    const month = parsedDate.getMonth() + 1;
+    const year = parsedDate.getFullYear();
+    const startYear = month >= 10 ? year : year - 1;
+    const endYear = startYear + 1;
+
+    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
+  };
+
   const año = examen?.fecha_examen
   ? new Date(examen.fecha_examen).getFullYear()
   : "";
+  const cursoAcademico = getCursoFromFechaExamen(examen?.fecha_examen);
 
   // Convertimos todo a segundos para la lógica interna
   const TOTAL_SECONDS_INITIAL = (INPUT_HORAS * 3600) + (INPUT_MINUTOS * 60);
@@ -82,7 +101,10 @@ export default function Countdown() {
         dispatch.examenModel.getExamen(idExamen);
         dispatch.parteExamenModel.getPartesExamen(idExamen);
     }
-  }, [dispatch, idExamen, idAsign]);
+    if(idSesion) {
+      dispatch.sesionModel.getSesionbyId(idSesion);
+    }
+  }, [dispatch, idExamen, idAsign, idSesion]);
 
   useEffect(() => {
     audioFin.current = new Audio(
@@ -143,7 +165,7 @@ export default function Countdown() {
     const payload = {
       id_sesion: idSesion!,
       timestamp: new Date(),
-      tipo_evento: "Comenzar examen"
+      tipo_evento: hasMultiplePartes ? "Comenzar examen - " + parteActual.nombre : "Comenzar examen"
     }
     await dispatch.eventoModel.createEvento(payload)
   };
@@ -181,7 +203,7 @@ export default function Countdown() {
     const payload = {
       id_sesion: idSesion!,
       timestamp: new Date(),
-      tipo_evento: "Siguiente parte"
+      tipo_evento: "Siguiente parte - " + parteActual.nombre
     }
     await dispatch.eventoModel.createEvento(payload)
   };
@@ -193,7 +215,7 @@ export default function Countdown() {
     const payload = {
       id_sesion: idSesion!,
       timestamp: new Date(),
-      tipo_evento: "Parte anterior"
+      tipo_evento: "Parte anterior - " + parteActual.nombre
     }
     await dispatch.eventoModel.createEvento(payload)
   };
@@ -231,6 +253,18 @@ export default function Countdown() {
       tipo_evento: "Examen finalizado"
     }
     await dispatch.eventoModel.createEvento(payload)
+    const payload2 = {
+      id_asignatura: idAsign,
+      nombre_p: user?.firstName!,
+      apellidos_p: user?.lastName!,
+      curso: cursoAcademico,
+      n_matriculados: sesion!.n_esperados!,
+      n_presentados: sesion!.n_present!,
+      porcentaje_aprobados: 0,
+      convocatoria: examen.convocatoria,
+      tipo_convocatoria: examen.tipo_convocatoria
+    }
+    await dispatch.historicoModel.createHistorico(payload2);
     navigate(`/asignatura/${idAsign}`);
   }
 
@@ -316,7 +350,7 @@ export default function Countdown() {
               {parteActual?.nombre || "Parte"}
             </Heading>
             <Text fontSize="lg" color="gray.600">
-                Convocatoria: {examen?.convocatoria} {año} 
+              Convocatoria: {examen?.convocatoria} {cursoAcademico || año} 
             </Text>
             <Text fontSize="lg" color="gray.600" >
                 Tiempo total: {INPUT_HORAS !== 0 ? INPUT_HORAS+"h" : ""} {INPUT_MINUTOS !== 0 ? INPUT_MINUTOS+"min" : ""}

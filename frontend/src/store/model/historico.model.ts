@@ -43,10 +43,11 @@ const historicoModel = createModel<IRootModel>() ({
     async getHistorico(idAsign: string, state) {
       dispatch.historicoModel.addValue({ key:"loading", value: true });
 
-      await api
+      const res = await api
         .get(`/historico/${idAsign}`)
         .then((res) => {
           dispatch.historicoModel.addValue({ key: "selectedHistorico", value: res.data });
+          return res.data;
         })
         .catch((error) => {
           state.toastModel.toast &&
@@ -57,17 +58,20 @@ const historicoModel = createModel<IRootModel>() ({
               isClosable: true,
               position: "top-right"
             })
+          return [];
         })
       dispatch.historicoModel.addValue({ key: "loading", value: false })
+      return res;
     },
 
     async getOneHistorico (idExamen: string, state: any) {
       dispatch.historicoModel.addValue({ key: "loading", value: true });
 
-      await api
+      const res = await api
         .get(`/historico/historico/${idExamen}`)
         .then((res) => {
           dispatch.historicoModel.addValue({ key: "selectedHistorico", value: res.data });
+          return res.data;
         })
         .catch((error) => {
           state.toastModel.toast &&
@@ -78,8 +82,10 @@ const historicoModel = createModel<IRootModel>() ({
               isClosable: true,
               position: "top-right",
             });
+          return null;
         })
       dispatch.historicoModel.addValue({ key:"loading", value: false })
+      return res;
     },
 
     async createHistorico (payload: CreateHistoricoInput, state) {

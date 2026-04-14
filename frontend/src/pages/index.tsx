@@ -10,6 +10,7 @@ import Logs from "./Dashboard/Logs";
 import Login from "./Auth/Login";
 import { ProtectedRoute } from "@/components/ProtectedRoute"; // Evita que un usuario no logueado pueda acceder a la ruta
 import { PublicRoute } from "@/components/PublicRoute"; // Al igual que el anterior, funciona a la inversa, un usuario logueado no podrá acceder a /login.
+import History from "./Dashboard/History";
 
 export default function AppRoutes() {
   return (
@@ -22,6 +23,7 @@ export default function AppRoutes() {
       <Route path="/grafica/" element={<ProtectedRoute><GlobalGraphics /></ProtectedRoute>} />
       <Route path="/asignatura/:idAsign/examen/:idExamen/cuentaatras/:idSesion" element={<ProtectedRoute><Countdown /></ProtectedRoute>} />
       <Route path="/historico/:idExamen" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
+      <Route path="/historico" element={<ProtectedRoute><History /></ProtectedRoute>} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>}/>
     </Routes>
   );

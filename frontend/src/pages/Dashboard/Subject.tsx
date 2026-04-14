@@ -33,6 +33,7 @@ import { FiMoreVertical } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
 import { CreateSesionInput, UpdateSesionInput } from "@/types/sesion.type";
 import { useAuth } from "@clerk/clerk-react";
+import type { historico } from "@/types/historico.type";
 
 export default function Subject() {
   const dispatch = useDispatch<IDispatch>();
@@ -122,6 +123,20 @@ export default function Subject() {
       aula: "",
       n_esperados: 0,
     }));
+  };
+  
+  const getCursoFromFechaExamen = (fecha?: string | Date) => {
+    if (!fecha) return "";
+
+    const parsedDate = new Date(fecha);
+    if (Number.isNaN(parsedDate.getTime())) return "";
+
+    const month = parsedDate.getMonth() + 1;
+    const year = parsedDate.getFullYear();
+    const startYear = month >= 10 ? year : year - 1;
+    const endYear = startYear + 1;
+
+    return `${String(startYear).slice(-2)}/${String(endYear).slice(-2)}`;
   };
 
   useEffect(() => {
@@ -448,13 +463,33 @@ export default function Subject() {
     return fechaA - fechaB;
   });
 
-  const handlePresentados = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePresentados = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const present = event.target.value;
 
     if (present === "") {
       setPresentados("");
       setMayorPresentados(false);
       return;
+    }
+
+    const selectedExamen = examenes.find((item) => item.id === examenID);
+    if (!selectedExamen || !id) return;
+
+    const historicos = (await dispatch.historicoModel.getHistorico(id)) as historico[] | undefined;
+    const curso = getCursoFromFechaExamen(selectedExamen.fecha_examen);
+    const historicoRelacionado = historicos?.find(
+      (item) =>
+        item.id_asignatura === id &&
+        item.curso === curso &&
+        item.convocatoria === selectedExamen.convocatoria &&
+        item.tipo_convocatoria === selectedExamen.tipo_convocatoria
+    );
+
+    if (historicoRelacionado) {
+      await dispatch.historicoModel.updateHistorico({
+        id: historicoRelacionado.id,
+        n_presentados: Number(present),
+      });
     }
 
     if (!/^\d+$/.test(present)) return;
@@ -489,12 +524,37 @@ export default function Subject() {
   const handleUpdatePresentados = async () => {
     if (!examenID) return;
     if (!selectedSesionId) return;
+    const selectedExamen = examenes.find((item) => item.id === examenID);
+    if (!selectedExamen || !id) return;
+
+    const historicos = (await dispatch.historicoModel.getHistorico(id)) as historico[] | undefined;
+    const curso = getCursoFromFechaExamen(selectedExamen.fecha_examen);
+    const historicoRelacionado = historicos?.find(
+      (item) =>
+        item.id_asignatura === id &&
+        item.curso === curso &&
+        item.convocatoria === selectedExamen.convocatoria &&
+        item.tipo_convocatoria === selectedExamen.tipo_convocatoria
+    );
+
     const payload: UpdateSesionInput = {
       id: selectedSesionId,
       n_present: presentados === "" ? 0 : Number(presentados),
       n_aprobados: aprobados === "" ? 0 : Number(aprobados),
     };
     await dispatch.sesionModel.updateHistorico(payload);
+
+    if (historicoRelacionado) {
+      const presentadosNum = presentados === "" ? 0 : Number(presentados);
+      const aprobadosNum = aprobados === "" ? 0 : Number(aprobados);
+      const porcentajeAprobados = presentadosNum > 0 ? (aprobadosNum / presentadosNum) * 100 : 0;
+
+      await dispatch.historicoModel.updateHistorico({
+        id: historicoRelacionado.id,
+        porcentaje_aprobados: porcentajeAprobados,
+      });
+    }
+
     await dispatch.examenModel.getExamenes(id!);
     setAux(0);
     onClosePresentados();
@@ -718,14 +778,14 @@ export default function Subject() {
                         </Td>
                       
                       
-                        <Td minW="200px" textAlign="center" p={2} borderBottom="1px solid #aaaaaa">
+                        <Td textAlign="center" p={2} borderBottom="1px solid #aaaaaa">
                           <Flex justify={"space-between"}>
                             {examen.finalizado ? (
                               <Button 
                               colorScheme="blue" 
                               size="sm"
                               fontSize={"xs"}
-                              w={"45%"} 
+                              w={"65%"} 
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => {
@@ -737,17 +797,19 @@ export default function Subject() {
                                 onOpenPresentados();
                               }}
                               _hover={{ bg:  "#2e2e2e"}}
+                              mr={2}
                             >
                               Alumnos Presentados
                             </Button>
                             ) : (<Button 
                               colorScheme="blue" 
                               size="sm"
-                              w={"45%"} 
+                              w={"65%"} 
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}/cuentaatras/${examen.sesion?.[0].id}`)}
                               _hover={{ bg:  "#2e2e2e"}}
+                              mr={2}
                             >
                               Comenzar
                             </Button>)}

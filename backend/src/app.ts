@@ -3,11 +3,15 @@ import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
-import asignaturasRoutes from "./routes/asignaturas.routes";
-import clerkWebhookRoutes from "./routes/clerkWebhook.routes";
-import examenRoutes from "./routes/examen.routes";
-import partesExamenRoutes from "./routes/partesExamen.routes";
-import usuarioRoutes from "./routes/user.routes";
+import asignaturasRoutes from "./routes/asignaturas.routes.js";
+import clerkWebhookRoutes from "./routes/clerkWebhook.routes.js";
+import eventoRoutes from "./routes/evento.routes.js";
+import examenRoutes from "./routes/examen.routes.js";
+import historicoRoutes from "./routes/historico.routes.js";
+import partesExamenRoutes from "./routes/partesExamen.routes.js";
+import prediccionRoutes from "./routes/prediccion.routes.js";
+import sesionRoutes from "./routes/sesion.routes.js";
+import usuarioRoutes from "./routes/user.routes.js";
 
 
 const prisma = new PrismaClient();
@@ -31,6 +35,10 @@ app.use("/api/usuario", usuarioRoutes);
 app.use("/api/asignaturas", asignaturasRoutes);
 app.use("/api/examen", examenRoutes);
 app.use("/api/partesExamen", partesExamenRoutes);
+app.use("/api/sesion", sesionRoutes);
+app.use("/api/historico", historicoRoutes);
+app.use("/api/evento", eventoRoutes);
+app.use("/api/prediccion", prediccionRoutes);
 
 
 // Global error handler

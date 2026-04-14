@@ -45,10 +45,13 @@ model Asignatura{
 model Historico{
   id String @id @default(uuid()) @db.Uuid
   id_asignatura String @db.Uuid
+  nombre_p String
+  apellidos_p String
   curso String
   n_matriculados Int
   n_presentados Int
   porcentaje_aprobados Decimal
+  convocatoria Convocatoria
   tipo_convocatoria String
 
   asignatura Asignatura @relation(fields: [id_asignatura], references: [id], onDelete: Cascade)

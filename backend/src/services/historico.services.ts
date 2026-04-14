@@ -1,13 +1,32 @@
 import prisma from "./prisma.ts"
 
+export const Convocatoria = {
+    Febrero: "Febrero",
+    Junio: "Junio",
+    Septiembre: "Septiembre",
+    Diciembre: "Diciembre",
+} as const;
+
+export const Tipo_Convocatoria = {
+    Ordinaria: "Ordinaria",
+    Extraordinaria: "Extraordinaria"
+} as const;
+
+export type Convocatoria = typeof Convocatoria[keyof typeof Convocatoria];
+
+export type Tipo_Convocatoria = typeof Tipo_Convocatoria[keyof typeof Tipo_Convocatoria];
+
 export interface historico {
     id: string;
     id_asignatura: string;
+    nombre_p: string,
+    apellidos_p: string;
     curso: string;
     n_matriculados: number;
     n_presentados: number;
     porcentaje_aprobados: number;
-    tipo_convocatoria: string;    
+    tipo_convocatoria: Tipo_Convocatoria;   
+    convocatoria: Convocatoria; 
 }
 
 export async function createHistorico(data: historico) {
@@ -19,7 +38,10 @@ export async function createHistorico(data: historico) {
                 n_matriculados: data.n_matriculados,
                 n_presentados: data.n_presentados,
                 porcentaje_aprobados: data.porcentaje_aprobados,
-                tipo_convocatoria: data.tipo_convocatoria
+                tipo_convocatoria: data.tipo_convocatoria,
+                convocatoria: data.convocatoria,
+                nombre_p: data.nombre_p,
+                apellidos_p: data.apellidos_p
             }
         });
     } catch (error) {
@@ -30,7 +52,7 @@ export async function createHistorico(data: historico) {
 
 export async function getHistorico(asignId: string){
     try {
-        return await prisma.historico.findFirst({
+        return await prisma.historico.findMany({
             where:{ id_asignatura : asignId},
         });
     } catch (error) {

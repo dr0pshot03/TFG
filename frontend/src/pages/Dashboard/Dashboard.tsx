@@ -308,18 +308,32 @@ export default function Dashboard() {
                 />
               </InputGroup>
 
-              <Button 
-                colorScheme="blue" 
-                borderRadius="full" 
-                size={"lg"}
-                minW={"20%"}
-                px={8}
-                bg="#0055D4"
-                _hover={{ bg: "#0041a3" }}
-                onClick={() => navigate(`/grafica/`)}
-              >
-                Ver Gráfica de las Asignaturas
-              </Button>
+              <Flex justify="flex-end">
+                <Button 
+                  colorScheme="blue" 
+                  borderRadius="full" 
+                  size={"lg"}
+                  mr={5}
+                  px={8}
+                  bg="#0055D4"
+                  _hover={{ bg: "#0041a3" }}
+                  onClick={() => navigate(`/grafica/`)}
+                >
+                  Ver Gráfica de las Asignaturas
+                </Button><Button 
+                  colorScheme="blue" 
+                  borderRadius="full" 
+                  size={"lg"}
+                  
+                  px={8}
+                  bg="#0055D4"
+                  _hover={{ bg: "#0041a3" }}
+                  onClick={() => navigate(`/historico`)}
+                >
+                  Ver Histórico de Asignaturas
+                </Button>
+              </Flex>
+              
             </Flex>
         )}
 

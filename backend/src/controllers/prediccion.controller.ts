@@ -17,7 +17,7 @@ export async function createPrediccion(req: Request, res: Response){
 
 export async function getPrediccion(req: Request, res: Response){
     try{
-        const id = req.params.idAsign;
+        const id = req.params.id;
         const prediccion = await prediccionService.getPrediccion(id);
         res.json(prediccion);
     }catch(error)

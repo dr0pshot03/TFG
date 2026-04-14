@@ -22,8 +22,6 @@ export interface examen {
     partes: number;
     convocatoria: Convocatoria;
     fecha_examen: Date;
-    n_esperados: number;
-    n_aprobados?: number;
     finalizado?: boolean;
     duracion_h: number;
     duracion_m: number;
@@ -44,7 +42,6 @@ export async function createExamen(data: examen) {
                 fecha_examen: data.fecha_examen,
                 duracion_h: data.duracion_h,
                 duracion_m: data.duracion_m,
-                n_esperados: data.n_esperados,
                 tipo_convocatoria: data.tipo_convocatoria,
                 
                 aulaAlumnos: {
@@ -105,7 +102,7 @@ export async function updateExamen(id: string, body: any) {
     try {
         const allowedFields = [
             "convocatoria", "fecha_examen", 
-            "n_aprobados", "n_esperados", "finalizado", "partes", "aulaAlumnos", "tipo_convocatoria"
+            "finalizado", "partes", "aulaAlumnos", "tipo_convocatoria"
         ];
 
         const data: Record<string, any> = {};

@@ -41,8 +41,8 @@ export async function getSesionbyUser(req: Request, res: Response){
 
 export async function getSesionbyId(req: Request, res: Response){
     try{
-        const id = req.params.idUser;
-        const sesion = await sesionService.getSesionbyUser(id);
+        const id = req.params.id;
+        const sesion = await sesionService.getSesionbyId(id);
         res.json(sesion);
     }catch(error)
     {

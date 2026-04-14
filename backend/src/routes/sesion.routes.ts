@@ -3,22 +3,22 @@ import * as sesionController from "../controllers/sesion.controller.ts";
 
 const router = Router();
 
-// Crea el historico
+// Crea la sesion
 router.post("/", sesionController.createSesion);
 
-// Obtener el historico por id
+// Obtener la sesion por id
 router.get("/:id", sesionController.getSesionbyId);
 
-// Obtener el historico por examen
+// Obtener la sesion por examen
 router.get("/examen/:idExamen", sesionController.getSesionbyExamen);
 
-// Obtener el historico por usuario
+// Obtener la sesion por usuario
 router.get("/usuario/:idUser", sesionController.getSesionbyUser);
 
-// Actualizar historico
+// Actualizar sesion
 router.put("/:id", sesionController.updateSesion);
 
-// Eliminar historico
+// Eliminar sesion
 router.delete("/:id", sesionController.deleteSesion);
 
 export default router;

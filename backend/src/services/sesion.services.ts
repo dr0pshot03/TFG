@@ -32,7 +32,7 @@ export async function createSesion(data: sesion) {
 
 export async function getSesionbyExamen(examenId: string){
     try {
-        return await prisma.sesion.findFirst({
+        return await prisma.sesion.findMany({
             where:{ id_examen : examenId},
         });
     } catch (error) {
@@ -43,7 +43,7 @@ export async function getSesionbyExamen(examenId: string){
 
 export async function getSesionbyUser(userId: string){
     try {
-        return await prisma.sesion.findFirst({
+        return await prisma.sesion.findMany({
             where:{ id_usuario : userId},
         });
     } catch (error) {
@@ -88,7 +88,7 @@ export async function updateSesion(id: string, data: any) {
     }
 }
 
-export async function deleteSesiomn(id: string){
+export async function deleteSesion(id: string){
     try {
         return await prisma.sesion.delete({
             where:{ id : id}

@@ -58,7 +58,6 @@ export default function Dashboard() {
   });
   const [isExporting, setIsExporting] = useState(false);
   const [exportExamenes, setExportExamenes] = useState<Examen[]>([]);
-  const [exportAsignaturaNombre, setExportAsignaturaNombre] = useState("");
 
   const [selectedAsignaturaId, setSelectedAsignaturaId] = useState<string | null>(null);
 
@@ -76,11 +75,22 @@ export default function Dashboard() {
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    const nextValue = name === "descripcion"
+      ? (() => {
+          const words = value.match(/\S+\s*/g) ?? [];
+          return words.length > 100 ? words.slice(0, 100).join("").trimEnd() : value;
+        })()
+      : value;
+
     setFormValues(prev => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
   };
+
+  const descripcionWordCount = formValues.descripcion.trim()
+    ? formValues.descripcion.trim().split(/\s+/).filter(Boolean).length
+    : 0;
 
   const handleSubmit = async () => {
     if (!formValues.nombre.trim()) {
@@ -179,7 +189,6 @@ export default function Dashboard() {
       }
 
       setExportExamenes(examenesAsignatura);
-      setExportAsignaturaNombre(asignaturaNombre);
 
       // Esperar a que React renderice la tabla en el DOM
       await new Promise<void>((resolve) => {
@@ -272,7 +281,7 @@ export default function Dashboard() {
               _hover={{ bg: "#0041a3" }}
               onClick={onOpenAdd}
             >
-              Añadir asignatura
+              Añadir Asignatura
             </Button>) : (<></>)}
         </Flex>
 
@@ -561,6 +570,9 @@ export default function Dashboard() {
                       borderRadius="xl"    
                       focusBorderColor="blue.500"
                     />
+                    <Text mt={2} fontSize="sm" color={descripcionWordCount >= 100 ? "red.500" : "gray.500"}>
+                      {descripcionWordCount}/100 palabras
+                    </Text>
                   </FormControl>
 
                 </VStack>
@@ -660,6 +672,9 @@ export default function Dashboard() {
                       borderRadius="xl"    
                       focusBorderColor="blue.500"
                     />
+                    <Text mt={2} fontSize="sm" color={descripcionWordCount >= 100 ? "red.500" : "gray.500"}>
+                      {descripcionWordCount}/100 palabras
+                    </Text>
                   </FormControl>
 
                 </VStack>

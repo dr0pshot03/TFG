@@ -243,6 +243,13 @@ export default function Countdown() {
     setTimeExtra(minutes);
   };
 
+  const handleTimeExtraKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    if (timeExtra <= 0) return;
+    await handleMoreTime();
+  };
+
   const handleFinish = async () => {
     if (!examen?.id || !idAsign) return;
     await dispatch.examenModel.updateEstadoExamen(examen.id);
@@ -454,8 +461,8 @@ export default function Countdown() {
             </Button>) : (<></>)
           }
 
-          {(timeLeft == 0) ?
-            (<Button 
+          
+            <Button 
               colorScheme="teal" 
               size="lg" 
               onClick={onOpenTime}
@@ -463,8 +470,8 @@ export default function Countdown() {
               ml={"10"}
             >
               Añadir más tiempo
-            </Button>) : (<></>)
-          }
+            </Button>
+          
 
           {!isActive ?
             (<Button 
@@ -532,7 +539,13 @@ export default function Countdown() {
             </ModalContent>
       </Modal>
 
-      <Modal isOpen={isOpen25} onClose={onClose25} isCentered>
+      <Modal
+        isOpen={isOpen25}
+        onClose={onClose25}
+        isCentered
+        closeOnOverlayClick={false}
+        closeOnEsc={false}
+      >
           <ModalOverlay />
             <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
               <ModalHeader textAlign={"center"}>¿Hay alumnos con el 25%?</ModalHeader>
@@ -574,6 +587,7 @@ export default function Countdown() {
                       type="number"
                       placeholder="" 
                       onChange={handleTimeExtraChange}
+                      onKeyDown={handleTimeExtraKeyDown}
                       value={timeExtra === 0 ? "" : timeExtra}
                       size="lg"
                       borderRadius="xl"    

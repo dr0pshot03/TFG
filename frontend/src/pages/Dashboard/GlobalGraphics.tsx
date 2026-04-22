@@ -420,6 +420,29 @@ export default function GlobalGraphics() {
             "& .recharts-surface:focus-visible": { outline: "none" },
           }}
         >
+          <Box w="100%" display="flex" justifyContent="center" mb={3}>
+            <Box
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              borderRadius="lg"
+              px={3}
+              py={2}
+              boxShadow="sm"
+            >
+              <VStack align="start" spacing={1.5}>
+                <Flex align="center" gap={2}>
+                  <Box w="12px" h="12px" bg="#2f6fe4" borderRadius="2px" />
+                  <Text fontSize="xs">Barras: nº de horas</Text>
+                </Flex>
+                <Flex align="center" gap={2}>
+                  <Box w="10px" h="10px" bg="#2f6fe4" borderRadius="full" />
+                  <Text fontSize="xs">Círculos: nº de alumnos esperados</Text>
+                </Flex>
+              </VStack>
+            </Box>
+          </Box>
+
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
               <ComposedChart data={chartData} barCategoryGap="40%" barGap={8}>
                 <XAxis dataKey="label" textAnchor="middle" height={60} />
@@ -445,11 +468,15 @@ export default function GlobalGraphics() {
                     ];
                   }}
                 />
+                
                 <Legend
                   layout="vertical"
                   verticalAlign="middle"
                   align="right"
                 />
+                
+                  
+                
                 {subjectsForChart.map((subject) => (
                   <Bar
                     key={subject.id}

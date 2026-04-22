@@ -255,7 +255,7 @@ export default function Login() {
                   bg="gray.200"
                   p="4px"
                   borderRadius="full"
-                  w="220px"
+                  w="270px"
                   mb={3}
                   mx="auto"
                 >
@@ -267,7 +267,7 @@ export default function Login() {
                     boxShadow={mode === "signin" ? "sm" : "none"}
                     onClick={() => resetStateForMode("signin")}
                   >
-                    Login
+                    Iniciar Sesión
                   </Button>
                   <Button
                     flex="1"
@@ -277,7 +277,7 @@ export default function Login() {
                     boxShadow={mode === "signup" ? "sm" : "none"}
                     onClick={() => resetStateForMode("signup")}
                   >
-                    Sign Up
+                    Registrarse
                   </Button>
                 </Flex>
 

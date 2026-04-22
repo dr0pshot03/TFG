@@ -262,7 +262,7 @@ export default function Parts() {
               </Thead>
               <Tbody>
                 {filteredPartesExamenes.map((parteExamen, index) => (
-                  <Tr key={parteExamen.id || index} bgColor={"#d9d9d9"} _hover={{ bg: "#e9e9e9" }}>
+                  <Tr key={parteExamen.id || index} bgColor={"#d9d9d9"} _hover={{ bg: "##E2E8F0" }}>
                     <Td
                       p={2}
                       textAlign="center"
@@ -319,8 +319,9 @@ export default function Parts() {
                           bg="#000000"
                           onClick={() => handleOpenEdit(parteExamen)}
                           _hover={{ bg:  "#aaaaaa"}}
+                          isDisabled={examen?.finalizado!}
                         >
-                          Modificar
+                          Editar
                         </Button>
                         <Button 
                           colorScheme='blue' 
@@ -378,14 +379,14 @@ export default function Parts() {
         <Modal isOpen={isOpenEdit} onClose={handleCloseEdit} isCentered>
           <ModalOverlay />
             <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"} minW={"70vh"}>
-              <ModalHeader textAlign={"center"}>Modifica la asignatura</ModalHeader>
+              <ModalHeader textAlign={"center"}>Editar parte del examen</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <VStack spacing={5} py={4}>
         
                   {/* Campo: Nombre */}
                   <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">Nombre de la asignatura</FormLabel>
+                    <FormLabel fontWeight="semibold">Nombre de la parte del examen</FormLabel>
                     <Input
                       id="nombre" 
                       name="nombre" 
@@ -395,6 +396,7 @@ export default function Parts() {
                       size="lg"
                       borderRadius="xl"    
                       focusBorderColor="blue.500"
+                      maxLength={65}
                     />
                   </FormControl>
 

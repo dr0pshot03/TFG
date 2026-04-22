@@ -63,29 +63,37 @@ export async function getHistorico(asignId: string){
 
 export async function searchHistoricoProfesor(query: string){
     try {
-        const normalizedQuery = query.trim();
+        const normalizeText = (value: string) =>
+            value
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .trim();
+
+        const normalizedQuery = normalizeText(query);
         if (!normalizedQuery) return [];
 
-        return await prisma.historico.findMany({
-            where: {
-                OR: [
-                    { nombre_p: { contains: normalizedQuery, mode: "insensitive" } },
-                    { apellidos_p: { contains: normalizedQuery, mode: "insensitive" } },
-                    {
-                        AND: normalizedQuery.split(/\s+/).filter(Boolean).map((token) => ({
-                            OR: [
-                                { nombre_p: { contains: token, mode: "insensitive" } },
-                                { apellidos_p: { contains: token, mode: "insensitive" } },
-                            ],
-                        })),
-                    },
-                ],
-            },
+        const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+
+        const historicos = await prisma.historico.findMany({
             orderBy: [
                 { apellidos_p: "asc" },
                 { nombre_p: "asc" },
                 { curso: "desc" },
             ],
+        });
+
+        return historicos.filter((item) => {
+            const nombre = normalizeText(item.nombre_p);
+            const apellidos = normalizeText(item.apellidos_p);
+            const fullName = `${nombre} ${apellidos}`.trim();
+
+            return queryTokens.every(
+                (token) =>
+                    nombre.includes(token) ||
+                    apellidos.includes(token) ||
+                    fullName.includes(token)
+            );
         });
     } catch (error) {
         console.error("Error al buscar historico por profesor", error);

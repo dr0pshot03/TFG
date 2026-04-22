@@ -45,9 +45,11 @@ export default function Subject() {
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
   const { isOpen: isOpenOptions, onOpen: onOpenOptions, onClose: onCloseOptions } = useDisclosure();
   const { isOpen: isOpenFilters, onOpen: onOpenFilters, onClose: onCloseFilters } = useDisclosure();
+  const { isOpen: isOpenDelete, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
   
   const { isOpen: isOpenPresentados, onOpen: onOpenPresentados, onClose: onClosePresentados } = useDisclosure();
   const [examenID, setExamenID] = useState("");
+  const [finalizado, setFinalizado] = useState(false);
   const [selectedSesionId, setSelectedSesionId] = useState<string | null>(null);
 
   const asignatura =  useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
@@ -104,6 +106,14 @@ export default function Subject() {
     duracion_h: number;
     duracion_m: number;
   }>>([]);
+
+  const ITEMS_PER_PAGE = 7;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const toThreeDigitNumber = (rawValue: string) => {
+    const digits = rawValue.replace(/\D/g, "").slice(0, 3);
+    return digits === "" ? 0 : parseInt(digits, 10);
+  };
   
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -237,7 +247,7 @@ export default function Subject() {
     } else {
       setFormValues(prev => ({
         ...prev,
-        [name]: (name === "n_esperados") ? parseInt(value) || 0 : value
+        [name]: (name === "n_esperados") ? toThreeDigitNumber(value) : value
       }));
     }
   };
@@ -266,7 +276,7 @@ export default function Subject() {
       const updated = [...prev];
       updated[index] = {
         ...updated[index],
-        [field]: field === "n_esperados" ? parseInt(value) || 0 : value,
+        [field]: field === "n_esperados" ? toThreeDigitNumber(value) : value,
       };
       return updated;
     });
@@ -401,7 +411,7 @@ export default function Subject() {
     setFiltersValues(prev => ({
       ...prev,
       [name]: (name === "partes" || name === "n_esperados")
-        ? (value === "" ? 0 : parseInt(value) || 0)
+        ? (value === "" ? 0 : name === "n_esperados" ? toThreeDigitNumber(value) : parseInt(value) || 0)
         : value
     }));
   };
@@ -423,6 +433,10 @@ export default function Subject() {
     appliedFilters.n_esperados ||
     appliedFilters.tipoConvocatoria
   );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [value, appliedFilters.convocatoria, appliedFilters.partes, appliedFilters.fecha_examen, appliedFilters.n_esperados, appliedFilters.tipoConvocatoria, examenes.length]);
 
   const normalizedSearch = value.trim().toLowerCase();
 
@@ -462,6 +476,18 @@ export default function Subject() {
     const fechaB = new Date(b.fecha_examen).getTime();
     return fechaA - fechaB;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredExamenes.length / ITEMS_PER_PAGE));
+  const paginatedExamenes = filteredExamenes.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const handlePresentados = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const present = event.target.value;
@@ -592,36 +618,17 @@ export default function Subject() {
               _hover={{ bg: "#0041a3" }}
               onClick={onOpenAdd}
             >
-              Añadir examen
+              Añadir Examen
             </Button>) : (<></>)}
         </Flex>
 
         {examenes.length == 0 ? (<></>) : (
           <Flex w="100%" justify="space-between"  mb={"1%"}>
               <Flex justify={"space-between"}>
-                <InputGroup width="250px" >
-                  <InputRightElement pointerEvents="none">
-                    <InlineIcon icon="ic:outline-search" style={{ color: "#1a202c", fontSize: "20px" }} />
-                  </InputRightElement>
-                  <Input
-                    placeholder="Búsqueda"
-                    size="md"
-                    borderRadius="18px"
-                    bgColor={"#e9e9e9"}
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    borderColor="white"
-                    fontSize="14px"
-                    _placeholder={{ color: "gray.500" }}
-                    _focus={{ borderColor: "#0055D4", boxShadow: "none" }}
-                  />
-                </InputGroup>  
-
                 <Button
                   size="md"
                   borderRadius="18px"
                   bgColor={"#e9e9e9"}
-                  ml="5"
                   rightIcon={<InlineIcon icon="mdi:filter" style={{ color: "#1a202c", fontSize: "20px" }} />}
                   _hover={{ bg: "#d0d0d0" }}
                   fontSize="14px"
@@ -662,7 +669,7 @@ export default function Subject() {
               onClick={() => navigate(`/asignatura/${id}/grafica/`)}
               _hover={{ bg: "#0041a3" }}
             >
-              Ver gráfica
+              Ver Gráfica
             </Button>
           </Flex>
         )}
@@ -708,8 +715,8 @@ export default function Subject() {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filteredExamenes.map((examen, index) => (
-                      <Tr key={examen.id || index} bgColor={examen.finalizado ? "#B9F6CA" : "#E2E8F0"}>
+                    {paginatedExamenes.map((examen, index) => (
+                      <Tr key={examen.id || index} bgColor={examen.finalizado ? "#B9F6CA" : "#d9d9d9"}>
                         <Td
                           p={2}
                           textAlign="center"
@@ -823,6 +830,7 @@ export default function Subject() {
                               bg="#000000"
                               onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}`)}
                               _hover={{ bg:  "#2e2e2e"}}
+                              mr={2}
                             >
                               Acceder
                             </Button>
@@ -835,6 +843,7 @@ export default function Subject() {
                               bg="transparent"
                               onClick={() => {
                                 setExamenID(examen.id);
+                                setFinalizado(examen.finalizado!)
                                 onOpenOptions();
                               }}
                               _hover={{ bg:  "#aaaaaa"}}
@@ -848,6 +857,23 @@ export default function Subject() {
                   </Tbody>
                 </Table>
               </TableContainer>
+
+              {filteredExamenes.length > ITEMS_PER_PAGE && (
+                <Flex w="100%" justify="center" align="center" pt={4} gap={2} wrap="wrap">
+                  {Array.from({ length: totalPages }, (_, pageIndex) => pageIndex + 1).map((pageNumber) => (
+                    <Button
+                      key={pageNumber}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNumber)}
+                      colorScheme={currentPage === pageNumber ? "blue" : undefined}
+                      variant={currentPage === pageNumber ? "solid" : "outline"}
+                      minW="44px"
+                    >
+                      {pageNumber}
+                    </Button>
+                  ))}
+                </Flex>
+              )}
             </VStack>
           )
         }
@@ -1014,6 +1040,7 @@ export default function Subject() {
                               borderRadius="xl"
                               isReadOnly
                               isDisabled
+                              maxLength={35}
                             />
                           </Box>
 
@@ -1025,6 +1052,7 @@ export default function Subject() {
                               borderRadius="xl"
                               isReadOnly
                               isDisabled
+                              maxLength={3}
                             />
                           </Box>
                         </Flex>
@@ -1044,6 +1072,7 @@ export default function Subject() {
                             size="lg"      
                             borderRadius="xl"    
                             focusBorderColor="blue.500"
+                            maxLength={50}
                           />
                         </Box>
 
@@ -1060,6 +1089,7 @@ export default function Subject() {
                             borderRadius="xl"    
                             focusBorderColor="blue.500"
                             min="0"
+                            max={999}
                           />
                         </Box>
                       </Flex>
@@ -1088,6 +1118,7 @@ export default function Subject() {
                           borderRadius="xl"
                           focusBorderColor="blue.500"
                           mb={4}
+                          maxLength={30}
                         />
                       </FormControl>
                       
@@ -1289,6 +1320,7 @@ export default function Subject() {
                                   borderRadius="xl"
                                   focusBorderColor="blue.500"
                                   min="0"
+                                  max={999}
                                 />
                               </Box>
                             </Flex>
@@ -1310,6 +1342,7 @@ export default function Subject() {
                                   size="lg"      
                                   borderRadius="xl"    
                                   focusBorderColor="blue.500"
+                                  maxLength={50}
                                 />
                               </Box>
 
@@ -1321,7 +1354,7 @@ export default function Subject() {
                                   onChange={(e) =>
                                     setEditAulaValues((prev) => ({
                                       ...prev,
-                                      n_esperados: parseInt(e.target.value) || 0,
+                                      n_esperados: toThreeDigitNumber(e.target.value),
                                     }))
                                   }
                                   placeholder="Nº de alumnos esperados" 
@@ -1329,6 +1362,7 @@ export default function Subject() {
                                   borderRadius="xl"    
                                   focusBorderColor="blue.500"
                                   min="0"
+                                  max={999}
                                 />
                               </Box>
                             </Flex>
@@ -1449,11 +1483,12 @@ export default function Subject() {
                           borderRadius="xl"    
                           focusBorderColor="blue.500"
                           min="0"
+                          max={999}
                         />
                       </Box>
                     </Flex>
                   </FormControl>
-                  <FormControl isRequired>
+                  <FormControl>
                     <Flex justify={"space-between"} gap={4}>
                       <Box w="100%">
                         <FormLabel fontWeight="semibold">Tipo de Convocatoria</FormLabel>
@@ -1499,7 +1534,7 @@ export default function Subject() {
                     colorScheme='blue' 
                     bgColor={"red"}
                     mr={3}
-                    onClick={handleDelete}
+                    onClick={onOpenDelete}
                     _hover={{bgcolor:"red"}}
                   >
                     Eliminar examen
@@ -1509,17 +1544,48 @@ export default function Subject() {
                     colorScheme='blue' 
                     onClick={handleOpenEditExamen}
                     mr={3}
+                    isDisabled={finalizado}
                   >
                     Editar examen
                   </Button>
                   
                    <Button 
                     colorScheme='blue' 
-                    onClick={() => navigate(`/historico/${examenID}`)}
+                    onClick={() => navigate(`/eventos/${examenID}`)}
                     mr={3}
                     isDisabled={!examenes.find((ex) => ex.id === examenID)?.finalizado}
                   >
                     Ver logs examen
+                  </Button>
+                </Flex>
+              </ModalBody>
+            </ModalContent>
+
+        </Modal>
+
+        <Modal isOpen={isOpenDelete} onClose={onCloseDelete} isCentered>
+          <ModalOverlay />
+            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"} minW={"70vh"}>
+              <ModalHeader textAlign={"center"}>¿Estás seguro/a de que quieres eliminar el examen?</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody >
+                <Flex justifyContent={"center"}>
+                  <Button 
+                    colorScheme='blue' 
+                    bgColor={"red"}
+                    mr={3}
+                    onClick={handleDelete}
+                    _hover={{bgcolor:"red"}}
+                  >
+                    Eliminar asignatura
+                  </Button>
+
+                  <Button 
+                    colorScheme='blue' 
+                    mr={3}
+                    onClick={onCloseDelete}
+                  >
+                    Cancelar
                   </Button>
                 </Flex>
               </ModalBody>

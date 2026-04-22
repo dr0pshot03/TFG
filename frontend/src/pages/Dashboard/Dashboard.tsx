@@ -455,14 +455,15 @@ export default function Dashboard() {
               <Thead>
                 <Tr bg="shade.2" w="100%">
                   <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Fecha Examen</Td>
-                  <Td color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Convocatoria</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Convocatoria</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Tipo de Convocatoria</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Partes</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Duración</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Alumnos Esperados</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> ¿Finalizado?</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Alumnos Presentados</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Alumnos Aprobados</Td>
-                  <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Aula/s</Td>
+                  <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Aula/s</Td>
                 </Tr>
               </Thead>
               <Tbody>
@@ -480,7 +481,7 @@ export default function Dashboard() {
                     <Td 
                       border="1px solid #E2E8F0" 
                       p={4} 
-                      height="60px" // Altura fija ayuda a que el centrado sea uniforme
+                      height="60px" 
                     >
                       <Flex 
                         align="center" 
@@ -492,6 +493,10 @@ export default function Dashboard() {
                           {examen.convocatoria}
                         </Text>
                       </Flex>
+                    </Td>
+
+                    <Td  textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                      <Text fontSize="lg">{examen.tipo_convocatoria}</Text>
                     </Td>
 
                     <Td  textAlign="center" p={2} borderRight="1px solid #edf2f7">
@@ -552,6 +557,7 @@ export default function Dashboard() {
                       size="lg"
                       borderRadius="xl"    
                       focusBorderColor="blue.500"
+                      maxLength={65}
                     />
                   </FormControl>
 
@@ -654,6 +660,7 @@ export default function Dashboard() {
                       size="lg"
                       borderRadius="xl"    
                       focusBorderColor="blue.500"
+                      maxLength={65}
                     />
                   </FormControl>
 

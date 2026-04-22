@@ -22,7 +22,7 @@ export default function AppRoutes() {
       <Route path="/asignatura/:idAsign/grafica/" element={<ProtectedRoute><ExamGraphics /></ProtectedRoute>} />
       <Route path="/grafica/" element={<ProtectedRoute><GlobalGraphics /></ProtectedRoute>} />
       <Route path="/asignatura/:idAsign/examen/:idExamen/cuentaatras/:idSesion" element={<ProtectedRoute><Countdown /></ProtectedRoute>} />
-      <Route path="/historico/:idExamen" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
+      <Route path="/eventos/:idExamen" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
       <Route path="/historico" element={<ProtectedRoute><History /></ProtectedRoute>} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>}/>
     </Routes>

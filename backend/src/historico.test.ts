@@ -29,10 +29,13 @@ describe('Pruebas de Endpoints de Histórico', () => {
 
     const payloadHistorico = {
       id_asignatura: idAsignatura,
+      nombre_p: "Ana",
+      apellidos_p: "Garcia",
       curso: "2026",
       n_matriculados: 23,
       n_presentados: 14,
       porcentaje_aprobados: 50,
+      convocatoria: "Junio",
       tipo_convocatoria: "Ordinaria"
     };
 
@@ -65,9 +68,13 @@ describe('Pruebas de Endpoints de Histórico', () => {
   test('Actualizar historico', async () => {
     const payloadHistorico = {
       id_asignatura: idAsignatura,
+      nombre_p: "Ana",
+      apellidos_p: "Garcia",
       curso: "2026/2027",
       n_matriculados: 50,
+      n_presentados: 30,
       porcentaje_aprobados: 50,
+      convocatoria: "Junio",
       tipo_convocatoria: "Ordinaria"
     };
 

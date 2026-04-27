@@ -9,11 +9,11 @@ router.post("/", historicoController.createHistorico);
 // Buscar histórico por profesor (nombre/apellidos)
 router.get("/buscar/profesor", historicoController.searchHistoricoProfesor);
 
-// Obtener el historico
-router.get("/:idAsign", historicoController.getHistorico);
-
 // Obtener un historico por su id
 router.get("/historico/:id",  historicoController.getOneHistorico);
+
+// Obtener el historico
+router.get("/:idAsign", historicoController.getHistorico);
 
 // Actualizar historico
 router.put("/:id", historicoController.updateHistorico);

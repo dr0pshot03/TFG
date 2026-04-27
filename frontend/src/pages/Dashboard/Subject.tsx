@@ -22,6 +22,7 @@ import {
   InputRightElement,
   Select,
   Link,
+  useBreakpointValue,
 
 } from "@chakra-ui/react";
 import { InlineIcon } from "@iconify/react";
@@ -586,6 +587,9 @@ export default function Subject() {
     onClosePresentados();
   };
 
+  const cellFontSize = useBreakpointValue({ base: "xs", md: "sm", xl: "md" }) ?? "sm";
+  const actionDirection = useBreakpointValue<"column" | "row">({ base: "column", lg: "row" }) ?? "row";
+
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
@@ -699,49 +703,32 @@ export default function Subject() {
           </VStack>
           ) : 
           (
-            <VStack>
+            <VStack w="100%" align="stretch">
               <TableContainer w={"100%"}>
-                <Table>
+                <Table sx={{ tableLayout: "fixed", width: "100%" }}>
                   <Thead>
                     <Tr bg="shade.2" w="100%">
-                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Fecha de Examen</Td>
-                      <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Convocatoria</Td>
-                      <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Tipo de Convocatoria</Td>
-                      <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Partes</Td>
-                      <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Duración </Td>
-                      <Td color="shade.1" textAlign="center" w={"5%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Alumnos Esperados Totales</Td>
-                      <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} > Aula/s </Td>
-                      <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"20%"} fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"}> Acciones </Td>
+                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Fecha de Examen</Td>
+                      <Td color="shade.1" textAlign="center" w="11%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Convocatoria</Td>
+                      <Td color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Tipo de Convocatoria</Td>
+                      <Td color="shade.1" textAlign="center" w="6%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Partes</Td>
+                      <Td color="shade.1" textAlign="center" w="9%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Duracion</Td>
+                      <Td color="shade.1" textAlign="center" w="13%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} lineHeight="short">Alumnos Esperados Totales</Td>
+                      <Td color="shade.1" textAlign="center" w="19%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Aula/s</Td>
+                      <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w="18%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Acciones</Td>
                     </Tr>
                   </Thead>
                   <Tbody>
                     {paginatedExamenes.map((examen, index) => (
-                      <Tr key={examen.id || index} bgColor={examen.finalizado ? "#B9F6CA" : "#d9d9d9"}>
+                      <Tr key={examen.id || index} bgColor={examen.finalizado ? "#B9F6CA" : "#d9d9d9"} minH="60px">
                         <Td
                           p={2}
                           textAlign="center"
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
+                          verticalAlign="middle"
                         >
-                          <Text fontSize="lg">{new Date(examen.fecha_examen).toLocaleDateString('es-ES')}</Text>
-                        </Td>
-
-                        <Td
-                          p={2}       
-                          textAlign="center"
-                          borderRight="1px solid #aaaaaa"
-                          borderBottom="1px solid #aaaaaa"
-                        >
-                          <Text fontSize="lg">{examen.convocatoria}</Text>
-                        </Td>
-
-                        <Td
-                          p={2}       
-                          textAlign="center"
-                          borderRight="1px solid #aaaaaa"
-                          borderBottom="1px solid #aaaaaa"
-                        >
-                          <Text fontSize="lg">{examen.tipo_convocatoria}</Text>
+                          <Text fontSize={cellFontSize}>{new Date(examen.fecha_examen).toLocaleDateString('es-ES')}</Text>
                         </Td>
 
                         <Td
@@ -749,8 +736,9 @@ export default function Subject() {
                           textAlign="center"
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
+                          verticalAlign="middle"
                         >
-                          <Text fontSize="lg">{examen.partes}</Text>
+                          <Text fontSize={cellFontSize}>{examen.convocatoria}</Text>
                         </Td>
 
                         <Td
@@ -758,8 +746,9 @@ export default function Subject() {
                           textAlign="center"
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
+                          verticalAlign="middle"
                         >
-                          <Text fontSize="lg">{examen.duracion_h != 0 ? examen.duracion_h+"h" : null} {examen.duracion_m != 0 ? examen.duracion_m+"min" : null} </Text>
+                          <Text fontSize={cellFontSize}>{examen.tipo_convocatoria}</Text>
                         </Td>
 
                         <Td
@@ -767,8 +756,9 @@ export default function Subject() {
                           textAlign="center"
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
+                          verticalAlign="middle"
                         >
-                          <Text fontSize="lg">{examen.sesion?.[0]?.n_esperados ?? 0}</Text>
+                          <Text fontSize={cellFontSize}>{examen.partes}</Text>
                         </Td>
 
                         <Td
@@ -776,23 +766,51 @@ export default function Subject() {
                           textAlign="center"
                           borderRight="1px solid #aaaaaa"
                           borderBottom="1px solid #aaaaaa"
+                          verticalAlign="middle"
+                        >
+                          <Text fontSize={cellFontSize}>{examen.duracion_h != 0 ? examen.duracion_h+"h" : null} {examen.duracion_m != 0 ? examen.duracion_m+"min" : null}</Text>
+                        </Td>
+
+                        <Td
+                          p={2}
+                          textAlign="center"
+                          borderRight="1px solid #aaaaaa"
+                          borderBottom="1px solid #aaaaaa"
+                          verticalAlign="middle"
+                        >
+                          <Text fontSize={cellFontSize}>{examen.sesion?.[0]?.n_esperados ?? 0}</Text>
+                        </Td>
+
+                        <Td
+                          p={2}
+                          textAlign="center"
+                          borderRight="1px solid #aaaaaa"
+                          borderBottom="1px solid #aaaaaa"
+                          verticalAlign="middle"
                         >
                           {examen.aulaAlumnos.map((item, index) => (
-                            <Text key={index} fontSize="lg">
+                            <Text key={index} fontSize={cellFontSize} noOfLines={2}>
                               {item.aula}: {item.n_esperados} alumnos
                             </Text>
                           ))}
                         </Td>
                       
                       
-                        <Td textAlign="center" p={2} borderBottom="1px solid #aaaaaa">
-                          <Flex justify={"space-between"}>
+                        <Td textAlign="center" p={2} borderBottom="1px solid #aaaaaa" verticalAlign="middle">
+                          <Flex
+                            direction={actionDirection}
+                            justify="center"
+                            align="center"
+                            gap={1}
+                            w="100%"
+                          >
                             {examen.finalizado ? (
                               <Button 
                               colorScheme="blue" 
                               size="sm"
                               fontSize={"xs"}
-                              w={"65%"} 
+                              flex="1"
+                              minW={{ base: "100%", lg: "90px" }}
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => {
@@ -804,19 +822,19 @@ export default function Subject() {
                                 onOpenPresentados();
                               }}
                               _hover={{ bg:  "#2e2e2e"}}
-                              mr={2}
                             >
                               Alumnos Presentados
                             </Button>
                             ) : (<Button 
                               colorScheme="blue" 
                               size="sm"
-                              w={"65%"} 
+                              fontSize={"xs"}
+                              flex="1"
+                              minW={{ base: "100%", lg: "90px" }}
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}/cuentaatras/${examen.sesion?.[0].id}`)}
                               _hover={{ bg:  "#2e2e2e"}}
-                              mr={2}
                             >
                               Comenzar
                             </Button>)}
@@ -825,12 +843,13 @@ export default function Subject() {
                             <Button 
                               colorScheme="blue" 
                               size="sm"
-                              w={"45%"} 
+                              fontSize={"xs"}
+                              flex="1"
+                              minW={{ base: "100%", lg: "78px" }}
                               borderRadius="full" 
                               bg="#000000"
                               onClick={() => navigate(`/asignatura/${id}/examen/${examen.id}`)}
                               _hover={{ bg:  "#2e2e2e"}}
-                              mr={2}
                             >
                               Acceder
                             </Button>
@@ -838,7 +857,8 @@ export default function Subject() {
                             <Button 
                               //colorScheme="blue" 
                               size="sm"
-                              w={"5%"} 
+                              minW="32px"
+                              w={{ base: "100%", lg: "32px" }}
                               //borderRadius="full" 
                               bg="transparent"
                               onClick={() => {

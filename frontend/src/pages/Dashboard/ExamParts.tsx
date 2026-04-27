@@ -334,6 +334,7 @@ export default function Parts() {
                             onOpenDelete();
                             setSelectedParteExamenId(parteExamen.id);
                           }}
+                          isDisabled={examen?.finalizado!}
                         >
                           Eliminar parte
                         </Button>

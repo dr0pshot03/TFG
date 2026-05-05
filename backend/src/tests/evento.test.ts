@@ -1,5 +1,5 @@
 const request = require('supertest');
-const { app } = require('./app'); // Importamos la app sin arrancar el servidor
+const { app } = require('../app'); // Importamos la app sin arrancar el servidor
 
 describe('Pruebas de Endpoints de Evento', () => {
 

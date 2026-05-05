@@ -36,33 +36,51 @@ export async function createAsignatura(data: asignatura) {
 
 export async function getAllAsignaturas(userId: string){
     try {
+        if (!userId) {
+            throw new Error("El userId es obligatorio");
+        }
         return await prisma.asignatura.findMany({
             where:{ user_id : userId}
         });
     } catch (error) {
-        console.error("Error al obtener todas las asignaturas", error);
-        throw new Error("No se pudo obtener las asignaturas");
+        console.error("Error al obtener todas las asignaturas por usuario", error);
+        throw error;
     }
 }
 
 export async function getAsignatura(id: string){
     try {
-        return await prisma.asignatura.findUnique({
+        if (!id) {
+            throw new Error("El id es obligatorio");
+        }
+        const asignatura = await prisma.asignatura.findUnique({
             where:{ id : id}
         });
+        if (!asignatura) {
+            throw new Error("Asignatura no encontrada");
+        }
+        return asignatura;
     } catch (error) {
-        console.error("Error al obtener la asignatura", error);
-        throw new Error("No se pudo obtener la asignatura");
+        console.error("Error al obtener la asignatura por id", error);
+        throw error;
     }
 }
 
 export async function updateAsignatura(id: string, data: Partial<asignatura>){
     try {
+        if (!id) {
+            throw new Error("El id es obligatorio");
+        }
         const {
             nombre,
             descripcion,
-            ...updateData
         } = data;
+        const asignatura = await prisma.asignatura.findUnique({
+            where:{ id : id}
+        });
+        if (!asignatura) {
+            throw new Error("Asignatura no encontrada");
+        }
         return await prisma.asignatura.update({
             where:{ id : id},
             data: {
@@ -72,17 +90,26 @@ export async function updateAsignatura(id: string, data: Partial<asignatura>){
         });
     } catch (error) {
         console.error("Error al actualizar toda la asignatura", error);
-        throw new Error("No se pudo actualizar las asignatura");
+        throw error;
     }
 }
 
 export async function deleteAsignatura(id: string){
     try {
+        if (!id) {
+            throw new Error("El id es obligatorio");
+        }
+        const asignatura = await prisma.asignatura.findUnique({
+            where:{ id : id}
+        });
+        if (!asignatura) {
+            throw new Error("Asignatura no encontrada");
+        }
         return await prisma.asignatura.delete({
             where:{ id : id}
         });
     } catch (error) {
         console.error("Error al eliminar la asignatura", error);
-        throw new Error("No se pudo eliminar la asignatura");
+        throw error;
     }
 }

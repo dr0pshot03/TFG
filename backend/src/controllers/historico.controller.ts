@@ -1,16 +1,22 @@
 import { type Request, type Response } from "express";
-import * as historicoService from "../services/historico.services.ts";
+import * as historicoService from "../services/historico.services.js";
 
 export async function createHistorico(req: Request, res: Response){
     try{
         const data = {
             ...req.body,
         };
-        const historico = await historicoService.createHistorico(data);
-        res.status(201).json(historico);
+        await historicoService.createHistorico(data);
+        res.status(201).json({"message" : "Histórico creado correctamente"});
     }catch(error)
     {
         console.error("Error al crear el historico", error);
+
+        if (error instanceof Error && error.message === "Asignatura no encontrada") {
+            res.status(404).json({ error: "Asignatura no encontrada" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al crear el historico" });
     }
 }
@@ -23,6 +29,12 @@ export async function getHistorico(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al obtener el historico", error);
+
+        if (error instanceof Error && error.message === "Asignatura no encontrada") {
+            res.status(404).json({ error: "Asignatura no encontrada" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al obtener el historico" });
     }
 }
@@ -47,6 +59,12 @@ export async function getOneHistorico(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al obtener el historico por id", error);
+
+        if (error instanceof Error && error.message === "Historico no encontrado") {
+            res.status(404).json({ error: "Historico no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al obtener el historico por id" });
     }
 }
@@ -55,10 +73,21 @@ export async function updateHistorico(req: Request, res: Response){
     try{
         const id = req.params.id;
         const historico = await historicoService.updateHistorico(id, req.body);
-        res.json(historico);
+        res.status(200).json({"message" : "Se ha actualizado correctamente el historico"});
     }catch(error)
     {
         console.error("Error al actualizar el historico", error);
+
+        if (error instanceof Error && error.message === "Historico no encontrado") {
+            res.status(404).json({ error: "Historico no encontrado" });
+            return;
+        }
+
+        if (error instanceof Error && error.message === "No hay campos para actualizar") {
+            res.status(400).json({ error: "No hay campos para actualizar" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al actualizar el historico" });
     }
 }
@@ -71,6 +100,12 @@ export async function deleteHistorico(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al eliminar el historico", error);
+
+        if (error instanceof Error && error.message === "Historico no encontrado") {
+            res.status(404).json({ error: "Historico no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al eliminar el historico" });
     }
 }

@@ -1,16 +1,22 @@
 import { type Request, type Response } from "express";
-import * as eventoService from "../services/evento.services.ts";
+import * as eventoService from "../services/evento.services.js";
 
 export async function createEvento(req: Request, res: Response){
     try{
         const data = {
             ...req.body,
         };
-        const evento = await eventoService.createEvento(data);
-        res.status(201).json(evento);
+        await eventoService.createEvento(data);
+        res.status(201).json({ message: "Se ha creado correctamente el evento" });
     }catch(error)
     {
         console.error("Error al crear el evento", error);
+
+        if (error instanceof Error && error.message === "Sesión no encontrada") {
+            res.status(404).json({ error: "Sesión no encontrada" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al crear el evento" });
     }
 }
@@ -23,7 +29,13 @@ export async function getAllEventos(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al obtener los evento", error);
-        res.status(500).json({ error: "Error al obtener los evento" });
+
+        if (error instanceof Error && error.message === "Sesión no encontrada") {
+            res.status(404).json({ error: "Sesión no encontrada" });
+            return;
+        }
+
+        res.status(500).json({ error: "Error al obtener los eventos" });
     }
 }
 
@@ -35,6 +47,12 @@ export async function getEvento(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al obtener el evento", error);
+
+        if (error instanceof Error && error.message === "Evento no encontrado") {
+            res.status(404).json({ error: "Evento no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al obtener el evento" });
     }
 }
@@ -43,10 +61,16 @@ export async function deleteEvento(req: Request, res: Response){
     try{
         const id = req.params.id;
         const evento= await eventoService.deleteEvento(id);
-        res.json({ evento, message: "Evento eliminado correctamente" });
+        res.json({ evento, message: "Se ha eliminado correctamente el evento" });
     }catch(error)
     {
-        console.error("Error al eliminar el historico", error);
+        console.error("Error al eliminar el evento", error);
+
+        if (error instanceof Error && error.message === "Evento no encontrado") {
+            res.status(404).json({ error: "Evento no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al eliminar el evento" });
     }
 }

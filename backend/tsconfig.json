@@ -24,6 +24,6 @@
       "module": "NodeNext"
     }
   },
-  "include": ["src/**/*", "src/asignatura.test.ts"],
+  "include": ["src/**/*", "src/tests/asignatura.test.ts"],
   "exclude": ["node_modules", "dist"]
 }

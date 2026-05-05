@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as examenService from "../services/examen.services.ts";
+import * as examenService from "../services/examen.services.js";
 
 export async function createExamen(req: Request, res: Response){
     try{
@@ -11,6 +11,12 @@ export async function createExamen(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al crear el examen", error);
+
+        if (error instanceof Error && error.message === "Asignatura no encontrada") {
+            res.status(404).json({ error: "Asignatura no encontrada" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al crear el examen" });
     }
 }
@@ -23,6 +29,12 @@ export async function getAllExamenes(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al obtener todos los examenes", error);
+
+        if (error instanceof Error && error.message === "Asignatura no encontrada") {
+            res.status(404).json({ error: "Asignatura no encontrada" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al obtener todos los examenes" });
     }
 }
@@ -30,12 +42,17 @@ export async function getAllExamenes(req: Request, res: Response){
 export async function getExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
-        // console.log("Este es el id del examen"+id);
         const examen = await examenService.getExamen(id);
         res.json(examen);
     }catch(error)
     {
         console.error("Error al obtener el examen", error);
+
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            res.status(404).json({ error: "Examen no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al obtener el examen" });
     }
 }
@@ -43,23 +60,35 @@ export async function getExamen(req: Request, res: Response){
 export async function updateConvocatoriaExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
-        const examen = await examenService.updateConvocatoriaExamen(id, req.body);
-        res.json(examen);
+        await examenService.updateConvocatoriaExamen(id, req.body);
+        res.status(200).json({"message": "Convocatoria actualizada correctamente"});
     }catch(error)
     {
         console.error("Error al actualizar el examen", error);
-        res.status(500).json({ error: "Error al actualizar el examen" });
+
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            res.status(404).json({ error: "Examen no encontrado" });
+            return;
+        }
+
+        res.status(500).json({ error: "Error al actualizar la convocatoria el examen" });
     }
 }
 
 export async function updateTiempoExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
-        const examen = await examenService.updateTiempoExamen(id, req.body);
-        res.json(examen);
+        await examenService.updateTiempoExamen(id, req.body);
+        res.status(200).json({"message": "Duración actualizada correctamente"});
     }catch(error)
     {
         console.error("Error al actualizar el tiempo de examen", error);
+
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            res.status(404).json({ error: "Examen no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al actualizar el tiempo de examen" });
     }
 }
@@ -67,12 +96,18 @@ export async function updateTiempoExamen(req: Request, res: Response){
 export async function updateEstadoExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
-        const examen = await examenService.updateEstadoExamen(id);
-        res.json(examen);
+        await examenService.updateEstadoExamen(id);
+        res.status(200).json({"message": "Estado examen actualizado correctamente"});
     }catch(error)
     {
         console.error("Error al actualizar el examen", error);
-        res.status(500).json({ error: "Error al actualizar el examen" });
+
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            res.status(404).json({ error: "Examen no encontrado" });
+            return;
+        }
+
+        res.status(500).json({ error: "Error al actualizar el estado del examen" });
     }
 }
 
@@ -80,10 +115,21 @@ export async function updateExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
         const examen = await examenService.updateExamen(id, req.body);
-        res.json(examen);
+        res.status(200).json({"message": "Examen actualizado correctamente"});
     }catch(error)
     {
         console.error("Error al actualizar el examen", error);
+
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            res.status(404).json({ error: "Examen no encontrado" });
+            return;
+        }
+
+        if (error instanceof Error && error.message === "No hay campos para actualizar") {
+            res.status(400).json({ error: "No hay campos para actualizar" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al actualizar el examen" });
     }
 }
@@ -96,6 +142,12 @@ export async function deleteExamen(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al eliminar el examen", error);
+
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            res.status(404).json({ error: "Examen no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al eliminar el examen" });
     }
 }

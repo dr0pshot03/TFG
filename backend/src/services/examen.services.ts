@@ -1,4 +1,5 @@
-import prisma from "./prisma.ts"
+import prisma from "./prisma.js"
+import { getAsignatura } from "./asignaturas.services.js";
 
 export const Convocatoria = {
     Febrero: "Febrero",
@@ -34,6 +35,12 @@ export interface examen {
 
 export async function createExamen(data: examen) {
     try {
+        const asignatura = await getAsignatura(data.id_asign);
+
+        if (!asignatura) {
+            throw new Error("Asignatura no encontrada");
+        }
+
         return await prisma.examen.create({
             data: {
                 id_asign: data.id_asign,
@@ -53,6 +60,10 @@ export async function createExamen(data: examen) {
             }
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Asignatura no encontrada") {
+            throw error;
+        }
+
         console.error("Error al crear el examen", error);
         throw new Error("No se pudo crear el examen");
     }
@@ -60,6 +71,12 @@ export async function createExamen(data: examen) {
 
 export async function getAllExamenes(asignId: string){
     try {
+        const asignatura = await getAsignatura(asignId);
+
+        if (!asignatura) {
+            throw new Error("Asignatura no encontrada");
+        }
+
         return await prisma.examen.findMany({
             where:{ id_asign : asignId},
             include: {
@@ -73,6 +90,10 @@ export async function getAllExamenes(asignId: string){
             }
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Asignatura no encontrada") {
+            throw error;
+        }
+
         console.error("Error al obtener los examenes", error);
         throw new Error("No se pudo obtener los examenes");
     }
@@ -80,7 +101,7 @@ export async function getAllExamenes(asignId: string){
 
 export async function getExamen(id: string){
     try {
-        return await prisma.examen.findUnique({
+        const examen = await prisma.examen.findUnique({
             where:{ id : id},
             include: {
                 aulaAlumnos: true, // Esto trae la lista de pares aula/alumnos
@@ -92,7 +113,17 @@ export async function getExamen(id: string){
                 }
             }
         });
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
+        return examen;
     } catch (error) {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
         console.error("Error al obtener el examen", error);
         throw new Error("No se pudo obtener el examen");
     }
@@ -100,6 +131,12 @@ export async function getExamen(id: string){
 
 export async function updateExamen(id: string, body: any) {
     try {
+        const examen = await prisma.examen.findUnique({ where: { id } });
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
         const allowedFields = [
             "convocatoria", "fecha_examen", 
             "finalizado", "partes", "aulaAlumnos", "tipo_convocatoria"
@@ -131,6 +168,14 @@ export async function updateExamen(id: string, body: any) {
             include: { aulaAlumnos: true } // Para devolver el examen actualizado con sus aulas
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
+        if (error instanceof Error && error.message === "No hay campos para actualizar") {
+            throw error;
+        }
+
         console.error("Error al actualizar el examen", error);
         throw new Error("No se pudo actualizar el examen");
     }
@@ -138,6 +183,12 @@ export async function updateExamen(id: string, body: any) {
 
 export async function updateConvocatoriaExamen(id: string, convocatoria : Convocatoria){
     try {
+        const examen = await prisma.examen.findUnique({ where: { id } });
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
         return await prisma.examen.update({
             where:{ id : id},
             data: {
@@ -145,6 +196,10 @@ export async function updateConvocatoriaExamen(id: string, convocatoria : Convoc
             }
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
         console.error("Error al actualizar la convocatoria del examen", error);
         throw new Error("No se pudo actualizar la convocatoria del examen");
     }
@@ -152,6 +207,12 @@ export async function updateConvocatoriaExamen(id: string, convocatoria : Convoc
 
 export async function updateTiempoExamen(id: string, data : Partial<examen>){
     try {
+        const examen = await prisma.examen.findUnique({ where: { id } });
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
         return await prisma.examen.update({
             where:{ id : id},
             data: {
@@ -161,6 +222,10 @@ export async function updateTiempoExamen(id: string, data : Partial<examen>){
             }
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
         console.error("Error al actualizar la duración del examen", error);
         throw new Error("No se pudo actualizar la duración del examen");
     }
@@ -168,6 +233,12 @@ export async function updateTiempoExamen(id: string, data : Partial<examen>){
 
 export async function updateEstadoExamen(id: string){
     try {
+        const examen = await prisma.examen.findUnique({ where: { id } });
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
         return await prisma.examen.update({
             where:{ id : id},
             data: {
@@ -175,6 +246,10 @@ export async function updateEstadoExamen(id: string){
             }
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
         console.error("Error al actualizar el estado finalizado del examen", error);
         throw new Error("No se pudo actualizar el estado finalizado del examen");
     }
@@ -182,10 +257,20 @@ export async function updateEstadoExamen(id: string){
 
 export async function deleteExamen(id: string){
     try {
+        const examen = await prisma.examen.findUnique({ where: { id } });
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
         return await prisma.examen.delete({
             where:{ id : id}
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
         console.error("Error al obtener el examen", error);
         throw new Error("No se pudo eliminar el examen");
     }

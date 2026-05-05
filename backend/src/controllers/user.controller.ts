@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as userService from "../services/user.service.ts";
+import * as userService from "../services/user.service.js";
 
 interface ClerkWebhookEvent {
     type: string;
@@ -17,8 +17,8 @@ interface ClerkWebhookEvent {
 
 export async function createUser(req: Request, res: Response){
     try{
-        const user = await userService.createUser(req.body);
-        res.status(201).json(user);
+        await userService.createUser(req.body);
+        res.status(201).json({"message" : "Usuario creado correctamente"});
     }catch(error)
     {
         console.error("Error al crear el usuario", error);
@@ -34,6 +34,11 @@ export async function getUser(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al obtener el usuario", error);
+        if (error instanceof Error && error.message === "Usuario no encontrado") {
+            res.status(404).json({ error: "Usuario no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al obtener el usuario" });
     }
 }
@@ -42,10 +47,15 @@ export async function updateUser(req: Request, res: Response){
     try{
         const id = req.params.idClerk;
         const user = await userService.updateUser(id, req.body);
-        res.json(user);
+        res.status(200).json({"message" : "Se ha actualizado correctamente el usuario"});
     }catch(error)
     {
         console.error("Error al actualizar el usuario", error);
+        if (error instanceof Error && error.message === "Usuario no encontrado") {
+            res.status(404).json({ error: "Usuario no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al actualizar el usuario" });
     }
 }
@@ -58,6 +68,11 @@ export async function deleteUser(req: Request, res: Response){
     }catch(error)
     {
         console.error("Error al eliminar el usuario", error);
+        if (error instanceof Error && error.message === "Usuario no encontrado") {
+            res.status(404).json({ error: "Usuario no encontrado" });
+            return;
+        }
+
         res.status(500).json({ error: "Error al eliminar el usuario" });
     }
 }

@@ -1,4 +1,5 @@
-import prisma from "./prisma.ts"
+import prisma from "./prisma.js"
+import { getExamen } from "./examen.services.js";
 
 export interface parteExamen{
     id: string;
@@ -13,6 +14,12 @@ export interface CreateParteExamenInput extends Omit<parteExamen, 'id'> {}
 
 export async function createParte(data: CreateParteExamenInput) {
     try{
+        const examen = await getExamen(data.id_examen);
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
         return await prisma.partesExamen.create({
             data : {
                 id_examen : data.id_examen,
@@ -24,6 +31,10 @@ export async function createParte(data: CreateParteExamenInput) {
         })
     }catch(error)
     {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
         console.error("Error al crear la parte del examen", error);
         throw new Error("No se pudo crear la parte del examen");
     }
@@ -32,11 +43,21 @@ export async function createParte(data: CreateParteExamenInput) {
 
 export async function getAllPartes(id: string){
     try {
+        const examen = await getExamen(id);
+
+        if (!examen) {
+            throw new Error("Examen no encontrado");
+        }
+
         return await prisma.partesExamen.findMany({
             where:{ id_examen : id},
             orderBy: { num_parte: "asc" },
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Examen no encontrado") {
+            throw error;
+        }
+
         console.error("Error al obtener todas las partes del examen", error);
         throw new Error("No se pudo obtener las partes del examen");
     }
@@ -44,10 +65,20 @@ export async function getAllPartes(id: string){
 
 export async function getParte(id: string){
     try {
-        return await prisma.partesExamen.findUnique({
+        const parte = await prisma.partesExamen.findUnique({
             where:{ id : id}
         });
+
+        if (!parte) {
+            throw new Error("Parte de examen no encontrada");
+        }
+
+        return parte;
     } catch (error) {
+        if (error instanceof Error && error.message === "Parte de examen no encontrada") {
+            throw error;
+        }
+
         console.error("Error al obtener todas las partes del examen", error);
         throw new Error("No se pudo obtener las partes del examen");
     }
@@ -55,11 +86,22 @@ export async function getParte(id: string){
 
 export async function updateParte(id: string, data : Partial<parteExamen>){
     try {
+        const parte = await prisma.partesExamen.findUnique({ where: { id } });
+
+        if (!parte) {
+            throw new Error("Parte de examen no encontrada");
+        }
+
         const {
             nombre,
             duracion_h,
             duracion_m,
         } = data
+
+        if (nombre === undefined && duracion_h === undefined && duracion_m === undefined) {
+            throw new Error("No hay campos para actualizar");
+        }
+
         return await prisma.partesExamen.update({
             where:{ id : id},
             data: {
@@ -69,6 +111,13 @@ export async function updateParte(id: string, data : Partial<parteExamen>){
             }
         });
     } catch (error) {
+        if (
+            error instanceof Error &&
+            (error.message === "Parte de examen no encontrada" || error.message === "No hay campos para actualizar")
+        ) {
+            throw error;
+        }
+
         console.error("Error al actualizar la parte del examen", error);
         throw new Error("No se pudo actualizar la parte del examen");
     }
@@ -103,6 +152,13 @@ export async function updateTiempoParte(id: string, data : number){
             }
         });
     } catch (error) {
+        if (
+            error instanceof Error &&
+            (error.message === "Parte de examen no encontrada" || error.message === "La duración no puede ser negativa")
+        ) {
+            throw error;
+        }
+
         console.error("Error al actualizar la duracion de la parte del examen", error);
         throw new Error("No se pudo actualizar la duracion de la parte del examen");
     }
@@ -148,6 +204,10 @@ export async function moveUpParte(id: string){
             });
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Parte de examen no encontrada") {
+            throw error;
+        }
+
         console.error("Error al mover hacia arriba la parte del examen", error);
         throw new Error("No se pudo mover hacia arriba la parte del examen");
     }
@@ -193,6 +253,10 @@ export async function moveDownParte(id: string){
             });
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Parte de examen no encontrada") {
+            throw error;
+        }
+
         console.error("Error al mover hacia abajo la parte del examen", error);
         throw new Error("No se pudo mover hacia abajo la parte del examen");
     }
@@ -200,10 +264,20 @@ export async function moveDownParte(id: string){
 
 export async function deleteParte(id: string){
     try {
+        const parte = await prisma.partesExamen.findUnique({ where: { id } });
+
+        if (!parte) {
+            throw new Error("Parte de examen no encontrada");
+        }
+
         return await prisma.partesExamen.delete({
             where:{ id : id}
         });
     } catch (error) {
+        if (error instanceof Error && error.message === "Parte de examen no encontrada") {
+            throw error;
+        }
+
         console.error("Error al obtener todas las partes del examen", error);
         throw new Error("No se pudo obtener las partes del examen");
     }

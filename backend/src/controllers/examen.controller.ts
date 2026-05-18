@@ -78,8 +78,8 @@ export async function updateConvocatoriaExamen(req: Request, res: Response){
 export async function updateTiempoExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
-        await examenService.updateTiempoExamen(id, req.body);
-        res.status(200).json({"message": "Duración actualizada correctamente"});
+        const examen = await examenService.updateTiempoExamen(id, req.body);
+        res.status(200).json(examen);
     }catch(error)
     {
         console.error("Error al actualizar el tiempo de examen", error);

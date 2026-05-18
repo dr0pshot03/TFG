@@ -376,7 +376,7 @@ export default function Dashboard() {
                 <Table>
                   <Thead>
                     <Tr bg="shade.2" w="100%">
-                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"75%"} fontWeight={"bold"}> Nombre</Td>
+                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"75%"} fontWeight={"bold"} > Nombre</Td>
                       <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w={"25%"} fontWeight={"bold"}> Acciones</Td>
                     </Tr>
                   </Thead>
@@ -386,13 +386,14 @@ export default function Dashboard() {
                         <Td
                           w="70%"
                           p={2}
-                          borderRight="1px solid #edf2f7"
+                          borderRight="1px solid #aaaaaa"
+                          borderBottom="1px solid #aaaaaa"
                           textAlign="center"
                         >
                           <Text fontSize="lg">{asignatura.nombre}</Text>
                         </Td>
 
-                        <Td minW="200px" textAlign="center" p={2} borderRight="1px solid #edf2f7">
+                        <Td minW="200px" textAlign="center" p={2} borderBottom="1px solid #aaaaaa">
                           <Flex justify={"space-between"}>
                             <Button 
                               colorScheme="blue" 
@@ -617,7 +618,7 @@ export default function Dashboard() {
               <ModalBody >
                 <Flex justifyContent={"center"}>
                   <Button 
-                    colorScheme='blue' 
+                    colorScheme='red' 
                     bgColor={"red"}
                     mr={3}
                     onClick={handleDelete}

@@ -38,6 +38,18 @@ const partesExamenModel = createModel<IRootModel>() ({
     reset() {
       return { ...initialState };
     },
+
+    updateParteInArray(
+      state,
+      payload: parteExamen
+    ) {
+      return {
+        ...state,
+        partesExamenes: state.partesExamenes.map(parte => 
+          parte.id === payload.id ? payload : parte
+        )
+      };
+    },
   },
   effects: (dispatch) => ({
     async getParteExamen(id: string, state) {
@@ -67,7 +79,7 @@ const partesExamenModel = createModel<IRootModel>() ({
       await api
         .get(`/partesExamen/${idExamen}`)
         .then ((res) => {
-          const currentPartesExamenes = state.parteExamenModel.examenes;
+          const currentPartesExamenes = state.parteExamenModel.partesExamenes;
           const isSame = isEqual(currentPartesExamenes, res.data);
           if (!isSame) {
             dispatch.parteExamenModel.addValue({ key: "partesExamenes", value: res.data });

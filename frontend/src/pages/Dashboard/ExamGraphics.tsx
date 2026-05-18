@@ -229,7 +229,7 @@ export default function ExamGraphics() {
           <Heading as="h1" size="lg">
             {asignatura?.nombre}
           </Heading>
-          <Text color="gray.600">Gráfica histórica de los tiempos de los exámenes.</Text>
+          <Text color="gray.600">Gráfica histórica de los tiempos de exámenes.</Text>
         </VStack>
 
         <Flex
@@ -271,6 +271,7 @@ export default function ExamGraphics() {
           w="100%"
           mx="auto"
           h={"60vh"}
+          minH="320px"
           ref={chartRef}
           sx={{
             "& .recharts-wrapper:focus": { outline: "none" },
@@ -279,6 +280,36 @@ export default function ExamGraphics() {
             "& .recharts-surface:focus-visible": { outline: "none" },
           }}
         >
+          <Box w="100%" display="flex" justifyContent="center" mb={3}>
+            <Box
+              bg="white"
+              px={3}
+              py={2}
+              display="inline-block"
+              w="fit-content"
+              maxW="100%"
+            >
+              <VStack as="ul" align="start" spacing={1} m={0} p={0} listStyleType="none">
+                <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
+                  <Box as="span" color="#B9F6CA" fontSize="13px" lineHeight="18px" verticalAlign="baseline">
+                    ■
+                  </Box>
+                  <Box as="span" ml={2} verticalAlign="baseline">
+                    Barras: nº de horas
+                  </Box>
+                </Text>
+                <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
+                  <Box as="span" color="#616161" fontSize="12px" lineHeight="18px" verticalAlign="baseline">
+                    ●
+                  </Box>
+                  <Box as="span" ml={2} verticalAlign="baseline">
+                    Círculos: nº de alumnos presentados
+                  </Box>
+                </Text>
+              </VStack>
+            </Box>
+          </Box>
+
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={chartData}
@@ -309,16 +340,16 @@ export default function ExamGraphics() {
                     return [`${hours}h ${mins}m`, "Duración"];
                   }}
                 />
-                <Bar dataKey="minutos" fill="#cfd4da" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="minutos" fill="#B9F6CA" radius={[4, 4, 0, 0]} />
                 <Line
                   type="linear"
                   yAxisId="right"
                   dataKey="presentados"
-                  stroke="black"
+                  stroke="#616161"
                   strokeWidth={2}
                   strokeDasharray="4 4"
-                  dot={{ r: 6, fill: "black" }}
-                  activeDot={{ r: 10 }}
+                  dot={{ r: 7, fill: "#616161" }}
+                  activeDot={{ r: 9 }}
                 />
               </ComposedChart>
             </ResponsiveContainer>

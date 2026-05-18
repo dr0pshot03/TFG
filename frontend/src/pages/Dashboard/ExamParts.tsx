@@ -38,7 +38,6 @@ import { Link as RouterLink } from "react-router-dom";
 export default function Parts() {
   const navigate = useNavigate();
   const dispatch = useDispatch<IDispatch>();
-  const userId = "user_id_ejemplo"; 
   const { id } = useParams<{ id: string }>();
   const { idAsign } = useParams<{ idAsign: string }>();
   
@@ -119,6 +118,7 @@ export default function Parts() {
   };
 
   const handleEdit = async () => {
+    
     const payload = {
       id: selectedParteExamenId!,
       nombre: formValues.nombre,
@@ -147,6 +147,7 @@ export default function Parts() {
     }
 
     try {
+      
       await dispatch.parteExamenModel.updateParteExamen(payload);
       await dispatch.parteExamenModel.getPartesExamen(id!);
       setFormValues({ nombre: "", duracion_h: 0, duracion_m: 0 });
@@ -211,10 +212,15 @@ export default function Parts() {
 
   return (
     <Box bg="white" w="100%" minH="100vh"> 
-      <NavBar></NavBar>   
-      <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
-        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard &lt; {asignatura?.nombre} </Text>
-      </Link>
+      <NavBar></NavBar>  
+      <HStack spacing={1}>
+        <Link as={RouterLink} to={`/dashboard`} color="blue.600">
+          <Text fontSize={"md"} mt={"5"} ml={"3"}> &lt;  Dashboard  </Text>
+        </Link>
+        <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
+          <Text fontSize={"md"} mt={"5"} > &lt; {asignatura?.nombre} </Text>
+        </Link>
+      </HStack> 
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
         
@@ -277,7 +283,7 @@ export default function Parts() {
                             size="sm"
                             borderRadius="full"
                             onClick={() => handleMoveUp(parteExamen.id)}
-                            isDisabled={index === 0}
+                            isDisabled={index === 0 || examen?.finalizado}
                           />
                           <IconButton
                             aria-label="Bajar parte"
@@ -285,7 +291,7 @@ export default function Parts() {
                             size="sm"
                             borderRadius="full"
                             onClick={() => handleMoveDown(parteExamen.id)}
-                            isDisabled={index === filteredPartesExamenes.length - 1}
+                            isDisabled={index === filteredPartesExamenes.length - 1 || examen?.finalizado}
                           />
                         </HStack>
                         <Text fontSize="lg" textAlign="center">{parteExamen.num_parte}</Text>

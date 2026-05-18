@@ -237,7 +237,7 @@ export default function History() {
     <Box>
       <NavBar></NavBar>
       <Link as={RouterLink} to={`/`} color="blue.600">
-        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard </Text>
+        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Volver a la página principal </Text>
       </Link>
       {selectedScope === "mine" ? (
         <Container maxW="80%" py={8}>

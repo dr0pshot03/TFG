@@ -18,8 +18,6 @@ import {
   Tbody,
   Tr,
   Td,
-  InputGroup,
-  InputRightElement,
   Select,
   Link,
   useBreakpointValue,
@@ -68,7 +66,7 @@ export default function Subject() {
   const [showEditAulaForm, setShowEditAulaForm] = useState(false);
   const [ aulasData, setAulasData ] = useState<{aula: string, n_esperados: number}[]>([]);
 
-  const [ value, setValue ] = useState("");
+  const [ value ] = useState("");
   const [formValues, setFormValues] = useState({
     convocatoria: "",
     partes: 0,
@@ -594,7 +592,7 @@ export default function Subject() {
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
       <Link as={RouterLink} to={`/`} color="blue.600">
-        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard </Text>
+        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard</Text>
       </Link>
       {/* --- 2. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
@@ -701,6 +699,15 @@ export default function Subject() {
               </Button>
             </Box>
           </VStack>
+          ) : filteredExamenes.length == 0 ? (
+            <VStack spacing={4} py={10}>
+              <Heading size="md" textAlign="center">
+                No hay exámenes para mostrar con los filtros seleccionados.
+              </Heading>
+              <Text color="gray.500" fontSize="sm" textAlign="center">
+                Prueba a ajustar o limpiar los filtros para ver resultados.
+              </Text>
+            </VStack>
           ) : 
           (
             <VStack w="100%" align="stretch">
@@ -708,14 +715,46 @@ export default function Subject() {
                 <Table sx={{ tableLayout: "fixed", width: "100%" }}>
                   <Thead>
                     <Tr bg="shade.2" w="100%">
-                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Fecha de Examen</Td>
-                      <Td color="shade.1" textAlign="center" w="11%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Convocatoria</Td>
-                      <Td color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Tipo de Convocatoria</Td>
-                      <Td color="shade.1" textAlign="center" w="6%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Partes</Td>
-                      <Td color="shade.1" textAlign="center" w="9%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Duracion</Td>
-                      <Td color="shade.1" textAlign="center" w="13%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} lineHeight="short">Alumnos Esperados Totales</Td>
-                      <Td color="shade.1" textAlign="center" w="19%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Aula/s</Td>
-                      <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w="18%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3}>Acciones</Td>
+                      <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Fecha de Examen
+                        </Box>
+                      </Td>
+                      <Td color="shade.1" textAlign="center" w="11%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Convocatoria
+                        </Box>
+                      </Td>
+                      <Td color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Tipo de Convocatoria
+                        </Box>
+                      </Td>
+                      <Td color="shade.1" textAlign="center" w="6%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Partes
+                        </Box>
+                      </Td>
+                      <Td color="shade.1" textAlign="center" w="9%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Duracion
+                        </Box>
+                      </Td>
+                      <Td color="shade.1" textAlign="center" w="13%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} lineHeight="short" overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Alumnos Esperados Totales
+                        </Box>
+                      </Td>
+                      <Td color="shade.1" textAlign="center" w="13%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Aula/s
+                        </Box>
+                      </Td>
+                      <Td borderTopRightRadius="12px" color="shade.1" textAlign="center" w="18%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
+                        <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          Acciones
+                        </Box>
+                      </Td>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -823,7 +862,7 @@ export default function Subject() {
                               }}
                               _hover={{ bg:  "#2e2e2e"}}
                             >
-                              Alumnos Presentados
+                              Presentados
                             </Button>
                             ) : (<Button 
                               colorScheme="blue" 

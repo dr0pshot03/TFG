@@ -41,7 +41,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 
 import html2canvas from "html2canvas";
@@ -168,6 +167,93 @@ export default function GlobalGraphics() {
     return subjectsWithExams.filter((asignatura) => selectedAsignaturaIds.includes(asignatura.id));
   }, [subjectsWithExams, selectedAsignaturaIds]);
 
+  const orderedSubjectsForChart = useMemo(() => {
+    return [...subjectsForChart].sort((a, b) => {
+      const nameComparison = a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+      if (nameComparison !== 0) {
+        return nameComparison;
+      }
+      return a.id.localeCompare(b.id);
+    });
+  }, [subjectsForChart]);
+
+  const getHueDistance = (a: number, b: number) => {
+    const diff = Math.abs(a - b);
+    return Math.min(diff, 360 - diff);
+  };
+
+  const buildDistinctRandomColors = (count: number) => {
+    if (count <= 0) {
+      return [];
+    }
+
+    const colors: string[] = [];
+    const usedHues: number[] = [];
+    const minHueDistance = 26;
+    const goldenAngle = 137.508;
+    const baseHue = Math.random() * 360;
+
+    for (let index = 0; index < count; index += 1) {
+      let attempt = 0;
+      let hue = (baseHue + index * goldenAngle) % 360;
+
+      while (
+        attempt < 8
+        && usedHues.some((used) => getHueDistance(used, hue) < minHueDistance)
+      ) {
+        hue = (hue + Math.random() * 40 + 10) % 360;
+        attempt += 1;
+      }
+
+      usedHues.push(hue);
+
+      const saturation = 65 + Math.floor(Math.random() * 16);
+      const lightness = 45 + Math.floor(Math.random() * 10);
+      colors.push(`hsl(${Math.round(hue)}, ${saturation}%, ${lightness}%)`);
+    }
+
+    return colors;
+  };
+
+  const normalizeSeriesKey = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
+
+  const chartSeries = useMemo(() => {
+    const seriesByKey = new Map<string, { key: string; label: string }>();
+
+    orderedSubjectsForChart.forEach((subject) => {
+      const key = normalizeSeriesKey(subject.nombre);
+      if (!seriesByKey.has(key)) {
+        seriesByKey.set(key, {
+          key,
+          label: subject.nombre,
+        });
+      }
+    });
+
+    const uniqueSeries = Array.from(seriesByKey.values());
+    const randomColors = buildDistinctRandomColors(uniqueSeries.length);
+
+    return uniqueSeries.map((series, index) => ({
+      ...series,
+      color: randomColors[index],
+    }));
+  }, [orderedSubjectsForChart]);
+
+  const subjectSeriesKeyById = useMemo(() => {
+    const map = new Map<string, string>();
+
+    subjectsForChart.forEach((subject) => {
+      map.set(subject.id, normalizeSeriesKey(subject.nombre));
+    });
+
+    return map;
+  }, [subjectsForChart]);
+
   // Filtra los datos según el usuario elija
   const filteredExamenes = useMemo(() => {
     return allExamenes.filter((examen) => {
@@ -198,9 +284,9 @@ export default function GlobalGraphics() {
     const convocatoriaOrder = ["Febrero", "Junio", "Septiembre", "Diciembre"];
 
     filteredExamenes.forEach((examen) => {
-      if (subjectsForChart.length > 0 && !subjectsForChart.some((s) => s.id === examen.id_asign)) {
-        return;
-      }
+      const seriesKey = subjectSeriesKeyById.get(examen.id_asign);
+      if (!seriesKey) return;
+
       const convocatoria = examen.convocatoria ?? "Sin convocatoria";
       const parsed = new Date(examen.fecha_examen as unknown as string);
       const yearValue = Number.isNaN(parsed.getTime()) ? 0 : parsed.getFullYear();
@@ -217,12 +303,12 @@ export default function GlobalGraphics() {
       const minutos =
         Number(examen.duracion_h ?? 0) * 60 + Number(examen.duracion_m ?? 0);
       const presentados = Number(examen.sesion?.[0]?.n_present ?? 0);
-      const currentValue = Number(current[examen.id_asign] ?? 0);
-      const presentadosKey = `presentados_${examen.id_asign}`;
+      const currentValue = Number(current[seriesKey] ?? 0);
+      const presentadosKey = `presentados_${seriesKey}`;
       const currentPresentadosValue = Number(current[presentadosKey] ?? 0);
       grouped.set(key, {
         ...current,
-        [examen.id_asign]: currentValue + minutos,
+        [seriesKey]: currentValue + minutos,
         [presentadosKey]: currentPresentadosValue + presentados,
       });
     });
@@ -240,15 +326,15 @@ export default function GlobalGraphics() {
         return labelA.localeCompare(labelB);
       })
       .map(({ label, ...rest }) => ({ label, ...rest }));
-  }, [filteredExamenes, subjectsForChart]);
+  }, [filteredExamenes, subjectSeriesKeyById]);
 
   // Prepara el eje Y, haciendo que vaya de 0.5 en 0.5
   const yAxisTicks = useMemo(() => {
     const step = 30;
-    const subjectIds = subjectsForChart.map((subject) => subject.id);
+    const seriesKeys = chartSeries.map((series) => series.key);
     const maxMinutes = chartData.reduce((max, item) => {
-      const currentMax = subjectIds.reduce((innerMax, subjectId) => {
-        const value = Number(item[subjectId] ?? 0);
+      const currentMax = seriesKeys.reduce((innerMax, seriesKey) => {
+        const value = Number(item[seriesKey] ?? 0);
         return Math.max(innerMax, value);
       }, 0);
       return Math.max(max, currentMax);
@@ -256,31 +342,8 @@ export default function GlobalGraphics() {
     const maxTick = Math.ceil(maxMinutes / step) * step;
     const count = maxTick / step + 1;
     return Array.from({ length: count }, (_, index) => index * step);
-  }, [chartData, subjectsForChart]);
+  }, [chartData, chartSeries]);
 
-
-  // Función que aleatoriza los colores de la leyenda.
-  const subjectColors = useMemo(() => {
-    const hashString = (value: string) => {
-      let hash = 10;
-      for (let i = 0; i < value.length; i += 1) {
-        hash = (hash << 5) - hash + value.charCodeAt(i);
-        hash |= 0;
-      }
-      return Math.abs(hash);
-    };
-
-    const toHsl = (seed: number) => {
-      const hue = seed % 360;
-      return `hsl(${hue}, 65%, 52%)`;
-    };
-
-    return subjectsForChart.reduce<Record<string, string>>((acc, subject) => {
-      const seed = hashString(subject.id);
-      acc[subject.id] = toHsl(seed);
-      return acc;
-    }, {});
-  }, [subjectsForChart]);
 
   const formatMinutes = (value?: number) => {
     const minutes = Number(value ?? 0);
@@ -307,45 +370,56 @@ export default function GlobalGraphics() {
     if (!chartRef.current) return;
     setIsExporting(true);
     try {
-      const canvas = await html2canvas(chartRef.current, {
+      const chartElement = chartRef.current;
+
+      if ("fonts" in document) {
+        await (document as Document & { fonts: FontFaceSet }).fonts.ready;
+      }
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+
+      const sourceCanvas = await html2canvas(chartElement, {
         scale: 2,
         backgroundColor: "#ffffff",
         useCORS: true,
+        width: chartElement.scrollWidth,
+        height: chartElement.scrollHeight,
+        windowWidth: chartElement.scrollWidth,
+        windowHeight: chartElement.scrollHeight,
       });
-      const imgData = canvas.toDataURL("image/png");
+
+      const imgData = sourceCanvas.toDataURL("image/png");
+      const canvasWidth = sourceCanvas.width;
+      const canvasHeight = sourceCanvas.height;
+      const horizontalPadding = 32;
+      const topPadding = 20;
+      const bottomPadding = 24;
+      const titleHeight = 118;
+      const titleGap = 12;
+      const pageWidth = canvasWidth + horizontalPadding * 2;
+      const pageHeight = canvasHeight + topPadding + titleHeight + titleGap + bottomPadding;
+
       const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "pt",
-        format: "a4",
+        orientation: pageWidth >= pageHeight ? "landscape" : "portrait",
+        unit: "px",
+        format: [pageWidth, pageHeight],
       });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 32;
-      const titleGap = 20;
+
       const title = selectedAsignaturaLabel === "Todas las asignaturas"
         ? "Histórico de asignaturas"
         : selectedAsignaturaLabel;
 
-      pdf.setFontSize(30);
+      pdf.setFontSize(76);
       const titleWidth = pdf.getTextWidth(title);
-      const titleX = Math.max((pageWidth - titleWidth) / 2, margin);
-      const titleY = margin+30;
+      const titleX = Math.max((pageWidth - titleWidth) / 2, horizontalPadding);
+      const titleY = topPadding + titleHeight - 20;
       pdf.text(title, titleX, titleY);
 
-      const maxWidth = pageWidth - margin * 2;
-      const maxHeight = pageHeight - titleY - titleGap - margin;
-      let imgWidth = maxWidth;
-      let imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      if (imgHeight > maxHeight) {
-        const scale = maxHeight / imgHeight;
-        imgWidth = imgWidth * scale;
-        imgHeight = imgHeight * scale;
-      }
-
-      const x = (pageWidth - imgWidth) / 2;
-      const y = titleY + titleGap + (maxHeight - imgHeight) / 2;
-      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+      const x = horizontalPadding;
+      const y = topPadding + titleHeight + titleGap;
+      pdf.addImage(imgData, "PNG", x, y, canvasWidth, canvasHeight);
 
       const safeName = (selectedAsignaturas.length === 1
         ? selectedAsignaturas[0].nombre
@@ -363,13 +437,13 @@ export default function GlobalGraphics() {
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
       <Link as={RouterLink} to="/" color="blue.600" >
-        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver a pagina principal</Text>
+        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver a la página principal</Text>
       </Link>
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full">
         <VStack align="center" spacing={2} mb={6} textAlign="center" marginBottom={"85"}>
           <Heading as="h1" size="lg">
-            Gráfica Histórica de los Tiempos de los Exámenes
+            Gráfica Histórica de los Tiempos de Exámenes
           </Heading>
         </VStack>
 
@@ -423,86 +497,113 @@ export default function GlobalGraphics() {
           <Box w="100%" display="flex" justifyContent="center" mb={3}>
             <Box
               bg="white"
-              border="1px solid"
-              borderColor="gray.200"
-              borderRadius="lg"
               px={3}
               py={2}
-              boxShadow="sm"
+              display="inline-block"
+              w="fit-content"
+              maxW="100%"
             >
-              <VStack align="start" spacing={1.5}>
-                <Flex align="center" gap={2}>
-                  <Box w="12px" h="12px" bg="#2f6fe4" borderRadius="2px" />
-                  <Text fontSize="xs">Barras: nº de horas</Text>
-                </Flex>
-                <Flex align="center" gap={2}>
-                  <Box w="10px" h="10px" bg="#2f6fe4" borderRadius="full" />
-                  <Text fontSize="xs">Círculos: nº de alumnos esperados</Text>
-                </Flex>
+              <VStack as="ul" align="start" spacing={1} m={0} p={0} listStyleType="none">
+                <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
+                  <Box as="span" color="#2f6fe4" fontSize="13px" lineHeight="18px" verticalAlign="baseline">
+                    ■
+                  </Box>
+                  <Box as="span" ml={2} verticalAlign="baseline">
+                    Barras: nº de horas
+                  </Box>
+                </Text>
+                <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
+                  <Box as="span" color="#2f6fe4" fontSize="12px" lineHeight="18px" verticalAlign="baseline">
+                    ●
+                  </Box>
+                  <Box as="span" ml={2} verticalAlign="baseline">
+                    Círculos: nº de alumnos presentados
+                  </Box>
+                </Text>
               </VStack>
             </Box>
           </Box>
 
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
-              <ComposedChart data={chartData} barCategoryGap="40%" barGap={8}>
-                <XAxis dataKey="label" textAnchor="middle" height={60} />
-                <YAxis
-                  ticks={yAxisTicks}
-                  domain={[0, yAxisTicks[yAxisTicks.length - 1] ?? 0]}
-                  tickFormatter={(value: number) => `${(value / 60).toFixed(1)} h`}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
-                  tickFormatter={(value: number) => `${value}`}
-                />
-                <Tooltip
-                  formatter={(value?: number, name?: string) => {
-                    if ((name ?? "").includes("Presentados")) {
-                      return [`${Number(value ?? 0)}`, "Presentados"];
-                    }
-                    return [
-                      formatMinutes(Number(value ?? 0)),
-                      name ?? "Duracion",
-                    ];
-                  }}
-                />
-                
-                <Legend
-                  layout="vertical"
-                  verticalAlign="middle"
-                  align="right"
-                />
-                
-                  
-                
-                {subjectsForChart.map((subject) => (
-                  <Bar
-                    key={subject.id}
-                    dataKey={subject.id}
-                    name={subject.nombre}
-                    fill={subjectColors[subject.id] ?? "#2f6fe4"}
+          <Flex w="100%" h="100%" align="stretch" gap={4}>
+            <Box flex="1" minW={0}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
+                <ComposedChart data={chartData} barCategoryGap="40%" barGap={8}>
+                  <XAxis dataKey="label" textAnchor="middle" height={60} />
+                  <YAxis
+                    ticks={yAxisTicks}
+                    domain={[0, yAxisTicks[yAxisTicks.length - 1] ?? 0]}
+                    tickFormatter={(value: number) => `${(value / 60).toFixed(1)} h`}
                   />
-                ))}
-                {subjectsForChart.map((subject) => (
-                  <Line
-                    key={`presentados_${subject.id}`}
-                    type="linear"
+                  <YAxis
                     yAxisId="right"
-                    dataKey={`presentados_${subject.id}`}
-                    name={`${subject.nombre} (Presentados)`}
-                    stroke={subjectColors[subject.id] ?? "#2f6fe4"}
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                    dot={{ r: 4, fill: subjectColors[subject.id] ?? "#2f6fe4" }}
-                    activeDot={{ r: 7 }}
-                    legendType="none"
-                    connectNulls
+                    orientation="right"
+                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
+                    tickFormatter={(value: number) => `${value}`}
                   />
+                  <Tooltip
+                    formatter={(value?: number, name?: string) => {
+                      if ((name ?? "").includes("Presentados")) {
+                        return [`${Number(value ?? 0)}`, "Presentados"];
+                      }
+                      return [
+                        formatMinutes(Number(value ?? 0)),
+                        name ?? "Duracion",
+                      ];
+                    }}
+                  />
+
+                  {chartSeries.map((series) => (
+                    <Bar
+                      key={series.key}
+                      dataKey={series.key}
+                      name={series.label}
+                      fill={series.color}
+                      barSize={18}
+                    />
+                  ))}
+                  {chartSeries.map((series) => (
+                    <Line
+                      key={`presentados_${series.key}`}
+                      type="linear"
+                      yAxisId="right"
+                      dataKey={`presentados_${series.key}`}
+                      name={`${series.label} (Presentados)`}
+                      stroke={series.color}
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      dot={{ r: 7, fill: series.color }}
+                      activeDot={{ r: 9 }}
+                      legendType="none"
+                      connectNulls
+                    />
+                  ))}
+                </ComposedChart>
+              </ResponsiveContainer>
+            </Box>
+
+            <Box w="320px" alignSelf="center" pr={2}>
+              <Box as="ul" listStyleType="none" m={0} p={0}>
+                {chartSeries.map((series) => (
+                  <Box
+                    as="li"
+                    key={series.key}
+                    minH="22px"
+                    mb="6px"
+                    whiteSpace="nowrap"
+                  >
+                    <Text fontSize="sm" lineHeight="22px" m={0} color="gray.800">
+                      <Box as="span" color={series.color} fontSize="15px" lineHeight="22px" verticalAlign="baseline">
+                        ■
+                      </Box>
+                      <Box as="span" ml={2} verticalAlign="baseline">
+                        {series.label}
+                      </Box>
+                    </Text>
+                  </Box>
                 ))}
-              </ComposedChart>
-            </ResponsiveContainer>
+              </Box>
+            </Box>
+          </Flex>
         </Box>
       </Container>  
 

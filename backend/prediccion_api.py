@@ -234,7 +234,8 @@ def train_and_predict(train_rows, entradas, caps=None):
 
     df_ml = df.dropna(subset=['PENDIENTES_PREV']).reset_index(drop=True)
     if df_ml.shape[0] == 0:
-        raise ValueError('Train dataset vacío después de preparar features')
+        df_ml = df.copy().reset_index(drop=True)
+        df_ml['PENDIENTES_PREV'] = df_ml['PENDIENTES_PREV'].fillna(0)
 
     dummies = pd.get_dummies(df_ml[['PERIODO', 'ASIGNATURA']], drop_first=True, dtype=int)
     X = pd.concat([df_ml[['PENDIENTES_PREV', 'CURSO_NORM']], dummies], axis=1)

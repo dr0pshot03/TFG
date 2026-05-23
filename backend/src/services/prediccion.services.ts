@@ -299,6 +299,26 @@ export async function computeFromHistorial(historial: HistRow[], targets?: Targe
             semestre: (h as any).semestre ?? undefined,
         }));
 
+        // 7) Intentar obtener capacidad esperada desde los examenes existentes
+        const examCapsByAsig = new Map<string, Map<string, number>>();
+        for (const asig of Array.from(lastMatriculadosByAsig.keys())) {
+            try {
+                const exams = await getAllExamenes(asig).catch(() => []);
+                const mapConv = new Map<string, number>();
+                for (const ex of exams) {
+                    const conv = String(ex.convocatoria ?? '').toUpperCase();
+                    const sum = (ex.aulaAlumnos ?? []).reduce((s: number, a: any) => s + (a.n_esperados ?? 0), 0);
+                    const sessionArr: any[] = (ex as any).sesion ?? [];
+                    const sessionCap = (sessionArr.length && (sessionArr[0]?.n_esperados ?? 0)) ? Number(sessionArr[0].n_esperados) : 0;
+                    const capVal = sessionCap > 0 ? sessionCap : Math.max(sum, mapConv.get(conv) ?? 0);
+                    mapConv.set(conv, capVal);
+                }
+                examCapsByAsig.set(asig, mapConv);
+            } catch (err) {
+                // ignore per-asig errors
+            }
+        }
+
         // 6) construir caps alineado con entradas y delegar en computePrediccion enviando train + entradas + caps
         const caps: Array<number | null> = generatedTargets.map((t) => {
             const asign = t.id_asignatura;
@@ -315,27 +335,6 @@ export async function computeFromHistorial(historial: HistRow[], targets?: Targe
         });
 
         const rawResults = await computePrediccion({ train, entradas, caps });
-
-        // 7) Intentar obtener capacidad esperada desde los examenes existentes
-        const examCapsByAsig = new Map<string, Map<string, number>>();
-        for (const asig of Array.from(lastMatriculadosByAsig.keys())) {
-            try {
-                const exams = await getAllExamenes(asig).catch(() => []);
-                const mapConv = new Map<string, number>();
-                for (const ex of exams) {
-                    const conv = String(ex.convocatoria ?? '').toUpperCase();
-                    const sum = (ex.aulaAlumnos ?? []).reduce((s: number, a: any) => s + (a.n_esperados ?? 0), 0);
-                    // priorizar estrictamente n_esperados de la sesión (si existe), sino usar suma de aulaAlumnos
-                    const sessionArr: any[] = (ex as any).sesion ?? [];
-                    const sessionCap = (sessionArr.length && (sessionArr[0]?.n_esperados ?? 0)) ? Number(sessionArr[0].n_esperados) : 0;
-                    const capVal = sessionCap > 0 ? sessionCap : Math.max(sum, mapConv.get(conv) ?? 0);
-                    mapConv.set(conv, capVal);
-                }
-                examCapsByAsig.set(asig, mapConv);
-            } catch (err) {
-                // ignore per-asig errors
-            }
-        }
 
         // 8) Post-procesado: recortar predicciones usando capacidad del examen si existe, sino último n_matriculados
         const clipped = rawResults.map((r: any, idx: number) => {

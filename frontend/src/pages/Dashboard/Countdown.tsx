@@ -24,7 +24,8 @@ import {
   Input,
   ModalFooter,
   Grid, 
-  GridItem
+  GridItem,
+  HStack
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
@@ -288,10 +289,8 @@ export default function Countdown() {
     const intermedias = siguientesPartes
       .slice(0, relativeIndex)
       .reduce((acc, p) => acc + toSeconds(p), 0);
-
-    const baseTimeLeft = hasExtra25
-      ? Math.max(timeLeft - EXTRA_TOTAL_SECONDS, 0)
-      : timeLeft;
+    
+    const baseTimeLeft = timeLeft;
 
     return baseTimeLeft + intermedias;
   };
@@ -302,6 +301,7 @@ export default function Countdown() {
       return;
     }
     setHasExtra25(true);
+    console.log("handle25" + hasExtra25)
     setTimeLeft((prev) => prev + Math.floor(TOTAL_SECONDS_INITIAL * 0.25));
     const payload = {
       id_sesion: idSesion!,
@@ -336,9 +336,14 @@ export default function Countdown() {
     <Box bg="white" w="100%"> 
       <NavBar />   
 
-      <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
-        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver atrás</Text>
-      </Link>
+      <HStack spacing={1}>
+        <Link as={RouterLink} to={`/dashboard`} color="blue.600">
+          <Text fontSize={"md"} mt={"5"} ml={"3"}> &lt;  Volver a inicio </Text>
+        </Link>
+        <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
+          <Text fontSize={"md"} mt={"5"} > &lt; {asignatura?.nombre} </Text>
+        </Link>
+      </HStack> 
       
       <Container maxW="100%" >
         <Grid
@@ -409,7 +414,7 @@ export default function Countdown() {
           </Box>
         </Flex>
 
-        <Flex justify={"center"} mt={"5"}>
+        <Flex justify={"center"} mt={"5"} mb={"35"}>
           <Button 
             colorScheme="teal" 
             size="lg" 
@@ -548,7 +553,7 @@ export default function Countdown() {
       >
           <ModalOverlay />
             <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"}>
-              <ModalHeader textAlign={"center"}>¿Hay alumnos con el 25%?</ModalHeader>
+              <ModalHeader textAlign={"center"}> ¿Hay algún alumno con adaptación de tiempo (+25%) para el examen?</ModalHeader>
               <ModalBody >
                 <Flex justifyContent={"center"} mb={"3"}>
                   <Button 

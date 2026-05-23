@@ -4,6 +4,7 @@ import {
   Box,
   Text,
   VStack,
+  HStack,
   Table,
   TableContainer,
   Thead,
@@ -65,15 +66,17 @@ export default function Logs() {
       });
     };
 
-
-
     return (
-      <Box>
-        
+      <Box> 
         <NavBar></NavBar>
-        <Link as={RouterLink} to={`/asignatura/${examen?.id_asign}`} color="blue.600">
-          <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard &lt; {asignatura?.nombre} </Text>
-        </Link>
+        <HStack spacing={1}>
+          <Link as={RouterLink} to={`/dashboard`} color="blue.600">
+            <Text fontSize={"md"} mt={"5"} ml={"3"}> &lt;  Volver al inicio  </Text>
+          </Link>
+          <Link as={RouterLink} to={`/asignatura/${examen?.id_asign}`} color="blue.600">
+            <Text fontSize={"md"} mt={"5"} > &lt; {asignatura?.nombre} </Text>
+          </Link>
+        </HStack> 
         <Container maxW="full" py={10}>
           <Flex 
           justify="center" 

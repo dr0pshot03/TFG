@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x", "debian-openssl-3.0.x"]
   //output   = "../generated/prisma"
 }
 
@@ -65,8 +66,8 @@ enum Convocatoria{
 }
 
 enum Tipo_Convocatoria{
-  Ordinaria
-  Extraordinaria
+  Ordinario
+  Especial
 }
 
 model Examen {
@@ -79,7 +80,7 @@ model Examen {
   duracion_m  Int
 
   finalizado Boolean @default(false)
-  tipo_convocatoria Tipo_Convocatoria @default(Ordinaria)
+  tipo_convocatoria Tipo_Convocatoria @default(Ordinario)
   
   created_at  DateTime @default(now())
   updated_at DateTime @updatedAt

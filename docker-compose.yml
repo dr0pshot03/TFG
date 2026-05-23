@@ -48,6 +48,22 @@ services:
       - app-network
     restart: unless-stopped
 
+  # ML prediction service (FastAPI)
+  ml:
+    build:
+      context: ./backend/ml
+      dockerfile: Dockerfile
+    container_name: timeexam-ml
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend:/app/backend
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
   # Frontend (React + Vite + Nginx)
   frontend:
     build:

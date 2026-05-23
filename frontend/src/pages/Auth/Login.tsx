@@ -167,7 +167,11 @@ export default function Login() {
             
           } as UpdateUsuario;
 
-          await dispatch.userModel.updateUsuario(payload);
+          const updated = await dispatch.userModel.updateUsuario(payload);
+          if (updated === false) {
+            setError("No se pudo sincronizar el usuario con la base de datos.");
+            return;
+          }
 
           navigate("/dashboard");
         } else {
@@ -205,17 +209,48 @@ export default function Login() {
           
         } as Usuario;
 
-        await dispatch.userModel.createUsuario(payload)
+        const created = await dispatch.userModel.createUsuario(payload);
+        if (created === false) {
+          setError("No se pudo guardar el usuario en la base de datos.");
+          return;
+        }
 
         navigate("/dashboard");
       } else {
         setError("Codigo incorrecto o expirado.");
       }
     } catch (err: unknown) {
-      const message =
+      let message =
         err && typeof err === "object" && "errors" in err
           ? (err as { errors?: Array<{ message?: string }> }).errors?.[0]?.message
           : "Ocurrio un error. Revisa los datos.";
+
+      if (typeof message === "string") {
+        const lower = message.toLowerCase();
+        if (
+          lower.includes("password is incorrect") ||
+          lower.includes("wrong password") ||
+          lower.includes("invalid password")
+        ) {
+          message = "Contraseña incorrecta. Revisa tus credenciales.";
+        } else if (
+          lower.includes("data breach") ||
+          lower.includes("found in a data breach") ||
+          lower.includes("found in breach") ||
+          lower.includes("compromised") ||
+          lower.includes("pwned") ||
+          (lower.includes("password") && lower.includes("breach"))
+        ) {
+          message = "La contraseña se ha encontrado en una brecha de datos. Elige otra contraseña.";
+        }  else if (
+          lower.includes("couldn't find")
+        ) {
+          message = "No se encontró el usuario. Revisa el correo y contraseña.";
+        } else if (lower.includes("user not found") || (lower.includes("not found") && lower.includes("user"))) {
+          message = "Usuario no encontrado.";
+        }
+      }
+
       setError(message ?? "Ocurrio un error. Revisa los datos.");
     } finally {
       setIsLoading(false);
@@ -399,7 +434,7 @@ export default function Login() {
 
                     {mode === "signup" && isVerifying ? (
                       <FormControl isRequired>
-                        <FormLabel>Codigo de verificacion</FormLabel>
+                        <FormLabel>Código de verificacion</FormLabel>
                         <Input
                           value={code}
                           onChange={(event) => setCode(event.target.value)}
@@ -411,7 +446,7 @@ export default function Login() {
                     {mode === "signin" && isRecoveringPassword && isRecoveryCodeSent ? (
                       <>
                         <FormControl isRequired> 
-                          <FormLabel>Codigo de recuperacion</FormLabel>
+                          <FormLabel>Código de recuperacion</FormLabel>
                           <Input
                             value={recoveryCode}
                             onChange={(event) => setRecoveryCode(event.target.value)}

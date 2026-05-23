@@ -33,6 +33,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { CreateSesionInput, UpdateSesionInput } from "@/types/sesion.type";
 import { useAuth } from "@clerk/clerk-react";
 import type { historico } from "@/types/historico.type";
+import { useToast } from "@chakra-ui/react";
 
 export default function Subject() {
   const dispatch = useDispatch<IDispatch>();
@@ -50,9 +51,11 @@ export default function Subject() {
   const [examenID, setExamenID] = useState("");
   const [finalizado, setFinalizado] = useState(false);
   const [selectedSesionId, setSelectedSesionId] = useState<string | null>(null);
+  const [historicoRelacionadoPresentados, setHistoricoRelacionadoPresentados] = useState<historico | null>(null);
 
   const asignatura =  useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
   const examenes =  useSelector((state: IRootState) => state.examenModel.examenes);
+  
 
   const [ presentados, setPresentados ] = useState("");
   const [ aprobados, setAprobados ] = useState("");
@@ -115,6 +118,7 @@ export default function Subject() {
   };
   
   const [currentStep, setCurrentStep] = useState(0);
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   const agregarAula = () => {
     if (!formValues.aula.trim()) return;
@@ -152,6 +156,8 @@ export default function Subject() {
     dispatch.examenModel.getExamenes(id!);
     dispatch.asignaturaModel.getAsignatura(id!);
   }, [dispatch, id]);
+
+  const toast = useToast();
 
   const handleSubmit = async () => {
     // Calcular duración total del examen sumando todas las partes
@@ -192,6 +198,29 @@ export default function Subject() {
     } as CreateExamenInput; 
 
   try {
+    // Validación: en el mismo curso y convocatoria solo puede haber un examen por tipo (Ordinario/Especial)
+    const nuevoCurso = getCursoFromFechaExamen(formValues.fecha_examen);
+    const existeMismoTipo = examenes.some((ex) => {
+      const cursoEx = getCursoFromFechaExamen(ex.fecha_examen);
+      return (
+        ex.convocatoria === formValues.convocatoria &&
+        cursoEx === nuevoCurso &&
+        ex.tipo_convocatoria === formValues.tipoConvocatoria
+      );
+    });
+
+    if (existeMismoTipo) {
+      toast({
+        title: "Límite alcanzado",
+        description: `Ya existe un examen de llamamiento ${formValues.tipoConvocatoria} para la convocatoria ${formValues.convocatoria} en el curso ${nuevoCurso}.`,
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
+      return;
+    }
+
     const nuevoExamen = await dispatch.examenModel.createExamen(payload);
 
     const payload2 = {
@@ -223,6 +252,14 @@ export default function Subject() {
     setFormValues({ convocatoria: "", partes: 0, fecha_examen: "", aula: "", n_esperados: 0, tipoConvocatoria: "" });
     setAulasData([]);
     setPartesData([]);
+    toast({
+      title: "Examen creado",
+      description: `El examen se ha creado correctamente.`,
+      status: "success",
+      duration: 4000,
+      isClosable: true,
+      position: "top-right",
+    });
     handleCloseAdd();
   } catch (e) {
     console.error("Error al guardar cambios", e);
@@ -389,6 +426,14 @@ export default function Subject() {
       }
 
       await dispatch.examenModel.getExamenes(id!);
+      toast({
+        title: "Examen actualizado",
+        description: `El examen se ha actualizado correctamente.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
       handleCloseEdit();
     } catch (e) {
       console.error("Error al actualizar el examen", e);
@@ -397,9 +442,34 @@ export default function Subject() {
 
   const handleDelete = async () => {
     try {
+      // Buscar el examen a borrar en la lista actual
+      const examenAEliminar = examenes.find((ex) => ex.id === examenID);
+
+      // Si el examen existe y está finalizado, buscar el histórico relacionado y borrarlo primero
+      if (examenAEliminar && examenAEliminar.finalizado) {
+        const historicoRelacionado = await cargarHistoricoRelacionadoPresentados(examenAEliminar);
+        if (historicoRelacionado && historicoRelacionado.id) {
+          await dispatch.historicoModel.deleteHistorico(historicoRelacionado.id);
+        }
+      }
+
+      // Borrar el examen
       await dispatch.examenModel.deleteExamen(examenID!);
       await dispatch.examenModel.getExamenes(id!);
+
+      toast({
+        title: "Examen eliminado",
+        description: `El examen se ha eliminado correctamente.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
       onCloseOptions();
+      onCloseDelete();
+
+      // Limpiar estado local relacionado
+      setHistoricoRelacionadoPresentados(null);
     } catch (e) {
       console.error("Error al eliminar la asignatura", e);
     }
@@ -473,7 +543,7 @@ export default function Subject() {
   }).sort((a, b) => {
     const fechaA = new Date(a.fecha_examen).getTime();
     const fechaB = new Date(b.fecha_examen).getTime();
-    return fechaA - fechaB;
+    return sortOrder === "desc" ? fechaB - fechaA : fechaA - fechaB;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredExamenes.length / ITEMS_PER_PAGE));
@@ -488,6 +558,26 @@ export default function Subject() {
     }
   }, [currentPage, totalPages]);
 
+  const cargarHistoricoRelacionadoPresentados = async (examenSeleccionado: (typeof examenes)[number]): Promise<historico | null> => {
+    if (!id) {
+      setHistoricoRelacionadoPresentados(null);
+      return null;
+    }
+
+    const historicos = (await dispatch.historicoModel.getHistorico(id)) as historico[] | undefined;
+    const curso = getCursoFromFechaExamen(examenSeleccionado.fecha_examen);
+    const historicoRelacionado = historicos?.find(
+      (item) =>
+        item.id_asignatura === id &&
+        item.curso === curso &&
+        item.convocatoria === examenSeleccionado.convocatoria &&
+        item.tipo_convocatoria === examenSeleccionado.tipo_convocatoria
+    );
+
+    setHistoricoRelacionadoPresentados(historicoRelacionado ?? null);
+    return historicoRelacionado ?? null;
+  };
+
   const handlePresentados = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const present = event.target.value;
 
@@ -495,26 +585,6 @@ export default function Subject() {
       setPresentados("");
       setMayorPresentados(false);
       return;
-    }
-
-    const selectedExamen = examenes.find((item) => item.id === examenID);
-    if (!selectedExamen || !id) return;
-
-    const historicos = (await dispatch.historicoModel.getHistorico(id)) as historico[] | undefined;
-    const curso = getCursoFromFechaExamen(selectedExamen.fecha_examen);
-    const historicoRelacionado = historicos?.find(
-      (item) =>
-        item.id_asignatura === id &&
-        item.curso === curso &&
-        item.convocatoria === selectedExamen.convocatoria &&
-        item.tipo_convocatoria === selectedExamen.tipo_convocatoria
-    );
-
-    if (historicoRelacionado) {
-      await dispatch.historicoModel.updateHistorico({
-        id: historicoRelacionado.id,
-        n_presentados: Number(present),
-      });
     }
 
     if (!/^\d+$/.test(present)) return;
@@ -549,18 +619,6 @@ export default function Subject() {
   const handleUpdatePresentados = async () => {
     if (!examenID) return;
     if (!selectedSesionId) return;
-    const selectedExamen = examenes.find((item) => item.id === examenID);
-    if (!selectedExamen || !id) return;
-
-    const historicos = (await dispatch.historicoModel.getHistorico(id)) as historico[] | undefined;
-    const curso = getCursoFromFechaExamen(selectedExamen.fecha_examen);
-    const historicoRelacionado = historicos?.find(
-      (item) =>
-        item.id_asignatura === id &&
-        item.curso === curso &&
-        item.convocatoria === selectedExamen.convocatoria &&
-        item.tipo_convocatoria === selectedExamen.tipo_convocatoria
-    );
 
     const payload: UpdateSesionInput = {
       id: selectedSesionId,
@@ -569,19 +627,21 @@ export default function Subject() {
     };
     await dispatch.sesionModel.updateHistorico(payload);
 
-    if (historicoRelacionado) {
+    if (historicoRelacionadoPresentados) {
       const presentadosNum = presentados === "" ? 0 : Number(presentados);
       const aprobadosNum = aprobados === "" ? 0 : Number(aprobados);
       const porcentajeAprobados = presentadosNum > 0 ? (aprobadosNum / presentadosNum) * 100 : 0;
 
       await dispatch.historicoModel.updateHistorico({
-        id: historicoRelacionado.id,
+        id: historicoRelacionadoPresentados.id,
         porcentaje_aprobados: porcentajeAprobados,
+        n_presentados: presentadosNum,
       });
     }
 
     await dispatch.examenModel.getExamenes(id!);
     setAux(0);
+    setHistoricoRelacionadoPresentados(null);
     onClosePresentados();
   };
 
@@ -592,7 +652,7 @@ export default function Subject() {
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
       <Link as={RouterLink} to={`/`} color="blue.600">
-        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Dashboard</Text>
+        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Volver al inicio </Text>
       </Link>
       {/* --- 2. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
@@ -717,7 +777,10 @@ export default function Subject() {
                     <Tr bg="shade.2" w="100%">
                       <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
                         <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                          Fecha de Examen
+                          <Flex align="center" justify="center" cursor="pointer" onClick={() => setSortOrder(prev => prev === "desc" ? "asc" : "desc") }>
+                            <Text mr={2}>Fecha de Examen</Text>
+                            <Text fontSize="sm">{sortOrder === "desc" ? "▼" : "▲"}</Text>
+                          </Flex>
                         </Box>
                       </Td>
                       <Td color="shade.1" textAlign="center" w="11%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
@@ -727,7 +790,7 @@ export default function Subject() {
                       </Td>
                       <Td color="shade.1" textAlign="center" w="12%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
                         <Box w="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                          Tipo de Convocatoria
+                          Tipo de Llamamiento
                         </Box>
                       </Td>
                       <Td color="shade.1" textAlign="center" w="6%" fontWeight={"bold"} borderBottom={"1px solid #aaaaaa"} fontSize={cellFontSize} px={2} py={3} overflow="hidden">
@@ -852,12 +915,13 @@ export default function Subject() {
                               minW={{ base: "100%", lg: "90px" }}
                               borderRadius="full" 
                               bg="#000000"
-                              onClick={() => {
+                              onClick={async () => {
                                 setExamenID(examen.id);
                                 setSelectedSesionId(examen.sesion?.[0]?.id ?? null);
                                 setAux(examen.sesion?.[0]?.n_esperados ?? 0);
                                 setPresentados((examen.sesion?.[0]?.n_present ?? 0) > 0 ? String(examen.sesion?.[0]?.n_present) : "");
                                 setAprobados((examen.sesion?.[0]?.n_aprobados ?? 0) > 0 ? String(examen.sesion?.[0]?.n_aprobados) : "");
+                                await cargarHistoricoRelacionadoPresentados(examen);
                                 onOpenPresentados();
                               }}
                               _hover={{ bg:  "#2e2e2e"}}
@@ -984,7 +1048,7 @@ export default function Subject() {
                 <Button 
                     colorScheme='blue' 
                     onClick={handleUpdatePresentados}
-                    _hover={{bgcolor:"red"}}
+                    
                     isDisabled={mayorAprobados || mayorPresentados || mayorAprobadosPresentados}
                   >
                     Añadir
@@ -995,8 +1059,17 @@ export default function Subject() {
 
         <Modal isOpen={isOpenAdd} onClose={handleCloseAdd} isCentered>
           <ModalOverlay />
-            <ModalContent justifyContent={"center"} alignContent={"center"} borderRadius={"20px"} minW={"70vh"}>
-              <ModalHeader textAlign={"center"} fontSize={"x-large"}>
+            <ModalContent
+              justifyContent={"center"}
+              alignContent={"center"}
+              borderRadius={"20px"}
+              w={{ base: "92%", sm: "88%", md: "70vw" }}
+              maxW="900px"
+              maxH="90vh"
+              overflowY="auto"
+              p={{ base: 4, md: 6 }}
+            >
+              <ModalHeader textAlign={"center"} fontSize={"x-large"} mt={-5}>
                 {currentStep === 0 ? "Añadir examen" : `Parte ${currentStep} de ${formValues.partes}`}
               </ModalHeader>
               <Text fontSize={"sm"} textAlign={"center"} mt={"-3.5"}>
@@ -1008,7 +1081,7 @@ export default function Subject() {
                   <VStack spacing={5} py={4}>
                   <FormControl isRequired>
                     <Flex justify={"space-between"} gap={4}>
-                      <Box w="48%">
+                      <Box w="50%">
                         <FormLabel fontWeight="semibold">Convocatoria</FormLabel>
                         <Select
                           id="convocatoria" 
@@ -1026,7 +1099,7 @@ export default function Subject() {
                           <option value="Diciembre">Diciembre</option>
                         </Select>
                       </Box>
-                      <Box w="48%">
+                      <Box w="50%">
                         <FormLabel fontWeight="semibold">Fecha del Examen</FormLabel>
                         <Input
                           id="fecha_examen" 
@@ -1069,19 +1142,19 @@ export default function Subject() {
                         </Select>
                       </Box>
                       <Box w="50%">
-                        <FormLabel fontWeight="semibold">Tipo de Convocatoria</FormLabel>
+                        <FormLabel fontWeight="semibold">Tipo de Llamamiento</FormLabel>
                         <Select
                           id="tipoConvocatoria" 
                           name="tipoConvocatoria" 
                           value={formValues.tipoConvocatoria}
                           onChange={handleFormChange}
-                          placeholder="Elige el tipo de convocatoria" 
+                          placeholder="Elige el tipo de llamamiento" 
                           size="lg"      
                           borderRadius="xl"    
                           focusBorderColor="blue.500"
                         >
-                          <option value="Ordinaria">Ordinaria</option>
-                          <option value="Extraordinaria">Extraordinaria</option>
+                          <option value="Ordinario">Ordinario</option>
+                          <option value="Especial">Especial</option>
                         </Select>
                       </Box>
                     </Flex>
@@ -1336,19 +1409,19 @@ export default function Subject() {
                         />
                       </Box>
                       <Box w="50%">
-                        <FormLabel fontWeight="semibold">Tipo de Convocatoria</FormLabel>
+                        <FormLabel fontWeight="semibold">Tipo de Llamamiento</FormLabel>
                         <Select
                           id="tipoConvocatoria" 
                           name="tipoConvocatoria" 
                           value={editExamenValues.tipoConvocatoria}
                           onChange={handleEditExamenChange}
-                          placeholder="Elige el tipo de convocatoria" 
+                          placeholder="Elige el tipo de llamamiento" 
                           size="lg"      
                           borderRadius="xl"    
                           focusBorderColor="blue.500"
                         >
-                          <option value="Ordinaria">Ordinaria</option>
-                          <option value="Extraordinaria">Extraordinaria</option>
+                          <option value="Ordinario">Ordinario</option>
+                          <option value="Especial">Especial</option>
                         </Select>
                       </Box>
                     </Flex>
@@ -1550,19 +1623,19 @@ export default function Subject() {
                   <FormControl>
                     <Flex justify={"space-between"} gap={4}>
                       <Box w="100%">
-                        <FormLabel fontWeight="semibold">Tipo de Convocatoria</FormLabel>
+                        <FormLabel fontWeight="semibold">Tipo de Llamamiento</FormLabel>
                         <Select
                           id="tipoConvocatoria" 
                           name="tipoConvocatoria" 
                           value={filtersValues.tipoConvocatoria}
                           onChange={handleFiltersChange}
-                          placeholder="Elige el tipo de convocatoria" 
+                          placeholder="Elige el tipo de llamamiento" 
                           size="lg"      
                           borderRadius="xl"    
                           focusBorderColor="blue.500"
                         >
-                          <option value="Ordinaria">Ordinaria</option>
-                          <option value="Extraordinaria">Extraordinaria</option>
+                          <option value="Ordinario">Ordinario</option>
+                          <option value="Especial">Especial</option>
                         </Select>
                       </Box>
                     </Flex>
@@ -1594,7 +1667,7 @@ export default function Subject() {
                     bgColor={"red"}
                     mr={3}
                     onClick={onOpenDelete}
-                    _hover={{bgcolor:"red"}}
+                    _hover={{ bg: "#b71c1c" }}
                   >
                     Eliminar examen
                   </Button>
@@ -1634,9 +1707,9 @@ export default function Subject() {
                     bgColor={"red"}
                     mr={3}
                     onClick={handleDelete}
-                    _hover={{bgcolor:"red"}}
+                    _hover={{ bg: "#b71c1c" }}
                   >
-                    Eliminar asignatura
+                    Eliminar examen
                   </Button>
 
                   <Button 

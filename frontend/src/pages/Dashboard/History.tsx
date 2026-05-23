@@ -26,6 +26,7 @@ import {
   ModalBody,
   ModalCloseButton,
   Checkbox,
+  Tooltip,
   useDisclosure,
   Link
 } from "@chakra-ui/react";
@@ -237,10 +238,10 @@ export default function History() {
     <Box>
       <NavBar></NavBar>
       <Link as={RouterLink} to={`/`} color="blue.600">
-        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Volver a la página principal </Text>
+        <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Volver al inicio </Text>
       </Link>
       {selectedScope === "mine" ? (
-        <Container maxW="80%" py={8}>
+        <Container maxW="95%" py={8}>
           <VStack align="stretch" spacing={6}>
             <Flex align="center" justify="space-between" wrap="wrap" gap={3}>
               <Heading size="lg">Histórico de mis asignaturas</Heading>
@@ -300,7 +301,18 @@ export default function History() {
                       <Text color="gray.500">Sin registros en el histórico.</Text>
                     ) : (
                       <TableContainer>
-                        <Table size="sm" sx={{ tableLayout: "fixed", width: "100%" }}>
+                          <Table
+                            size="sm"
+                            sx={{
+                              tableLayout: "fixed",
+                              width: "100%",
+                              "& td, & th": {
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              },
+                            }}
+                          >
                           <Thead>
                             <Tr>
                               <Th w="15%">Curso</Th>
@@ -335,7 +347,7 @@ export default function History() {
       ) : null}
 
       {selectedScope === "other" ? (
-        <Container maxW="80%" py={8}>
+        <Container maxW="95%" py={8}>
           <VStack align="stretch" spacing={6}>
             <Flex align="center" justify="space-between" wrap="wrap" gap={3}>
               <Heading size="lg">Histórico de otro profesor</Heading>
@@ -404,7 +416,18 @@ export default function History() {
                     })() : null}
 
                     <TableContainer>
-                      <Table size="sm" sx={{ tableLayout: "fixed", width: "100%" }}>
+                          <Table
+                            size="sm"
+                            sx={{
+                              tableLayout: "fixed",
+                              width: "100%",
+                              "& td, & th": {
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              },
+                            }}
+                          >
                         <Thead>
                           <Tr>
                             <Th w="20%">Profesor</Th>
@@ -418,15 +441,39 @@ export default function History() {
                         </Thead>
                         <Tbody>
                           {filteredRows.map((item) => (
-                            <Tr key={item.id}>
-                              <Td>{item.nombre_p} {item.apellidos_p}</Td>
-                              <Td>{item.curso}</Td>
-                              <Td>{item.convocatoria}</Td>
-                              <Td>{item.tipo_convocatoria}</Td>
-                              <Td isNumeric>{item.n_matriculados}</Td>
-                              <Td isNumeric>{item.n_presentados}</Td>
-                              <Td isNumeric>{formatPercent(item.porcentaje_aprobados)}</Td>
-                            </Tr>
+                              <Tr key={item.id}>
+                                <Td>
+                                  <Tooltip label={`${item.nombre_p} ${item.apellidos_p}`} hasArrow>
+                                    <Text noOfLines={1} maxW="220px" overflow="hidden" textOverflow="ellipsis">
+                                      {item.nombre_p} {item.apellidos_p}
+                                    </Text>
+                                  </Tooltip>
+                                </Td>
+                                <Td>
+                                  <Tooltip label={item.curso} hasArrow>
+                                    <Text noOfLines={1} maxW="90px" overflow="hidden" textOverflow="ellipsis">
+                                      {item.curso}
+                                    </Text>
+                                  </Tooltip>
+                                </Td>
+                                <Td>
+                                  <Tooltip label={item.convocatoria} hasArrow>
+                                    <Text noOfLines={1} maxW="120px" overflow="hidden" textOverflow="ellipsis">
+                                      {item.convocatoria}
+                                    </Text>
+                                  </Tooltip>
+                                </Td>
+                                <Td>
+                                  <Tooltip label={item.tipo_convocatoria} hasArrow>
+                                    <Text noOfLines={1} maxW="120px" overflow="hidden" textOverflow="ellipsis">
+                                      {item.tipo_convocatoria}
+                                    </Text>
+                                  </Tooltip>
+                                </Td>
+                                <Td isNumeric>{item.n_matriculados}</Td>
+                                <Td isNumeric>{item.n_presentados}</Td>
+                                <Td isNumeric>{formatPercent(item.porcentaje_aprobados)}</Td>
+                              </Tr>
                           ))}
                         </Tbody>
                       </Table>

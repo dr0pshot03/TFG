@@ -33,6 +33,7 @@ import type { Examen } from "@/types/examen.type";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import api from "@/configs/axios";
+import { useToast } from "@chakra-ui/react";
 
 export default function Dashboard() {
   const dispatch = useDispatch<IDispatch>();
@@ -58,6 +59,9 @@ export default function Dashboard() {
   });
   const [isExporting, setIsExporting] = useState(false);
   const [exportExamenes, setExportExamenes] = useState<Examen[]>([]);
+  const [asignaturasConExamenes, setAsignaturasConExamenes] = useState<Set<string>>(new Set());
+
+  const toast = useToast();
 
   const [selectedAsignaturaId, setSelectedAsignaturaId] = useState<string | null>(null);
 
@@ -107,6 +111,14 @@ export default function Dashboard() {
     try {
       await dispatch.asignaturaModel.createAsignatura(payload);
       await dispatch.asignaturaModel.getAsignaturas(userId!);
+      toast({
+        title: "Asignatura creada",
+        description: `La asignatura "${payload.nombre}" se ha creado correctamente.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
       setFormValues({ nombre: "", descripcion: "" });
       onCloseAdd();
     } catch (e) {
@@ -118,6 +130,15 @@ export default function Dashboard() {
     try {
       await dispatch.asignaturaModel.deleteAsignatura(selectedAsignaturaId!);
       await dispatch.asignaturaModel.getAsignaturas(userId!);
+      const deletedName = formValues.nombre || "";
+      toast({
+        title: "Asignatura eliminada",
+        description: `La asignatura "${deletedName}" se ha eliminado correctamente.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
       setFormValues({ nombre: "", descripcion: "" });
       onCloseDelete();
       onCloseEdit();
@@ -141,6 +162,14 @@ export default function Dashboard() {
     try {
       await dispatch.asignaturaModel.updateAsignatura(payload);
       await dispatch.asignaturaModel.getAsignaturas(userId!);
+      toast({
+        title: "Asignatura actualizada",
+        description: `La asignatura "${payload.nombre}" se ha actualizado correctamente.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
       setFormValues({ nombre: "", descripcion: "" });
       setSelectedAsignaturaId(null);
       onCloseEdit();
@@ -184,7 +213,14 @@ export default function Dashboard() {
       const examenesAsignatura: Examen[] = response.data ?? [];
 
       if (examenesAsignatura.length === 0) {
-        console.error("No hay exámenes para exportar");
+        toast({
+          title: "No hay exámenes",
+          description: "No se puede exportar: todavía no has registrado ningún examen para esta asignatura.",
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+          position: "top-right"
+        });
         return;
       }
 
@@ -253,6 +289,33 @@ export default function Dashboard() {
       setIsExporting(false);
     }
   };
+
+  useEffect(() => {
+    let active = true;
+    const loadAsignaturasWithExams = async () => {
+      if (asignaturas.length === 0) {
+        if (active) setAsignaturasConExamenes(new Set());
+        return;
+      }
+      try {
+        const responses = await Promise.all(
+          asignaturas.map((a) => api.get(`/examen/asignatura/${a.id}`).catch(() => ({ data: [] })))
+        );
+        const ids = new Set<string>();
+        responses.forEach((res, idx) => {
+          const data = res?.data ?? [];
+          if (Array.isArray(data) && data.length > 0) {
+            ids.add(asignaturas[idx].id);
+          }
+        });
+        if (active) setAsignaturasConExamenes(ids);
+      } catch (e) {
+        if (active) setAsignaturasConExamenes(new Set());
+      }
+    };
+    loadAsignaturasWithExams();
+    return () => { active = false; };
+  }, [asignaturas]);
 
   return (
     <Box bg="white" w="100%" minH="100vh"> 
@@ -589,7 +652,7 @@ export default function Dashboard() {
                 <Button 
                   colorScheme='blue' 
                   bgColor={"red"}
-                  _hover={{bg:"red"}}
+                  _hover={{ bg: "#b71c1c" }}
                   mr={3}
                   onClick={onOpenDelete}
                   isDisabled={!formValues.nombre.trim()}
@@ -623,7 +686,7 @@ export default function Dashboard() {
                     mr={3}
                     onClick={handleDelete}
                     isDisabled={!formValues.nombre.trim()}
-                    _hover={{bgcolor:"red"}}
+                    _hover={{ bg: "#b71c1c" }}
                   >
                     Eliminar asignatura
                   </Button>

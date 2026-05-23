@@ -36,4 +36,4 @@ export interface UpdateExamenInput extends Partial<Omit<Examen, "id" | "sesion">
 
 export type Convocatoria = "Diciembre" | "Febrero" | "Junio" | "Septiembre";
 
-export type Tipo_Convocatoria = "Ordinaria" | "Extraordinaria";
+export type Tipo_Convocatoria = "Ordinario" | "Especial";

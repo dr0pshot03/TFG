@@ -175,6 +175,26 @@ const prediccionModel = createModel<IRootModel>() ({
       dispatch.prediccionModel.addValue({ key:"loading", value: false })
       return res;
     },
+    async predictAsignatura(payload: { id: string; targets: any[]; debug?: boolean }, state) {
+      dispatch.prediccionModel.addValue({ key: "loading", value: true });
+      const { id, targets, debug } = payload;
+      try {
+        const res = await api.post(`/prediccion/asignatura/${id}${debug ? '?debug=true' : ''}`, { targets });
+        dispatch.prediccionModel.addValue({ key: "loading", value: false });
+        return res.data;
+      } catch (error: any) {
+        state.toastModel.toast &&
+          state.toastModel.toast({
+            status: "error",
+            title: error.message || 'Error al obtener predicción',
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+        dispatch.prediccionModel.addValue({ key: "loading", value: false });
+        return null;
+      }
+    },
   }),
 });
 

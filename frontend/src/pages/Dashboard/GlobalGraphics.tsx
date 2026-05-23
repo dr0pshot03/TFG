@@ -120,6 +120,11 @@ export default function GlobalGraphics() {
     return "Todas las asignaturas";
   }, [selectedAsignaturas]);
 
+  const hasActiveFilters =
+    selectedAsignaturaIds.length > 0 ||
+    selectedConvocatorias.length > 0 ||
+    selectedCursos.length > 0;
+
   const toggleValue = (
     value: string,
     selected: string[],
@@ -437,7 +442,7 @@ export default function GlobalGraphics() {
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
       <Link as={RouterLink} to="/" color="blue.600" >
-        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver a la página principal</Text>
+        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver al inicio</Text>
       </Link>
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full">
@@ -447,7 +452,8 @@ export default function GlobalGraphics() {
           </Heading>
         </VStack>
 
-        <Flex
+        {chartData > 0 ? (
+          <Flex
           direction={{ base: "column", md: "row" }}
           align={"center"}
           gap={4}
@@ -463,6 +469,20 @@ export default function GlobalGraphics() {
             minH={"5vh"}>
             Filtros
           </Button>
+
+          {hasActiveFilters && (
+            <Button
+              onClick={handleClearFilters}
+              variant="outline"
+              borderColor="#0055D4"
+              color="#0055D4"
+              borderRadius={"15"}
+              w="25vh"
+              minH={"5vh"}
+            >
+              Limpiar filtros
+            </Button>
+          )}
 
           <Flex flex="1" justify={"flex-end"}>
             <Button
@@ -481,12 +501,14 @@ export default function GlobalGraphics() {
             </Button>
           </Flex>
         </Flex>
-
+        ) : null}
+        
         <Box
           w="100%"
           h={"60vh"}
           minH="320px"
           ref={chartRef}
+          position="relative"
           sx={{
             "& .recharts-wrapper:focus": { outline: "none" },
             "& .recharts-wrapper:focus-visible": { outline: "none" },
@@ -494,91 +516,109 @@ export default function GlobalGraphics() {
             "& .recharts-surface:focus-visible": { outline: "none" },
           }}
         >
-          <Box w="100%" display="flex" justifyContent="center" mb={3}>
-            <Box
-              bg="white"
-              px={3}
-              py={2}
-              display="inline-block"
-              w="fit-content"
-              maxW="100%"
-            >
-              <VStack as="ul" align="start" spacing={1} m={0} p={0} listStyleType="none">
-                <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
-                  <Box as="span" color="#2f6fe4" fontSize="13px" lineHeight="18px" verticalAlign="baseline">
-                    ■
-                  </Box>
-                  <Box as="span" ml={2} verticalAlign="baseline">
-                    Barras: nº de horas
-                  </Box>
-                </Text>
-                <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
-                  <Box as="span" color="#2f6fe4" fontSize="12px" lineHeight="18px" verticalAlign="baseline">
-                    ●
-                  </Box>
-                  <Box as="span" ml={2} verticalAlign="baseline">
-                    Círculos: nº de alumnos presentados
-                  </Box>
-                </Text>
-              </VStack>
+          
+          {chartData.length > 0 ? (
+            <Box w="100%" display="flex" justifyContent="center" mb={3}>
+              <Box
+                bg="white"
+                px={3}
+                py={2}
+                display="inline-block"
+                w="fit-content"
+                maxW="100%"
+              >
+                <VStack as="ul" align="start" spacing={1} m={0} p={0} listStyleType="none">
+                  <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
+                    <Box as="span" color="#2f6fe4" fontSize="13px" lineHeight="18px" verticalAlign="baseline">
+                      ■
+                    </Box>
+                    <Box as="span" ml={2} verticalAlign="baseline">
+                      Barras: nº de horas
+                    </Box>
+                  </Text>
+                  <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
+                    <Box as="span" color="#2f6fe4" fontSize="12px" lineHeight="18px" verticalAlign="baseline">
+                      ●
+                    </Box>
+                    <Box as="span" ml={2} verticalAlign="baseline">
+                      Círculos: nº de alumnos presentados
+                    </Box>
+                  </Text>
+                </VStack>
+              </Box>
             </Box>
-          </Box>
+
+          ) : null}
 
           <Flex w="100%" h="100%" align="stretch" gap={4}>
             <Box flex="1" minW={0}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
-                <ComposedChart data={chartData} barCategoryGap="40%" barGap={8}>
-                  <XAxis dataKey="label" textAnchor="middle" height={60} />
-                  <YAxis
-                    ticks={yAxisTicks}
-                    domain={[0, yAxisTicks[yAxisTicks.length - 1] ?? 0]}
-                    tickFormatter={(value: number) => `${(value / 60).toFixed(1)} h`}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
-                    tickFormatter={(value: number) => `${value}`}
-                  />
-                  <Tooltip
-                    formatter={(value?: number, name?: string) => {
-                      if ((name ?? "").includes("Presentados")) {
-                        return [`${Number(value ?? 0)}`, "Presentados"];
-                      }
-                      return [
-                        formatMinutes(Number(value ?? 0)),
-                        name ?? "Duracion",
-                      ];
-                    }}
-                  />
-
-                  {chartSeries.map((series) => (
-                    <Bar
-                      key={series.key}
-                      dataKey={series.key}
-                      name={series.label}
-                      fill={series.color}
-                      barSize={18}
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
+                  <ComposedChart data={chartData} barCategoryGap="40%" barGap={8}>
+                    <XAxis dataKey="label" textAnchor="middle" height={60} />
+                    <YAxis
+                      ticks={yAxisTicks}
+                      domain={[0, yAxisTicks[yAxisTicks.length - 1] ?? 0]}
+                      tickFormatter={(value: number) => `${(value / 60).toFixed(1)} h`}
                     />
-                  ))}
-                  {chartSeries.map((series) => (
-                    <Line
-                      key={`presentados_${series.key}`}
-                      type="linear"
+                    <YAxis
                       yAxisId="right"
-                      dataKey={`presentados_${series.key}`}
-                      name={`${series.label} (Presentados)`}
-                      stroke={series.color}
-                      strokeWidth={1.5}
-                      strokeDasharray="4 4"
-                      dot={{ r: 7, fill: series.color }}
-                      activeDot={{ r: 9 }}
-                      legendType="none"
-                      connectNulls
+                      orientation="right"
+                      domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
+                      tickFormatter={(value: number) => `${value}`}
                     />
-                  ))}
-                </ComposedChart>
-              </ResponsiveContainer>
+                    <Tooltip
+                      formatter={(value?: number, name?: string) => {
+                        if ((name ?? "").includes("Presentados")) {
+                          return [`${Number(value ?? 0)}`, "Presentados"];
+                        }
+                        return [
+                          formatMinutes(Number(value ?? 0)),
+                          name ?? "Duracion",
+                        ];
+                      }}
+                    />
+
+                    {chartSeries.map((series) => (
+                      <Bar
+                        key={series.key}
+                        dataKey={series.key}
+                        name={series.label}
+                        fill={series.color}
+                        barSize={18}
+                      />
+                    ))}
+                    {chartSeries.map((series) => (
+                      <Line
+                        key={`presentados_${series.key}`}
+                        type="linear"
+                        yAxisId="right"
+                        dataKey={`presentados_${series.key}`}
+                        name={`${series.label} (Presentados)`}
+                        stroke={series.color}
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        dot={{ r: 7, fill: series.color }}
+                        activeDot={{ r: 9 }}
+                        legendType="none"
+                        connectNulls
+                      />
+                    ))}
+                  </ComposedChart>
+                </ResponsiveContainer>
+              ) : (
+                <Box position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" textAlign="center" >
+                  <VStack spacing={3} align="center" mx="auto" maxW="640px">
+                    <Heading as="h3" size="md" color="gray.700">
+                      La gráfica no está disponible
+                    </Heading>
+                    <Text fontSize="sm" color="gray.500">
+                      ¡Prueba a añadir algún exámen en tus asignaturas!
+                    </Text>
+                  </VStack>
+                </Box>
+              )}
+              
             </Box>
 
             <Box w="320px" alignSelf="center" pr={2}>

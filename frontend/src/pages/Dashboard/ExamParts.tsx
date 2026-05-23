@@ -34,6 +34,7 @@ import { NavBar } from "./NavBar";
 import { CreateExamenInput } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
+import { useToast } from "@chakra-ui/react";
 
 export default function Parts() {
   const navigate = useNavigate();
@@ -63,6 +64,8 @@ export default function Parts() {
     dispatch.asignaturaModel.getAsignatura(idAsign!);
   }, [dispatch, id, idAsign]);
 
+  const toast = useToast();
+
   const handleSubmit = async () => {
     const payload= {
       id_asign: id!,
@@ -79,6 +82,14 @@ export default function Parts() {
     await dispatch.examenModel.createExamen(payload);
     await dispatch.examenModel.getExamen(id!);
     setFormValues({ nombre: "", duracion_h: 0, duracion_m: 0 });
+    toast({
+      title: "Examen creado",
+      description: `El examen se ha creado correctamente.`,
+      status: "success",
+      duration: 4000,
+      isClosable: true,
+      position: "top-right",
+    });
     onCloseAdd();
   } catch (e) {
     console.error("Error al guardar cambios", e);
@@ -91,6 +102,15 @@ export default function Parts() {
         if (examen.partes === 1)
         {
           await dispatch.examenModel.deleteExamen(id!)
+          await dispatch.examenModel.getExamen(id!);
+          toast({
+            title: "Examen eliminado",
+            description: `El examen se ha eliminado correctamente.`,
+            status: "success",
+            duration: 4000,
+            isClosable: true,
+            position: "top-right",
+          });
           navigate(`/asignatura/${idAsign}`)
           onCloseDelete();
           return;
@@ -111,6 +131,14 @@ export default function Parts() {
       }
       await dispatch.parteExamenModel.deleteParteExamen(selectedParteExamenId!);
       await dispatch.parteExamenModel.getPartesExamen(id!);
+      toast({
+        title: "Parte eliminada",
+        description: `La parte del examen se ha eliminado correctamente.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
       onCloseDelete();
     } catch (e) {
       console.error("Error al eliminar la asignatura", e);
@@ -131,7 +159,7 @@ export default function Parts() {
 
       const parteActual = partesExamenes.find((parte) => parte.id === selectedParteExamenId);
       const parteActualMin = parteActual
-        ? payload.duracion_h * 60 + payload.duracion_m
+        ? parteActual.duracion_h * 60 + parteActual.duracion_m
         : 0;
 
       const parteNuevaMin = payload.duracion_h * 60 + payload.duracion_m;
@@ -150,6 +178,14 @@ export default function Parts() {
       
       await dispatch.parteExamenModel.updateParteExamen(payload);
       await dispatch.parteExamenModel.getPartesExamen(id!);
+      toast({
+        title: "Parte actualizada",
+        description: `La parte del examen se ha actualizado correctamente.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
       setFormValues({ nombre: "", duracion_h: 0, duracion_m: 0 });
       setSelectedParteExamenId(null);
       onCloseEdit();
@@ -215,7 +251,7 @@ export default function Parts() {
       <NavBar></NavBar>  
       <HStack spacing={1}>
         <Link as={RouterLink} to={`/dashboard`} color="blue.600">
-          <Text fontSize={"md"} mt={"5"} ml={"3"}> &lt;  Dashboard  </Text>
+          <Text fontSize={"md"} mt={"5"} ml={"3"}> &lt;  Volver al inicio </Text>
         </Link>
         <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
           <Text fontSize={"md"} mt={"5"} > &lt; {asignatura?.nombre} </Text>

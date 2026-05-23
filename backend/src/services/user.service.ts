@@ -10,9 +10,15 @@ export interface usuario{
 
 export async function createUser(data: usuario) {
   try {
-    return await prisma.usuario.create({
-      data: {
+    return await prisma.usuario.upsert({
+      where: { clerkId: data.clerkId },
+      create: {
         clerkId: data.clerkId,
+        email: data.email,
+        nombre: data.nombre,
+        apellidos: data.apellidos,
+      },
+      update: {
         email: data.email,
         nombre: data.nombre,
         apellidos: data.apellidos,
@@ -38,26 +44,28 @@ export async function getUser(id: string) {
 
 export async function updateUser(id: string, data: Partial<usuario>) {
   try {
-    const existing = await prisma.usuario.findUnique({ where: { clerkId: id } });
-
-    if (!existing) {
-      throw new Error("Usuario no encontrado");
-    }
-
     const clerkUser = await clerkClient.users.getUser(id).catch(() => null);
 
-    const clerkEmail = clerkUser
+    const nombre = clerkUser?.firstName ?? data.nombre;
+    const apellidos = clerkUser?.lastName ?? data.apellidos;
+    const email = clerkUser
       ? clerkUser.emailAddresses.find(
-          (emailAddress) => emailAddress.id === clerkUser.primaryEmailAddressId
+          (emailAddress) => emailAddress.id === clerkUser.primaryEmailAddressId,
         )?.emailAddress
-      : undefined;
+      : data.email;
 
-    return await prisma.usuario.update({
+    return await prisma.usuario.upsert({
       where: { clerkId: id },
-      data: {
-        nombre: clerkUser?.firstName ?? data.nombre,
-        apellidos: clerkUser?.lastName ?? data.apellidos,
-        email: clerkEmail ?? data.email,
+      create: {
+        clerkId: id,
+        nombre,
+        apellidos,
+        email,
+      },
+      update: {
+        nombre,
+        apellidos,
+        email,
       },
     });
   } catch (error) {

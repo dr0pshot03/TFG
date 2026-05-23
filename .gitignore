@@ -1,3 +1,10 @@
 .history/
 .env
-node_modules
+.env.local
+node_modules/
+backend/generated/
+backend/reports/
+dist/
+build/
+.DS_Store
+ngrok.yml

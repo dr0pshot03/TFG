@@ -9,8 +9,8 @@ export const Convocatoria = {
 } as const;
 
 export const Tipo_Convocatoria = {
-    Ordinaria: "Ordinaria",
-    Extraordinaria: "Extraordinaria"
+    Ordinario: "Ordinario",
+    Especial: "Especial"
 } as const;
 
 export type Convocatoria = typeof Convocatoria[keyof typeof Convocatoria];

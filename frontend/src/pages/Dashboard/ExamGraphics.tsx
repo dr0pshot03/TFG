@@ -23,9 +23,12 @@ import {
   Checkbox,
   Stack,
   SimpleGrid,
+  HStack,
+  useToast
 } from "@chakra-ui/react";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
+import type { historico } from "@/types/historico.type";
 
 import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -37,10 +40,33 @@ import jsPDF from "jspdf";
 export default function ExamGraphics() {
   const dispatch = useDispatch<IDispatch>();
   const { idAsign } = useParams<{ idAsign: string }>();
+  const toast = useToast();
 
   useEffect(() => {
     dispatch.examenModel.getExamenes(idAsign!);
     dispatch.asignaturaModel.getAsignatura(idAsign!);
+  }, [dispatch, idAsign]);
+
+  useEffect(() => {
+    if (!idAsign) {
+      setHistoricosAsignatura([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadHistorico = async () => {
+      const historico = (await dispatch.historicoModel.getHistorico(idAsign)) as historico[] | undefined;
+      if (!cancelled) {
+        setHistoricosAsignatura(historico ?? []);
+      }
+    };
+
+    void loadHistorico();
+
+    return () => {
+      cancelled = true;
+    };
   }, [dispatch, idAsign]);
 
   const asignatura =  useSelector((state: IRootState) => state.asignaturaModel.selectedAsignatura);
@@ -48,6 +74,9 @@ export default function ExamGraphics() {
 
   const chartRef = useRef<HTMLDivElement | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [predictedMap, setPredictedMap] = useState<Record<string, number>>({});
+  const [historicosAsignatura, setHistoricosAsignatura] = useState<historico[]>([]);
   const [selectedConvocatorias, setSelectedConvocatorias] = useState<string[]>([]);
   const [selectedCursos, setSelectedCursos] = useState<string[]>([]);
   const [draftConvocatorias, setDraftConvocatorias] = useState<string[]>([]);
@@ -166,47 +195,70 @@ export default function ExamGraphics() {
       .map((year) => String(year));
   }, [examenes]);
 
+  const mergedChartData = useMemo(() => {
+    return chartData.map((item) => ({ ...item, predicted: predictedMap[item.label] ?? null }));
+  }, [chartData, predictedMap]);
+
+  const hasActiveFilters = Boolean(selectedConvocatorias.length > 0 || selectedCursos.length > 0);
+  const hasHistoricalData = historicosAsignatura.length > 0;
+
+  const isFinished = useMemo(() => {
+    if (!hasHistoricalData) return false;
+    return historicosAsignatura.some((h) => Number(h.n_presentados ?? 0) > 0);
+  }, [historicosAsignatura, hasHistoricalData]);
+
+
   const handleExportPdf = async () => {
     if (!chartRef.current) return;
     setIsExporting(true);
     try {
-      const canvas = await html2canvas(chartRef.current, {
+      const chartElement = chartRef.current;
+
+      if ("fonts" in document) {
+        await (document as Document & { fonts: FontFaceSet }).fonts.ready;
+      }
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+
+      const canvas = await html2canvas(chartElement, {
         scale: 2,
         backgroundColor: "#ffffff",
         useCORS: true,
+        width: chartElement.scrollWidth,
+        height: chartElement.scrollHeight,
+        windowWidth: chartElement.scrollWidth,
+        windowHeight: chartElement.scrollHeight,
       });
       const imgData = canvas.toDataURL("image/png");
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const horizontalPadding = 32;
+      const topPadding = 20;
+      const bottomPadding = 24;
+      const titleHeight = 118;
+      const titleGap = 12;
+      const pageWidth = canvasWidth + horizontalPadding * 2;
+      const pageHeight = canvasHeight + topPadding + titleHeight + titleGap + bottomPadding;
+
       const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "pt",
-        format: "a4",
+        orientation: pageWidth >= pageHeight ? "landscape" : "portrait",
+        unit: "px",
+        format: [pageWidth, pageHeight],
       });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 32;
-      const titleGap = 20;
+
       const title = asignatura?.nombre ?? "Grafica de examenes";
 
-      pdf.setFontSize(30);
+      pdf.setFontSize(76);
       const titleWidth = pdf.getTextWidth(title);
-      const titleX = Math.max((pageWidth - titleWidth) / 2, margin);
-      const titleY = margin+30;
+      const titleX = Math.max((pageWidth - titleWidth) / 2, horizontalPadding);
+      const titleY = topPadding + titleHeight - 20;
       pdf.text(title, titleX, titleY);
 
-      const maxWidth = pageWidth - margin * 2;
-      const maxHeight = pageHeight - titleY - titleGap - margin;
-      let imgWidth = maxWidth;
-      let imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      if (imgHeight > maxHeight) {
-        const scale = maxHeight / imgHeight;
-        imgWidth = imgWidth * scale;
-        imgHeight = imgHeight * scale;
-      }
-
-      const x = (pageWidth - imgWidth) / 2;
-      const y = titleY + titleGap + (maxHeight - imgHeight) / 2;
-      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+      const x = horizontalPadding;
+      const y = topPadding + titleHeight + titleGap;
+      pdf.addImage(imgData, "PNG", x, y, canvasWidth, canvasHeight);
 
       const safeName = (asignatura?.nombre ?? "examenes")
         .replace(/[^a-zA-Z0-9-_]+/g, "_");
@@ -219,9 +271,14 @@ export default function ExamGraphics() {
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar> 
-      <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
-        <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver atrás</Text>
-      </Link>  
+      <HStack spacing={1}>
+        <Link as={RouterLink} to={`/dashboard`} color="blue.600">
+          <Text fontSize={"md"} mt={"5"} ml={"3"}> &lt;  Volver al inicio </Text>
+        </Link>
+        <Link as={RouterLink} to={`/asignatura/${idAsign}`} color="blue.600">
+          <Text fontSize={"md"} mt={"5"} > &lt; {asignatura?.nombre} </Text>
+        </Link>
+      </HStack>  
       {/* --- 1. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
         
@@ -233,8 +290,7 @@ export default function ExamGraphics() {
         </VStack>
 
         <Flex
-          direction={{ base: "column", md: "row" }}
-          align={"center"}
+          direction={{ base: "column", md: "row" }}          align={"center"}
           gap={4}
           mb={8}
         >
@@ -248,6 +304,20 @@ export default function ExamGraphics() {
             minH={"5vh"}>
             Filtros
           </Button>
+
+          {hasActiveFilters && (
+            <Button
+              onClick={handleClearFilters}
+              variant="outline"
+              borderColor="#0055D4"
+              color="#0055D4"
+              borderRadius={"15"}
+              w="25vh"
+              minH={"5vh"}
+            >
+              Limpiar filtros
+            </Button>
+          )}
 
           <Flex flex="1" justify={"flex-end"}>
             <Button
@@ -263,6 +333,68 @@ export default function ExamGraphics() {
             loadingText="Generando"
            >
             Descargar gráfica
+            </Button>
+            <Button
+              ml={3}
+              bgColor="#00A86B"
+              _hover={{ borderColor: "#008a55", boxShadow: "none" }}
+              color="white"
+              borderRadius="15"
+              w="25vh"
+              minH="5vh"
+              onClick={async () => {
+                if (!isFinished) {
+                  toast({
+                    title: "No se puede predecir",
+                    description:
+                      "Necesitas al menos un examen finalizado indicando los alumnos presentados para poder hacer una predicción.",
+                    status: "warning",
+                    duration: 7000,
+                    isClosable: true,
+                    position: "top-right",
+                  });
+                  return;
+                }
+
+                setIsPredicting(true);
+                try {
+                  // construir targets a partir de chartData
+                  const targets = chartData.map((item) => {
+                    const parts = item.label.split(' ');
+                    const convocatoria = parts.slice(0, parts.length - 1).join(' ');
+                    const year = parts[parts.length - 1];
+                    // buscar examen correspondiente para obtener cap (sesion.n_esperados preferido)
+                    const examen = filteredExamenes.find((e) => {
+                      const parsed = new Date(e.fecha_examen as unknown as string);
+                      const y = Number.isNaN(parsed.getTime()) ? 0 : parsed.getFullYear();
+                      return String(y) === year && (e.convocatoria ?? 'Sin convocatoria') === convocatoria;
+                    });
+                    const cap = examen?.sesion?.[0]?.n_esperados ?? examen?.sesion?.[0]?.n_present ?? undefined;
+                    return {
+                      id_asignatura: idAsign,
+                      convocatoria,
+                      curso: year,
+                      cap,
+                    };
+                  });
+
+                  const res = await dispatch.prediccionModel.predictAsignatura({ id: idAsign!, targets });
+                  if (res && Array.isArray(res)) {
+                    const map: Record<string, number> = {};
+                    res.forEach((r: any, idx: number) => {
+                      const label = chartData[idx]?.label;
+                      if (label) map[label] = Number(r.Pred ?? r.pred ?? 0);
+                    });
+                    setPredictedMap(map);
+                  }
+                } finally {
+                  setIsPredicting(false);
+                }
+              }}
+              isLoading={isPredicting}
+              isDisabled={isPredicting}
+            >
+              Predecir presentados
             </Button>
           </Flex>
         </Flex>
@@ -306,13 +438,23 @@ export default function ExamGraphics() {
                     Círculos: nº de alumnos presentados
                   </Box>
                 </Text>
+                {Object.keys(predictedMap).length > 0 && (
+                  <Text as="li" fontSize="xs" lineHeight="18px" m={0} color="gray.800" whiteSpace="nowrap">
+                    <Box as="span" color="#FF6B6B" fontSize="12px" lineHeight="18px" verticalAlign="baseline">
+                      ●
+                    </Box>
+                    <Box as="span" ml={2} verticalAlign="baseline">
+                      Predicción: predicción de nº alumnos presentados
+                    </Box>
+                  </Text>
+                )}
               </VStack>
             </Box>
           </Box>
 
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
-                data={chartData}
+                data={mergedChartData}
                 barCategoryGap="40%"
                 barGap={8}
                 margin={{ top: 20, right: 20, left: 10, bottom: 10 }}
@@ -334,6 +476,10 @@ export default function ExamGraphics() {
                     if (name === "presentados") {
                       return [`${Number(value ?? 0)}`, "Presentados"];
                     }
+                    if (name === "predicted") {
+                      return [`${Number(value ?? 0)}`, "Predicción presentados"];
+                    }
+                    // minutos (duración)
                     const minutes = Number(value ?? 0);
                     const hours = Math.floor(minutes / 60);
                     const mins = Math.round(minutes % 60);
@@ -350,6 +496,15 @@ export default function ExamGraphics() {
                   strokeDasharray="4 4"
                   dot={{ r: 7, fill: "#616161" }}
                   activeDot={{ r: 9 }}
+                />
+                <Line
+                  type="linear"
+                  yAxisId="right"
+                  dataKey="predicted"
+                  stroke="#FF6B6B"
+                  strokeWidth={2}
+                  dot={{ r: 6, fill: "#FF6B6B" }}
+                  activeDot={{ r: 8 }}
                 />
               </ComposedChart>
             </ResponsiveContainer>

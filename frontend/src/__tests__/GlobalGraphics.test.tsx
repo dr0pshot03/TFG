@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { vi } from "vitest";
+import { beforeEach, vi } from "vitest";
 import { Provider as ChakraProviderWrapper } from "@/components/ui/provider";
 import GlobalGraphics from "@pages/Dashboard/GlobalGraphics";
 
@@ -65,6 +65,11 @@ vi.mock("jspdf", () => ({
 }));
 
 describe("GlobalGraphics", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    apiGetMock.mockResolvedValue({ data: [] });
+  });
+
   it("Carga las asignaturas y muestra los controles principales", async () => {
     render(
       <ChakraProviderWrapper>
@@ -81,5 +86,39 @@ describe("GlobalGraphics", () => {
     expect(screen.getByText("Gráfica Histórica de los Tiempos de Exámenes")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Filtros" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Descargar gráfica" })).toBeInTheDocument();
+  });
+
+  it("muestra limpiar filtros tras aplicar filtros", async () => {
+    apiGetMock.mockResolvedValueOnce({
+      data: [
+        {
+          id_asign: "asig-1",
+          convocatoria: "Febrero",
+          fecha_examen: "2026-01-15T00:00:00.000Z",
+          duracion_h: 1,
+          duracion_m: 30,
+          sesion: [{ n_present: 12 }],
+        },
+      ],
+    });
+
+    render(
+      <ChakraProviderWrapper>
+        <MemoryRouter>
+          <GlobalGraphics />
+        </MemoryRouter>
+      </ChakraProviderWrapper>,
+    );
+
+    await waitFor(() => {
+      expect(getAsignaturasMock).toHaveBeenCalledWith("user-123");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByText("Matemáticas"));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Filtrar" }));
+
+    expect(await screen.findByRole("button", { name: "Limpiar filtros" })).toBeInTheDocument();
   });
 });

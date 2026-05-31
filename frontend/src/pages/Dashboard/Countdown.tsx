@@ -94,7 +94,7 @@ export default function Countdown() {
 
   useEffect(() => {
     onOpen25();
-  }, [onOpen25]);
+  }, [onOpen25]); 
 
   useEffect(() => {
     if (idAsign) dispatch.asignaturaModel.getAsignatura(idAsign);
@@ -113,7 +113,7 @@ export default function Countdown() {
     );
   }, []);
 
-  // --- FUNCIÓN HELPER PARA FORMATEAR (HH:MM:SS) ---
+  // FUNCIÓN HELPER PARA FORMATEAR (HH:MM:SS)
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -377,7 +377,7 @@ export default function Countdown() {
                 value={Math.max(0, Math.min(progressWith25, 100))}
                 color={countdownColor}
                 size="50vh"
-                thickness="8px"
+                thickness="5.8px"
                 capIsRound
                 trackColor="gray.100"
                 position="absolute"
@@ -390,7 +390,7 @@ export default function Countdown() {
               value={Math.max(0, Math.min(progress, 100))}
               color={countdownColor25}
               size={hasExtra25 ? "44vh" : "50vh"}
-              thickness="8px"
+              thickness={hasExtra25 ? "5px" : "8px"}
               capIsRound
               trackColor="gray.100"
               position={hasExtra25 ? "absolute" : "relative"}

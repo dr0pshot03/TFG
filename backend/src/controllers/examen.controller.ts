@@ -60,8 +60,8 @@ export async function getExamen(req: Request, res: Response){
 export async function updateConvocatoriaExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
-        await examenService.updateConvocatoriaExamen(id, req.body);
-        res.status(200).json({"message": "Convocatoria actualizada correctamente"});
+        const examen = await examenService.updateConvocatoriaExamen(id, req.body);
+        res.status(200).json(examen);
     }catch(error)
     {
         console.error("Error al actualizar el examen", error);
@@ -96,8 +96,8 @@ export async function updateTiempoExamen(req: Request, res: Response){
 export async function updateEstadoExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
-        await examenService.updateEstadoExamen(id);
-        res.status(200).json({"message": "Estado examen actualizado correctamente"});
+        const examen = await examenService.updateEstadoExamen(id);
+        res.status(200).json(examen);
     }catch(error)
     {
         console.error("Error al actualizar el examen", error);
@@ -115,7 +115,7 @@ export async function updateExamen(req: Request, res: Response){
     try{
         const id = req.params.id;
         const examen = await examenService.updateExamen(id, req.body);
-        res.status(200).json({"message": "Examen actualizado correctamente"});
+        res.status(200).json(examen);
     }catch(error)
     {
         console.error("Error al actualizar el examen", error);

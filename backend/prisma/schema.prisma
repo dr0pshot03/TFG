@@ -151,9 +151,15 @@ model Evento{
 model Prediccion{
   id String @id @default(uuid()) @db.Uuid
   id_sesion String @db.Uuid
+  curso String?
+  convocatoria String?
   asistencia_estimada Int
   aulas_necesarias Int
   nivel_confianza Decimal
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   sesion Sesion @relation(fields: [id_sesion], references: [id], onDelete: Cascade)
+
+  @@index([id_sesion])
 }

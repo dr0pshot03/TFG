@@ -1,6 +1,8 @@
 export interface prediccion {
     id: string;
-    id_sesion: string;
+  id_sesion?: string | null;
+  curso?: string | null;
+  convocatoria?: string | null;
     asistencia_estimada: number;
     aulas_necesarias: number;
     nivel_confianza: number;   

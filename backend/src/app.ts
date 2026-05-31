@@ -30,7 +30,7 @@ app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(clerkMiddleware());
 
-// Routes
+// Rutas
 app.use("/api/usuario", usuarioRoutes);
 app.use("/api/asignaturas", asignaturasRoutes);
 app.use("/api/examen", examenRoutes);
@@ -41,7 +41,7 @@ app.use("/api/evento", eventoRoutes);
 app.use("/api/prediccion", prediccionRoutes);
 
 
-// Global error handler
+// Manejo de errores global
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err);
   if (process.env.NODE_ENV === "development") {

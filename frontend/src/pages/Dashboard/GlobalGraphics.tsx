@@ -259,7 +259,6 @@ export default function GlobalGraphics() {
     return map;
   }, [subjectsForChart]);
 
-  // Filtra los datos según el usuario elija
   const filteredExamenes = useMemo(() => {
     return allExamenes.filter((examen) => {
       if (selectedAsignaturaIds.length > 0 && !selectedAsignaturaIds.includes(examen.id_asign)) {
@@ -333,7 +332,6 @@ export default function GlobalGraphics() {
       .map(({ label, ...rest }) => ({ label, ...rest }));
   }, [filteredExamenes, subjectSeriesKeyById]);
 
-  // Prepara el eje Y, haciendo que vaya de 0.5 en 0.5
   const yAxisTicks = useMemo(() => {
     const step = 30;
     const seriesKeys = chartSeries.map((series) => series.key);
@@ -444,7 +442,7 @@ export default function GlobalGraphics() {
       <Link as={RouterLink} to="/" color="blue.600" >
         <Text fontSize={"md"} mt={"5"} ml={"3"} >&lt; Volver al inicio</Text>
       </Link>
-      {/* --- 1. CONTENIDO PRINCIPAL --- */}
+
       <Container maxW="full">
         <VStack align="center" spacing={2} mb={6} textAlign="center" marginBottom={"85"}>
           <Heading as="h1" size="lg">
@@ -452,7 +450,7 @@ export default function GlobalGraphics() {
           </Heading>
         </VStack>
 
-        {chartData > 0 ? (
+        {chartData.length > 0 ? (
           <Flex
           direction={{ base: "column", md: "row" }}
           align={"center"}

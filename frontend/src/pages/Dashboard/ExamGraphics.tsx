@@ -290,7 +290,8 @@ export default function ExamGraphics() {
         </VStack>
 
         <Flex
-          direction={{ base: "column", md: "row" }}          align={"center"}
+          direction={{ base: "column", md: "row" }}          
+          align={"center"}
           gap={4}
           mb={8}
         >
@@ -358,12 +359,10 @@ export default function ExamGraphics() {
 
                 setIsPredicting(true);
                 try {
-                  // construir targets a partir de chartData
                   const targets = chartData.map((item) => {
                     const parts = item.label.split(' ');
                     const convocatoria = parts.slice(0, parts.length - 1).join(' ');
                     const year = parts[parts.length - 1];
-                    // buscar examen correspondiente para obtener cap (sesion.n_esperados preferido)
                     const examen = filteredExamenes.find((e) => {
                       const parsed = new Date(e.fecha_examen as unknown as string);
                       const y = Number.isNaN(parsed.getTime()) ? 0 : parsed.getFullYear();

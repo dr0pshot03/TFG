@@ -32,7 +32,7 @@ app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(clerkMiddleware());
 
-// Routes
+// Rutas
 app.use("/api/usuario", usuarioRoutes);
 app.use("/api/asignaturas", asignaturasRoutes);
 app.use("/api/examen", examenRoutes);
@@ -43,7 +43,7 @@ app.use("/api/evento", eventoRoutes);
 app.use("/api/prediccion", prediccionRoutes);
 
 
-// Global error handler
+// Manejo de errores globales
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Detailed error information:");
   console.error("Error name:", err.name);
@@ -52,7 +52,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Request path:", req.path);
   console.error("Request method:", req.method);
 
-  // Send a more informative error response in development
+  // Enviar una respuesta de error más informativa en desarrollo
   if (process.env.NODE_ENV === "development") {
     res.status(500).json({
       error: err.message,
@@ -65,7 +65,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Handle graceful shutdown
+// Manejo de apagado ordenado
 process.on("SIGTERM", async () => {
   console.log(
     "SIGTERM received. Closing HTTP server and database connection...",

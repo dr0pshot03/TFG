@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
 import { useParams } from "react-router-dom";
 import { 
-  Box, Container, Flex, HStack, Icon, Text, Spacer, Heading, Button, VStack, SimpleGrid, useDisclosure, Modal,
+  Box, Container, Flex, HStack, Text, Heading, Button, VStack, useDisclosure, Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
@@ -12,17 +12,12 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Textarea,
-  Image,
   Table,
   TableContainer,
   Thead,
   Tbody,
   Tr,
   Td,
-  InputGroup,
-  InputLeftElement,
-  InputRightElement,
   Select,
   Link,
   IconButton,
@@ -31,7 +26,6 @@ import {
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { IRootState, IDispatch } from "../../store/store"; 
 import { NavBar } from "./NavBar";
-import { CreateExamenInput } from "@/types/examen.type";
 import { useNavigate } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
 import { useToast } from "@chakra-ui/react";
@@ -42,7 +36,6 @@ export default function Parts() {
   const { id } = useParams<{ id: string }>();
   const { idAsign } = useParams<{ idAsign: string }>();
   
-  const { isOpen: isOpenAdd, onOpen: onOpenAdd, onClose: onCloseAdd } = useDisclosure();
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
   const { isOpen: isOpenDelete, onOpen: onOpenDelete, onClose: onCloseDelete } = useDisclosure();
 
@@ -65,36 +58,6 @@ export default function Parts() {
   }, [dispatch, id, idAsign]);
 
   const toast = useToast();
-
-  const handleSubmit = async () => {
-    const payload= {
-      id_asign: id!,
-      duracion_h: formValues.duracion_h,
-      duracion_m: formValues.duracion_m,
-      anno: new Date().getFullYear(),
-      partes: [],
-      convocatoria: "",
-      fecha_examen: new Date(),
-      aula: ""
-    }; 
-
-  try {
-    await dispatch.examenModel.createExamen(payload);
-    await dispatch.examenModel.getExamen(id!);
-    setFormValues({ nombre: "", duracion_h: 0, duracion_m: 0 });
-    toast({
-      title: "Examen creado",
-      description: `El examen se ha creado correctamente.`,
-      status: "success",
-      duration: 4000,
-      isClosable: true,
-      position: "top-right",
-    });
-    onCloseAdd();
-  } catch (e) {
-    console.error("Error al guardar cambios", e);
-  }
-  };
 
   const handleDelete = async () => {
     try {
@@ -202,10 +165,6 @@ export default function Parts() {
     }));
   };
 
-  const handleCloseAdd = () => {
-    setFormValues({ nombre: "", duracion_h: 0, duracion_m: 0 });
-    onCloseAdd();
-  };
 
   const handleOpenEdit = (parteExamen: any) => {
     setSelectedParteExamenId(parteExamen.id);

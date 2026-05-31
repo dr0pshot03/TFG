@@ -251,7 +251,7 @@ export default function Login() {
         }
       }
 
-      setError(message ?? "Ocurrio un error. Revisa los datos.");
+      setError(message ?? "Ocurrió un error. Revisa los datos.");
     } finally {
       setIsLoading(false);
     }

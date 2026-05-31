@@ -45,10 +45,8 @@ export default function Dashboard() {
 
   const { user } = useUser();
 
-  //const asignaturas = [];
   const asignaturas =  useSelector((state: IRootState) => state.asignaturaModel.asignaturas);
 
-  //const user= useSelector((state: IRootState) => state.userModel.user);
   const NombreUsuario = user?.firstName || "Cargando...";
   const ApellidosUsuario = user?.lastName || "";
 
@@ -226,9 +224,8 @@ export default function Dashboard() {
 
       setExportExamenes(examenesAsignatura);
 
-      // Esperar a que React renderice la tabla en el DOM
       await new Promise<void>((resolve) => {
-        setTimeout(resolve, 300); // Un pequeño delay suele ser más fiable que requestAnimationFrame para estilos complejos
+        setTimeout(resolve, 300); 
       });
 
       const tableElement = document.getElementById("tabla-asignatura-pdf");
@@ -238,7 +235,7 @@ export default function Dashboard() {
         scale: 3, // Subimos a 3 para máxima nitidez en textos pequeños
         backgroundColor: "#ffffff",
         useCORS: true,
-        windowWidth: 1400, // Forzamos un ancho de ventana para que la tabla no se colapse
+        windowWidth: 1400, // Forzamos un ancho de ventana para que la tabla no colapse
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -320,7 +317,6 @@ export default function Dashboard() {
   return (
     <Box bg="white" w="100%" minH="100vh"> 
       <NavBar></NavBar>   
-      {/* --- 2. CONTENIDO PRINCIPAL --- */}
       <Container maxW="full" py={10}>
         
         {/* Encabezado: Saludo y Botón Principal */}
@@ -520,7 +516,7 @@ export default function Dashboard() {
                 <Tr bg="shade.2" w="100%">
                   <Td borderTopLeftRadius="12px" color="shade.1" textAlign="center" w={"15%"} fontWeight={"bold"}> Fecha Examen</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Convocatoria</Td>
-                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Tipo de Convocatoria</Td>
+                  <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Tipo de Llamamiento</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Partes</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Duración</Td>
                   <Td color="shade.1" textAlign="center" w={"10%"} fontWeight={"bold"}> Alumnos Esperados</Td>

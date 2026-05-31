@@ -82,7 +82,7 @@ export async function updateTiempoParte(req: Request, res: Response){
         const { idParte } = req.params;
         const tiempoExtra = Number(req.body?.tiempoExtra ?? 0);
         await partesExamenService.updateTiempoParte(idParte, tiempoExtra);
-        res.status(200).json({"message" : "Se ha actualizado correctamente la duracion de la parte del examen"});
+        res.status(200).json({"message" : "Se ha actualizado correctamente la duración de la parte del examen"});
     }catch(error)
     {
         console.error("Error al actualizar la duración de la parte del examen", error);

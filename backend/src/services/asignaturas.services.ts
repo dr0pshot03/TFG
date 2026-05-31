@@ -12,7 +12,7 @@ export async function createAsignatura(data: asignatura) {
             throw new Error("El user_id es obligatorio");
         }
 
-        // Garantiza la FK: crea un usuario minimo si aun no existe.
+        // Garantiza la FK creando un usuario minimo si aun no existe.
         await prisma.usuario.upsert({
             where: { clerkId: data.user_id },
             update: {},
@@ -71,16 +71,20 @@ export async function updateAsignatura(id: string, data: Partial<asignatura>){
         if (!id) {
             throw new Error("El id es obligatorio");
         }
+
         const {
             nombre,
             descripcion,
         } = data;
+
         const asignatura = await prisma.asignatura.findUnique({
             where:{ id : id}
         });
+
         if (!asignatura) {
             throw new Error("Asignatura no encontrada");
         }
+
         return await prisma.asignatura.update({
             where:{ id : id},
             data: {
@@ -96,15 +100,18 @@ export async function updateAsignatura(id: string, data: Partial<asignatura>){
 
 export async function deleteAsignatura(id: string){
     try {
+        
         if (!id) {
             throw new Error("El id es obligatorio");
         }
         const asignatura = await prisma.asignatura.findUnique({
             where:{ id : id}
         });
+
         if (!asignatura) {
             throw new Error("Asignatura no encontrada");
         }
+
         return await prisma.asignatura.delete({
             where:{ id : id}
         });

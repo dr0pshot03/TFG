@@ -4,7 +4,7 @@ import { requireAuth } from "@clerk/express";
 
 const router = Router();
 
-// Calcular predicción a partir de id_asignatura (historial se obtiene internamente)
+// Calcular predicción a partir de id_asignatura
 router.post('/asignatura/:idAsign', prediccionController.computeForAsignatura);
 
 // Crea predicción

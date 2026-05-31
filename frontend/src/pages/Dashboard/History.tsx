@@ -519,15 +519,15 @@ export default function History() {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Tipo de Convocatoria</FormLabel>
+                <FormLabel>Tipo de Llamamiento</FormLabel>
                 <Select
                   name="tipoConvocatoria"
                   value={filtersValues.tipoConvocatoria}
                   onChange={handleFiltersChange}
                   placeholder="Todos"
                 >
-                  <option value="Ordinaria">Ordinaria</option>
-                  <option value="Extraordinaria">Extraordinaria</option>
+                  <option value="Ordinario">Ordinario</option>
+                  <option value="Especial">Especial</option>
                 </Select>
               </FormControl>
 

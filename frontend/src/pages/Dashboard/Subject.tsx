@@ -273,7 +273,6 @@ export default function Subject() {
       const numPartes = parseInt(value) || 0;
       setFormValues(prev => ({ ...prev, [name]: numPartes }));
       
-      // Inicializar las partes con valores vacíos
       const newPartes = Array.from({ length: numPartes }, (_, i) => ({
         nombre: `Parte ${i + 1}`,
         duracion_h: 0,
@@ -468,7 +467,6 @@ export default function Subject() {
       onCloseOptions();
       onCloseDelete();
 
-      // Limpiar estado local relacionado
       setHistoricoRelacionadoPresentados(null);
     } catch (e) {
       console.error("Error al eliminar la asignatura", e);
@@ -654,7 +652,7 @@ export default function Subject() {
       <Link as={RouterLink} to={`/`} color="blue.600">
         <Text fontSize={"md"} mt={"5"} ml={"3"} > &lt;  Volver al inicio </Text>
       </Link>
-      {/* --- 2. CONTENIDO PRINCIPAL --- */}
+
       <Container maxW="full" py={10}>
         
         <Flex 

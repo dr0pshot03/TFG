@@ -9,9 +9,11 @@ import path from 'path';
 export interface prediccion {
     id: string;
     id_sesion: string;
+    curso?: string | null;
+    convocatoria?: string | null;
     asistencia_estimada: number;
     aulas_necesarias: number;
-    nivel_confianza: number;   
+    nivel_confianza: number;
 }
 
 export async function createPrediccion(data: prediccion) {
@@ -25,13 +27,20 @@ export async function createPrediccion(data: prediccion) {
         return await prisma.prediccion.create({
             data: {
                 id_sesion: data.id_sesion,
+                curso: data.curso ?? null,
+                convocatoria: data.convocatoria ?? null,
                 asistencia_estimada: data.asistencia_estimada,
                 aulas_necesarias: data.aulas_necesarias,
                 nivel_confianza: data.nivel_confianza,
             }
         });
     } catch (error) {
-        if (error instanceof Error && error.message === "Sesión no encontrada") {
+        if (
+            error instanceof Error &&
+            (
+                error.message === "Sesión no encontrada"
+            )
+        ) {
             throw error;
         }
 
@@ -80,6 +89,36 @@ export async function getAllPredicciones(idSesion: string){
         console.error("Error al obtener las predicciones", error);
         throw new Error("No se pudo obtener las predicciones");
     }
+}
+
+async function savePrediccionesAsignatura(
+    targets: Target[],
+    resultados: Array<{ Pred?: number; pred_mean?: number; std?: number }>,
+    aulasNecesariasPorConv: Map<string, number>,
+    sessionIds: Array<string | null>
+) {
+    if (!targets.length || !resultados.length) return;
+
+    const data = resultados.map((resultado, index) => {
+        const target = targets[index];
+        const idSesion = sessionIds[index] ?? null;
+        const convocatoria = String(target?.convocatoria ?? '').toUpperCase();
+        const asistenciaEstim = Number(resultado.Pred ?? resultado.pred_mean ?? 0);
+        const confianza = resultado.std !== undefined
+            ? Math.max(0, Math.min(100, Math.round((1 - Math.min(1, Number(resultado.std))) * 100)))
+            : 0;
+
+        return {
+            id_sesion: idSesion,
+            curso: String(target?.curso ?? ''),
+            convocatoria: convocatoria || null,
+            asistencia_estimada: Number.isFinite(asistenciaEstim) ? Math.round(asistenciaEstim) : 0,
+            aulas_necesarias: (asistenciaEstim / 30) < 1 ? 1 : (asistenciaEstim / 30),
+            nivel_confianza: confianza,
+        };
+    });
+
+    await prisma.prediccion.createMany({ data });
 }
 
 export async function updatePrediccion(id: string, data: any) {
@@ -299,7 +338,7 @@ export async function computeFromHistorial(historial: HistRow[], targets?: Targe
             semestre: (h as any).semestre ?? undefined,
         }));
 
-        // 7) Intentar obtener capacidad esperada desde los examenes existentes
+        // 6) Intentar obtener capacidad esperada desde los examenes existentes
         const examCapsByAsig = new Map<string, Map<string, number>>();
         for (const asig of Array.from(lastMatriculadosByAsig.keys())) {
             try {
@@ -319,7 +358,7 @@ export async function computeFromHistorial(historial: HistRow[], targets?: Targe
             }
         }
 
-        // 6) construir caps alineado con entradas y delegar en computePrediccion enviando train + entradas + caps
+        // 7) construir caps alineado con entradas y delegar en computePrediccion enviando train + entradas + caps
         const caps: Array<number | null> = generatedTargets.map((t) => {
             const asign = t.id_asignatura;
             // prioridad: explicit target.cap
@@ -438,8 +477,43 @@ export async function computeForAsignatura(id_asignatura: string, options?: { ta
             }
         }
 
+        const examenesAsig = await getAllExamenes(id_asignatura).catch(() => []);
+        const aulasNecesariasPorConv = new Map<string, number>();
+        const sessionIdsByTarget: Array<string | null> = [];
+
+        const latestSessionId = examenesAsig
+            .flatMap((ex: any) => ex.sesion ?? [])
+            .sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+            [0]?.id ?? null;
+
+        for (const ex of examenesAsig) {
+            const conv = String(ex.convocatoria ?? '').toUpperCase();
+            const roomCount = Math.max(1, ex.aulaAlumnos?.length ?? 0);
+            const current = aulasNecesariasPorConv.get(conv) ?? 0;
+            aulasNecesariasPorConv.set(conv, Math.max(current, roomCount));
+        }
+
+        for (const target of targets) {
+            const targetConv = String(target.convocatoria ?? '').toUpperCase();
+            const targetCurso = String(target.curso ?? '').trim();
+            const matchedExam = examenesAsig.find((ex: any) => {
+                const examYear = new Date(ex.fecha_examen).getFullYear();
+                const examConv = String(ex.convocatoria ?? '').toUpperCase();
+                return examConv === targetConv && String(examYear) === targetCurso;
+            });
+
+            const matchedSession = matchedExam?.sesion?.[0]?.id ?? null;
+            sessionIdsByTarget.push(matchedSession ?? latestSessionId);
+        }
+
         // Delega en computeFromHistorial
-        return await computeFromHistorial(historial as any, targets as any, { debug: options?.debug });
+        const resultados = await computeFromHistorial(historial as any, targets as any, { debug: options?.debug });
+
+        if (!options?.debug && Array.isArray(resultados) && resultados.length > 0) {
+            await savePrediccionesAsignatura(targets, resultados as any, aulasNecesariasPorConv, sessionIdsByTarget);
+        }
+
+        return resultados;
     } catch (error) {
         console.error('Error en computeForAsignatura', error);
         throw error;

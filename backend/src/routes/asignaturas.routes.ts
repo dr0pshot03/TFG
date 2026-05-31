@@ -5,18 +5,18 @@ import * as asignaturasController from "../controllers/asignaturas.controller.ts
 const router = Router();
 
 // Crea una asignatura
-router.post("/", /*requireAuth,*/ asignaturasController.createAsignatura);
+router.post("/", asignaturasController.createAsignatura);
 
 // Obtener todas las asignaturas
-router.get("/usuario/:userId", /*requireAuth,*/ asignaturasController.getAllAsignaturas);
+router.get("/usuario/:userId", asignaturasController.getAllAsignaturas);
 
 // Obtener una asignatura
-router.get("/:id", /*requireAuth,*/ asignaturasController.getAsignatura);
+router.get("/:id", asignaturasController.getAsignatura);
 
 // Actualizar asignatura
-router.put("/:id", /*requireAuth,*/ asignaturasController.updateAsignatura);
+router.put("/:id", asignaturasController.updateAsignatura);
 
 // Eliminar asignatura
-router.delete("/:id", /*requireAuth,*/ asignaturasController.deleteAsignatura);
+router.delete("/:id", asignaturasController.deleteAsignatura);
 
 export default router;

@@ -84,7 +84,8 @@ export default function Subject() {
     partes: 0,
     fecha_examen: "",
     n_esperados: 0,
-    tipoConvocatoria: ""
+    tipoConvocatoria: "",
+    estadoFinalizacion: "todos"
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -92,7 +93,8 @@ export default function Subject() {
     partes: 0,
     fecha_examen: "",
     n_esperados: 0,
-    tipoConvocatoria: ""
+    tipoConvocatoria: "",
+    estadoFinalizacion: "todos"
   });
   
   const [editExamenValues, setEditExamenValues] = useState({
@@ -486,8 +488,8 @@ export default function Subject() {
   };
 
   const handleClearFilters = () => {
-    setFiltersValues({ convocatoria: "", partes: 0, fecha_examen: "", n_esperados: 0, tipoConvocatoria: "" });
-    setAppliedFilters({ convocatoria: "", partes: 0, fecha_examen: "", n_esperados: 0, tipoConvocatoria: "" });
+    setFiltersValues({ convocatoria: "", partes: 0, fecha_examen: "", n_esperados: 0, tipoConvocatoria: "", estadoFinalizacion: "todos" });
+    setAppliedFilters({ convocatoria: "", partes: 0, fecha_examen: "", n_esperados: 0, tipoConvocatoria: "", estadoFinalizacion: "todos" });
   };
 
   const handleApplyFilters = () => {
@@ -500,12 +502,13 @@ export default function Subject() {
     appliedFilters.partes ||
     appliedFilters.fecha_examen ||
     appliedFilters.n_esperados ||
-    appliedFilters.tipoConvocatoria
+    appliedFilters.tipoConvocatoria ||
+    appliedFilters.estadoFinalizacion !== "todos"
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [value, appliedFilters.convocatoria, appliedFilters.partes, appliedFilters.fecha_examen, appliedFilters.n_esperados, appliedFilters.tipoConvocatoria, examenes.length]);
+  }, [value, appliedFilters.convocatoria, appliedFilters.partes, appliedFilters.fecha_examen, appliedFilters.n_esperados, appliedFilters.tipoConvocatoria, appliedFilters.estadoFinalizacion, examenes.length]);
 
   const normalizedSearch = value.trim().toLowerCase();
 
@@ -529,6 +532,14 @@ export default function Subject() {
     }
 
     if (appliedFilters.tipoConvocatoria && examen.tipo_convocatoria !== appliedFilters.tipoConvocatoria) {
+      return false;
+    }
+
+    if (appliedFilters.estadoFinalizacion === "finalizados" && !examen.finalizado) {
+      return false;
+    }
+
+    if (appliedFilters.estadoFinalizacion === "noFinalizados" && examen.finalizado) {
       return false;
     }
 
@@ -1622,7 +1633,7 @@ export default function Subject() {
                   </FormControl>
                   <FormControl>
                     <Flex justify={"space-between"} gap={4}>
-                      <Box w="100%">
+                      <Box w="50%">
                         <FormLabel fontWeight="semibold">Tipo de Llamamiento</FormLabel>
                         <Select
                           id="tipoConvocatoria" 
@@ -1638,6 +1649,22 @@ export default function Subject() {
                           <option value="Especial">Especial</option>
                         </Select>
                       </Box>
+                      <Box w="50%">
+                      <FormLabel fontWeight="semibold">Estado del examen</FormLabel>
+                      <Select
+                        id="estadoFinalizacion"
+                        name="estadoFinalizacion"
+                        value={filtersValues.estadoFinalizacion}
+                        onChange={handleFiltersChange}
+                        size="lg"
+                        borderRadius="xl"
+                        focusBorderColor="blue.500"
+                      >
+                        <option value="todos">Todos</option>
+                        <option value="finalizados">Solo finalizados</option>
+                        <option value="noFinalizados">Solo no finalizados</option>
+                      </Select>
+                    </Box>
                     </Flex>
                   </FormControl>
                   </VStack>

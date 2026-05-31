@@ -452,7 +452,7 @@ export default function GlobalGraphics() {
           </Heading>
         </VStack>
 
-        {chartData > 0 ? (
+        {chartData.length > 0 ? (
           <Flex
           direction={{ base: "column", md: "row" }}
           align={"center"}
